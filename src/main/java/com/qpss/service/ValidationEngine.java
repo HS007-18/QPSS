@@ -36,48 +36,48 @@ public class ValidationEngine {
             String examType,
             Long subjectId,
             Long sessionId,
-            List<Question> twoMark,
-            List<PairingEngine.QuestionPair> pairs) {
+            Integer partA,
+            Integer partB,
+            List<Question> sectionA,
+            List<PairingEngine.QuestionPair> sectionBPairs) {
 
         List<String> failures = new ArrayList<>();
-        com.qpss.service.distribution.DistributionPlan plan = examConfigService.getDistributionPlan(examType);
+        com.qpss.service.distribution.DistributionPlan plan = examConfigService.getDistributionPlan(examType, partA, partB);
         Set<String> requiredCOs = coRuleRepo.findByExamType(examType).stream()
                 .map(r -> r.getCo())
                 .collect(Collectors.toSet());
 
-        if (twoMark.size() != 10) {
-            failures.add("Section A must have 10 questions, got " + twoMark.size());
+        long expectedSectionA = plan.getSections().stream()
+                .filter(s -> s.getMarks() == 2).findFirst().map(s -> (long) s.getTotalRequired()).orElse(0L);
+        long expectedSectionBPairs = plan.getSections().stream()
+                .filter(s -> s.getMarks() == 16).findFirst().map(s -> (long) s.getTotalRequired() / 2).orElse(0L);
+
+        if (sectionA.size() != expectedSectionA) {
+            failures.add("Section A must have " + expectedSectionA + " questions, got " + sectionA.size());
         }
 
-        if (pairs.size() != 5) {
-            failures.add("Section B must have 5 A/B pairs, got " + pairs.size());
+        if (sectionBPairs.size() != expectedSectionBPairs) {
+            failures.add("Section B must have " + expectedSectionBPairs + " A/B pairs, got " + sectionBPairs.size());
         }
 
         Set<Long> allIds = new HashSet<>();
-        List<Question> allQuestions = new ArrayList<>(twoMark);
+        List<Question> allQuestions = new ArrayList<>(sectionA);
 
-        for (Question q : twoMark) {
+        for (Question q : sectionA) {
             if (q.getMarks() != 2) {
                 failures.add("Section A Q" + q.getId() + " has marks=" + q.getMarks());
             }
-            if (!q.getSubjectId().equals(subjectId)) {
-                failures.add("Q" + q.getId() + " wrong subject");
-            }
-            if (!q.getSessionId().equals(sessionId)) {
-                failures.add("Q" + q.getId() + " wrong session");
-            }
-            if (!allIds.add(q.getId())) {
-                failures.add("Duplicate question ID: " + q.getId());
-            }
+            if (!q.getSubjectId().equals(subjectId)) failures.add("Q" + q.getId() + " wrong subject");
+            if (!q.getSessionId().equals(sessionId)) failures.add("Q" + q.getId() + " wrong session");
+            if (!allIds.add(q.getId())) failures.add("Duplicate question ID: " + q.getId());
         }
 
-        for (PairingEngine.QuestionPair pair : pairs) {
+        for (PairingEngine.QuestionPair pair : sectionBPairs) {
             Question a = pair.getChoiceA();
             Question b = pair.getChoiceB();
 
             if (a.getMarks() != 16) failures.add("Pair " + pair.getPairIndex() + " choice A not 16M");
             if (b.getMarks() != 16) failures.add("Pair " + pair.getPairIndex() + " choice B not 16M");
-
             if (a.getUnit() != b.getUnit()) {
                 failures.add("Pair " + pair.getPairIndex() + " mixed units: " + a.getUnit() + "/" + b.getUnit());
             }
@@ -90,28 +90,42 @@ public class ValidationEngine {
             }
         }
 
-        Map<String, Map<Integer, Long>> distribution = new HashMap<>();
+        Map<String, Map<Integer, Map<Integer, Long>>> distribution = new HashMap<>();
         for (Question q : allQuestions) {
             String markKey = q.getMarks() + "M";
-            distribution.computeIfAbsent(markKey, k -> new HashMap<>())
-                    .merge(q.getUnit(), 1L, Long::sum);
+            distribution
+                .computeIfAbsent(markKey, k -> new HashMap<>())
+                .computeIfAbsent(q.getUnit(), k -> new HashMap<>())
+                .merge(q.getT(), 1L, Long::sum);
         }
 
         for (com.qpss.service.distribution.DistributionPlan.SectionPlan sp : plan.getSections()) {
             String markKey = sp.getMarks() + "M";
             for (com.qpss.service.distribution.DistributionPlan.UnitPlan up : sp.getUnits()) {
-                long actual = distribution.getOrDefault(markKey, Collections.emptyMap())
-                        .getOrDefault(up.getUnit(), 0L);
-                if (actual != up.getRequiredCount()) {
+                Map<Integer, Long> unitDist = distribution.getOrDefault(markKey, Collections.emptyMap())
+                        .getOrDefault(up.getUnit(), Collections.emptyMap());
+                long actualT1 = unitDist.getOrDefault(1, 0L);
+                long actualT2 = unitDist.getOrDefault(2, 0L);
+                long actualTotal = actualT1 + actualT2;
+                
+                if (actualTotal != up.getRequiredCount()) {
                     failures.add("Unit " + up.getUnit() + " " + markKey
-                            + ": expected " + up.getRequiredCount() + ", got " + actual);
+                            + ": expected " + up.getRequiredCount() + " total, got " + actualTotal);
+                }
+                if (actualT1 != up.getT1Required()) {
+                    failures.add("Unit " + up.getUnit() + " " + markKey
+                            + ": expected " + up.getT1Required() + " T1, got " + actualT1);
+                }
+                if (actualT2 != up.getT2Required()) {
+                    failures.add("Unit " + up.getUnit() + " " + markKey
+                            + ": expected " + up.getT2Required() + " T2, got " + actualT2);
                 }
             }
         }
 
         int pairIdx = 0;
         int prevUnit = 0;
-        for (PairingEngine.QuestionPair pair : pairs) {
+        for (PairingEngine.QuestionPair pair : sectionBPairs) {
             if (pair.getUnit() < prevUnit) {
                 failures.add("Pair " + pair.getPairIndex() + " breaks unit sequence");
             }

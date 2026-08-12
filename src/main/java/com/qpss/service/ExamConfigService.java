@@ -25,7 +25,7 @@ public class ExamConfigService {
     private static final Set<Integer> SUPPORTED_MARKS = Set.of(2, 16);
 
     @Transactional(readOnly = true)
-    public DistributionPlan getDistributionPlan(String examType) {
+    public DistributionPlan getDistributionPlan(String examType, Integer overridePartA, Integer overridePartB) {
         if (examType == null || examType.trim().isEmpty()) {
             throw new IllegalArgumentException("Invalid exam type");
         }
@@ -44,6 +44,13 @@ public class ExamConfigService {
         List<DistributionCalculationService.SectionConfigInput> sectionInputs = new ArrayList<>();
 
         for (ExamSectionConfig section : sections) {
+            int required = section.getTotalRequired();
+            if (section.getMarks() == 2 && overridePartA != null) {
+                required = overridePartA;
+            } else if (section.getMarks() == 16 && overridePartB != null) {
+                required = overridePartB;
+            }
+            
             List<DistributionCalculationService.UnitConfigInput> unitInputs = unitConfigs.stream()
                     .filter(c -> c.getMarks().equals(section.getMarks()))
                     .map(c -> new DistributionCalculationService.UnitConfigInput(
@@ -52,11 +59,16 @@ public class ExamConfigService {
                     .collect(Collectors.toList());
             
             sectionInputs.add(new DistributionCalculationService.SectionConfigInput(
-                    section.getMarks(), section.getTotalRequired(), unitInputs
+                    section.getMarks(), required, unitInputs
             ));
         }
 
         return calculationService.calculate(examType, sectionInputs);
+    }
+    
+    @Transactional(readOnly = true)
+    public DistributionPlan getDistributionPlan(String examType) {
+        return getDistributionPlan(examType, null, null);
     }
 
     @Transactional

@@ -31,3 +31,8 @@ build/
 ### VS Code ###
 .vscode/
 apache-maven-3.9.6*
+
+/data/
+jdk-17/
+maven.zip
+storage/

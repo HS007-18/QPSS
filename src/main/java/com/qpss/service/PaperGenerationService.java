@@ -31,14 +31,24 @@ public class PaperGenerationService {
     @Data @AllArgsConstructor
     public static class GenerationResult {
         private List<GeneratedSet> sets;
-        private List<SelectionEngine.Shortage> shortages;
+        private List<SelectionEngine.SelectionShortage> shortages;
         private String diversityWarning;
         private boolean successful;
     }
 
     @Transactional
-    public GenerationResult generate(String examType, Long subjectId, Long sessionId, int numSets) {
-        com.qpss.service.distribution.DistributionPlan plan = examConfigService.getDistributionPlan(examType);
+    public GenerationResult generate(String examType, Long subjectId, Long sessionId, int numSets, Integer partA, Integer partB) {
+        // Clear previous non-finalized drafts for this session
+        List<GeneratedPaper> existingDrafts = paperRepo.findBySessionId(sessionId).stream()
+                .filter(p -> !Boolean.TRUE.equals(p.getIsFinal()))
+                .collect(Collectors.toList());
+        if (!existingDrafts.isEmpty()) {
+            List<Long> draftIds = existingDrafts.stream().map(GeneratedPaper::getId).collect(Collectors.toList());
+            paperQuestionRepo.deleteByPaperIdIn(draftIds);
+            paperRepo.deleteAll(existingDrafts);
+        }
+
+        com.qpss.service.distribution.DistributionPlan plan = examConfigService.getDistributionPlan(examType, partA, partB);
         String diversityWarning = checkDiversity(plan, sessionId, numSets);
 
         List<GeneratedSet> sets = new ArrayList<>();
@@ -62,11 +72,16 @@ public class PaperGenerationService {
                 selection = fallback;
             }
 
+            int partBMarks = plan.getSections().stream()
+                    .mapToInt(s -> s.getMarks())
+                    .filter(m -> m != 2)
+                    .findFirst().orElse(16);
+
             List<PairingEngine.QuestionPair> pairs = pairingEngine.createPairs(
-                    selection.getSixteenMarkQuestions());
+                    selection.getPartBQuestions(partBMarks));
 
             ValidationEngine.ValidationResult validation = validationEngine.validate(
-                    examType, subjectId, sessionId,
+                    examType, subjectId, sessionId, partA, partB,
                     selection.getTwoMarkQuestions(), pairs);
 
             if (!validation.isValid()) {
@@ -85,7 +100,7 @@ public class PaperGenerationService {
             savePaperQuestions(paper.getId(), selection.getTwoMarkQuestions(), pairs);
 
             selection.getTwoMarkQuestions().forEach(q -> usedIds.add(q.getId()));
-            selection.getSixteenMarkQuestions().forEach(q -> usedIds.add(q.getId()));
+            selection.getPartBQuestions(partBMarks).forEach(q -> usedIds.add(q.getId()));
 
             sets.add(new GeneratedSet(paper, selection.getTwoMarkQuestions(), pairs));
         }
@@ -189,5 +204,46 @@ public class PaperGenerationService {
 
     public java.util.Optional<GeneratedPaper> getPaperById(Long paperId) {
         return paperRepo.findById(paperId);
+    }
+
+    @Transactional
+    public Question swapQuestion(Long paperId, Long oldQuestionId) {
+        GeneratedPaper paper = paperRepo.findById(paperId)
+                .orElseThrow(() -> new IllegalArgumentException("Paper not found"));
+
+        if (Boolean.TRUE.equals(paper.getIsFinal())) {
+            throw new IllegalStateException("Cannot edit finalized paper");
+        }
+
+        PaperQuestion oldPq = paperQuestionRepo.findByPaperIdOrderByQuestionNumberAscChoiceLabelAsc(paperId).stream()
+                .filter(pq -> pq.getQuestionId().equals(oldQuestionId))
+                .findFirst()
+                .orElseThrow(() -> new IllegalArgumentException("Question not in paper"));
+
+        Question oldQuestion = questionRepo.findById(oldQuestionId)
+                .orElseThrow(() -> new IllegalArgumentException("Question not found"));
+
+        List<Long> currentQuestionIds = paperQuestionRepo.findByPaperIdOrderByQuestionNumberAscChoiceLabelAsc(paperId)
+                .stream().map(PaperQuestion::getQuestionId).collect(Collectors.toList());
+
+        List<Question> alternatives = questionRepo.findBySessionIdOrderByUnitAscSerialNoAsc(paper.getSessionId())
+                .stream()
+                .filter(q -> q.getUnit() == oldQuestion.getUnit()
+                        && q.getMarks() == oldQuestion.getMarks()
+                        && q.getT() == oldQuestion.getT()
+                        && !currentQuestionIds.contains(q.getId()))
+                .collect(Collectors.toList());
+
+        if (alternatives.isEmpty()) {
+            throw new IllegalStateException("No valid alternative question found to preserve distribution.");
+        }
+
+        Collections.shuffle(alternatives);
+        Question newQuestion = alternatives.get(0);
+
+        oldPq.setQuestionId(newQuestion.getId());
+        paperQuestionRepo.save(oldPq);
+        
+        return newQuestion;
     }
 }

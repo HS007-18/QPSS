@@ -31,7 +31,7 @@ public class DocxDocumentReader {
                             if (tableDetector.isHeaderRow(row)) {
                                 continue;
                             }
-                            ParsedQuestion q = rowParser.parseRow(row, unitResolver.getCurrentUnit(), result);
+                            ParsedQuestion q = rowParser.parseRow(row, unitResolver.getCurrentUnit(), result, doc);
                             if (q != null) {
                                 result.addValidQuestion(q);
                             }

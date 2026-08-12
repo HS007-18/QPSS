@@ -13,15 +13,15 @@ INSERT INTO exam_section_configs (exam_type, marks, total_required) VALUES
 INSERT INTO exam_configs (exam_type, unit, marks, required_count, distribution_pct, t1_pct, t2_pct, t1_required_count, t2_required_count) VALUES
 ('INTERNAL_1', 1, 2,  4, 40.00, 50.00, 50.00, 2, 2),
 ('INTERNAL_1', 2, 2,  4, 40.00, 50.00, 50.00, 2, 2),
-('INTERNAL_1', 3, 2,  2, 20.00, 50.00, 50.00, 1, 1),
+('INTERNAL_1', 3, 2,  2, 20.00, 100.00, 0.00, 2, 0),
 ('INTERNAL_1', 1, 16, 4, 40.00, 50.00, 50.00, 2, 2),
 ('INTERNAL_1', 2, 16, 4, 40.00, 50.00, 50.00, 2, 2),
-('INTERNAL_1', 3, 16, 2, 20.00, 50.00, 50.00, 1, 1),
+('INTERNAL_1', 3, 16, 2, 20.00, 100.00, 0.00, 2, 0),
 
-('INTERNAL_2', 3, 2,  2, 20.00, 50.00, 50.00, 1, 1),
+('INTERNAL_2', 3, 2,  2, 20.00, 0.00, 100.00, 0, 2),
 ('INTERNAL_2', 4, 2,  4, 40.00, 50.00, 50.00, 2, 2),
 ('INTERNAL_2', 5, 2,  4, 40.00, 50.00, 50.00, 2, 2),
-('INTERNAL_2', 3, 16, 2, 20.00, 50.00, 50.00, 1, 1),
+('INTERNAL_2', 3, 16, 2, 20.00, 0.00, 100.00, 0, 2),
 ('INTERNAL_2', 4, 16, 4, 40.00, 50.00, 50.00, 2, 2),
 ('INTERNAL_2', 5, 16, 4, 40.00, 50.00, 50.00, 2, 2),
 

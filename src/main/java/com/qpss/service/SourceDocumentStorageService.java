@@ -51,6 +51,22 @@ public class SourceDocumentStorageService {
         }
     }
 
+    public String storeDocument(byte[] fileBytes, String extension) {
+        if (fileBytes == null || fileBytes.length == 0) {
+            throw new IllegalArgumentException("Failed to store empty file.");
+        }
+
+        String storedFileName = UUID.randomUUID().toString() + (extension.startsWith(".") ? extension : "." + extension);
+        Path destinationFile = getSafePath(storedFileName);
+
+        try {
+            Files.write(destinationFile, fileBytes);
+            return storedFileName;
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to store file.", e);
+        }
+    }
+
     public void deleteDocument(String storedFileName) {
         Path target = getSafePath(storedFileName);
         try {

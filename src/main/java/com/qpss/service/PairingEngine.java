@@ -18,13 +18,13 @@ public class PairingEngine {
         private int pairIndex;
     }
 
-    public List<QuestionPair> createPairs(List<Question> sixteenMarkQuestions) {
-        if (sixteenMarkQuestions.size() % 2 != 0) {
+    public List<QuestionPair> createPairs(List<Question> partBQuestions) {
+        if (partBQuestions.size() % 2 != 0) {
             throw new IllegalStateException(
-                    "16M question count must be even, got: " + sixteenMarkQuestions.size());
+                    "Part B question count must be even, got: " + partBQuestions.size());
         }
 
-        Map<Integer, List<Question>> byUnit = sixteenMarkQuestions.stream()
+        Map<Integer, List<Question>> byUnit = partBQuestions.stream()
                 .collect(Collectors.groupingBy(Question::getUnit, TreeMap::new, Collectors.toList()));
 
         List<QuestionPair> pairs = new ArrayList<>();
@@ -35,7 +35,7 @@ public class PairingEngine {
 
             if (unitQuestions.size() % 2 != 0) {
                 throw new IllegalStateException(
-                        "Unit " + entry.getKey() + " has odd 16M count: " + unitQuestions.size());
+                        "Unit " + entry.getKey() + " has odd Part B count: " + unitQuestions.size());
             }
 
             for (int i = 0; i < unitQuestions.size(); i += 2) {

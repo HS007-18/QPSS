@@ -9,6 +9,10 @@ public interface QuestionRepository extends JpaRepository<Question, Long> {
     List<Question> findBySubjectIdAndSessionIdAndUnitAndMarks(
             Long subjectId, Long sessionId, Integer unit, Integer marks);
 
+    List<Question> findBySubjectIdAndSessionIdAndUnitAndMarksAndT(
+            Long subjectId, Long sessionId, Integer unit, Integer marks, Integer t);
+
     int countBySessionIdAndUnitAndMarks(Long sessionId, Integer unit, Integer marks);
+    List<Question> findBySessionIdOrderByUnitAscSerialNoAsc(Long sessionId);
     void deleteBySubjectId(Long subjectId);
 }

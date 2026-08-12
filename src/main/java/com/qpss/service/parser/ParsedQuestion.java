@@ -13,4 +13,12 @@ public class ParsedQuestion {
     private String co;
     private Integer t;
     private Integer unit;
+
+    public boolean isComplete() {
+        return questionContent != null && !questionContent.trim().isEmpty()
+                && marks != null
+                && co != null && !co.trim().isEmpty()
+                && t != null
+                && unit != null;
+    }
 }

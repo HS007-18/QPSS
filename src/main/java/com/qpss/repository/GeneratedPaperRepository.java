@@ -7,4 +7,5 @@ import java.util.List;
 public interface GeneratedPaperRepository extends JpaRepository<GeneratedPaper, Long> {
     void deleteBySessionIdIn(List<Long> sessionIds);
     List<GeneratedPaper> findBySessionIdIn(List<Long> sessionIds);
+    List<GeneratedPaper> findBySessionId(Long sessionId);
 }

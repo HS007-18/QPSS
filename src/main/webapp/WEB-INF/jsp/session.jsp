@@ -4,128 +4,239 @@
 <html>
 <head>
     <title>QPSS - Session #${session.id}</title>
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Segoe UI', sans-serif; background: #f8fafc; color: #1e293b; min-height: 100vh; }
-        .container { max-width: 1000px; margin: 0 auto; padding: 40px 20px; }
-        .breadcrumb { font-size: 13px; color: #64748b; margin-bottom: 20px; }
-        .breadcrumb a { color: #2563eb; text-decoration: none; }
-        h1 { font-size: 24px; font-weight: 600; margin-bottom: 8px; color: #0f172a; }
-        h2 { font-size: 18px; font-weight: 500; margin: 30px 0 16px; color: #334155; }
-        .alert { padding: 12px 16px; border-radius: 8px; margin-bottom: 20px; font-size: 14px; }
-        .alert-success { background: #d1fae5; color: #065f46; border: 1px solid #10b981; }
-        .alert-error { background: #fee2e2; color: #991b1b; border: 1px solid #ef4444; }
-        .card { background: #ffffff; border-radius: 12px; padding: 24px; margin-bottom: 20px; border: 1px solid #e2e8f0; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.05); }
-        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px; }
-        .stat { background: #ffffff; border-radius: 10px; padding: 16px; border: 1px solid #e2e8f0; text-align: center; }
-        .stat .value { font-size: 28px; font-weight: 700; color: #2563eb; }
-        .stat .label { font-size: 12px; color: #64748b; margin-top: 4px; }
-        table { width: 100%; border-collapse: collapse; }
-        th { text-align: left; padding: 10px 12px; font-size: 12px; color: #64748b; text-transform: uppercase; border-bottom: 1px solid #e2e8f0; }
-        td { padding: 10px 12px; font-size: 14px; border-bottom: 1px solid #f1f5f9; }
-        tr:hover td { background: #f8fafc; }
-        input, select, textarea { padding: 10px 14px; background: #ffffff; border: 1px solid #cbd5e1; border-radius: 8px; color: #1e293b; font-size: 14px; outline: none; width: 100%; }
-        input:focus, select:focus, textarea:focus { border-color: #2563eb; }
-        textarea { resize: vertical; min-height: 80px; }
-        button, .btn { padding: 10px 20px; background: #2563eb; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 14px; text-decoration: none;}
-        button:hover, .btn:hover { background: #1d4ed8; }
-        .btn-sm { padding: 6px 14px; font-size: 12px; }
-        .btn-danger { background: #dc2626; }
-        .btn-danger:hover { background: #b91c1c; }
-        .btn-green { background: #059669; }
-        .btn-green:hover { background: #047857; }
-        .form-grid { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 10px; margin-bottom: 12px; }
-        .upload-zone { border: 2px dashed #cbd5e1; border-radius: 12px; padding: 30px; text-align: center; cursor: pointer; transition: border-color 0.2s; background: #f8fafc; }
-        .upload-zone:hover { border-color: #2563eb; }
-        .tag { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 11px; margin-right: 4px; }
-        .tag-unit { background: #dbeafe; color: #1e40af; }
-        .tag-co { background: #d1fae5; color: #065f46; }
-        .tag-marks { background: #fef3c7; color: #92400e; }
-        .actions-bar { display: flex; gap: 12px; margin-bottom: 20px; }
-        img { max-width: 400px !important; height: auto !important; max-height: 250px !important; object-fit: contain; display: block; margin: 10px 0; }
-    </style>
+    <link rel="stylesheet" href="/css/style.css">
 </head>
 <body>
+<nav class="navbar">
+    <a href="/" class="navbar-brand">
+        <svg style="width:24px;height:24px;color:var(--accent);" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9.5a2.5 2.5 0 00-2.5-2.5H15"></path></svg>
+        QPSS <span>Dashboard</span>
+    </a>
+    <div style="margin-left:auto;">
+        <span class="tag tag-unit" style="font-size:13px; font-weight:500;">Status: ${session.status}</span>
+    </div>
+</nav>
+
 <div class="container">
     <div class="breadcrumb">
-        <a href="/">Dashboard</a> / ${subject.name} / Session #${session.id}
+        <a href="/">Dashboard</a> 
+        <svg style="width:14px;height:14px;margin-top:2px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg> 
+        ${subject.name} 
+        <svg style="width:14px;height:14px;margin-top:2px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg> 
+        Session #${session.id}
     </div>
-    <h1>${subject.name} — Session #${session.id}</h1>
-    <div style="font-size:13px; color:#94a3b8; margin-bottom:20px;">Status: ${session.status}</div>
+
+    <div class="page-header">
+        <h1 class="page-title">${subject.name}</h1>
+        <div class="page-subtitle">Build your question bank and generate question papers</div>
+    </div>
 
     <c:if test="${not empty message}">
-        <div class="alert alert-success">${message}</div>
+        <div class="card" style="background:var(--success-light); border-color:var(--success); color:#065f46; padding:16px;">
+            <strong>Success:</strong> ${message}
+        </div>
     </c:if>
     <c:if test="${not empty error}">
-        <div class="alert alert-error">${error}</div>
+        <div class="card" style="background:var(--danger-light); border-color:var(--danger); color:#991b1b; padding:16px;">
+            <strong>Error:</strong> ${error}
+        </div>
     </c:if>
     <c:if test="${not empty shortages}">
-        <div class="alert alert-error">
-            <strong>Question bank insufficient:</strong><br>
+        <div class="card" style="background:var(--danger-light); border-color:var(--danger); color:#991b1b; padding:16px;">
+            <strong style="display:block; margin-bottom:8px;">Insufficient Question Bank:</strong>
+            <ul style="margin-left:20px; font-size:14px;">
             <c:forEach var="s" items="${shortages}">
-                Unit ${s.unit} — ${s.marks}M: Need ${s.required}, have ${s.available} (${s.required - s.available} more needed)<br>
+                <li>Unit ${s.unit} — ${s.marks}M: Need ${s.required}, have ${s.available} (${s.required - s.available} more needed)</li>
             </c:forEach>
+            </ul>
         </div>
     </c:if>
 
-    <h2>Upload Question Bank</h2>
-    <div class="card">
-        <form action="/sessions/${session.id}/upload" method="post" enctype="multipart/form-data">
-            <div class="upload-zone" onclick="this.querySelector('input').click()">
-                <input type="file" name="file" accept=".docx" required style="display:none"
-                       onchange="this.closest('.upload-zone').querySelector('span').textContent = this.files[0].name">
-                <span style="color:#64748b;">Click to select DOCX question bank</span>
+    <div class="grid-2">
+        <!-- Left Column: Bank Management -->
+        <div>
+            <h2 class="card-title" style="margin-bottom:16px; margin-top:0;">Question Bank Input</h2>
+            
+            <div class="card">
+                <form action="/sessions/${session.id}/upload" method="post" enctype="multipart/form-data">
+                    <label class="form-label">Upload DOCX File(s)</label>
+                    <div class="upload-zone" onclick="this.querySelector('input').click()">
+                        <div class="upload-icon">
+                            <svg style="width:48px;height:48px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path></svg>
+                        </div>
+                        <input type="file" name="files" accept=".docx" multiple required style="display:none"
+                               onchange="this.closest('.upload-zone').querySelector('span').textContent = this.files.length + ' file(s) selected'">
+                        <span style="color:var(--text-muted); font-weight:500;">Click to select DOCX question bank files</span>
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-block" style="margin-top:16px;">Upload & Parse</button>
+                </form>
             </div>
-            <button type="submit" style="margin-top:12px;">Upload & Parse</button>
-        </form>
+
+            <div class="card">
+                <form action="/sessions/${session.id}/questions" method="post">
+                    <label class="form-label">Add Question Manually</label>
+                    <div class="grid-4" style="margin-bottom:12px;">
+                        <select name="unit" required>
+                            <option value="">Unit</option>
+                            <c:forEach var="u" begin="1" end="5"><option value="${u}">U${u}</option></c:forEach>
+                        </select>
+                        <select name="co" required>
+                            <option value="">CO</option>
+                            <c:forEach var="c" begin="1" end="5"><option value="CO${c}">CO${c}</option></c:forEach>
+                        </select>
+                        <select name="marks" required>
+                            <option value="">Marks</option>
+                            <option value="2">2</option>
+                            <option value="16">16</option>
+                        </select>
+                        <select name="t" required>
+                            <option value="">T (Half)</option>
+                            <option value="1">T1</option>
+                            <option value="2">T2</option>
+                        </select>
+                    </div>
+                    <textarea name="content" placeholder="Type question content here..." required style="margin-bottom:12px;"></textarea>
+                    <button type="submit" class="btn btn-outline btn-block">Add Question</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Right Column: Generation -->
+        <div>
+            <h2 class="card-title" style="margin-bottom:16px; margin-top:0;">Generate Question Paper</h2>
+            <div class="card">
+                <form action="/sessions/${session.id}/generate" method="post">
+                    <div class="form-group">
+                        <label class="form-label">Exam Type</label>
+                        <select name="examType" id="examType" required>
+                            <option value="" disabled selected>Select Exam Type...</option>
+                            <option value="INTERNAL_1">Internal 1</option>
+                            <option value="INTERNAL_2">Internal 2</option>
+                            <option value="SEMESTER">Semester</option>
+                        </select>
+                    </div>
+
+                    <div id="dynamic-counts" style="display:none; gap: 16px; margin-bottom: 16px;">
+                        <div class="form-group" style="flex:1; margin-bottom:0;">
+                            <label class="form-label">Part A (2-Marks)</label>
+                            <input type="number" id="partA" name="partA" min="1" max="50">
+                        </div>
+                        <div class="form-group" style="flex:1; margin-bottom:0;">
+                            <label class="form-label">Part B (16-Marks)</label>
+                            <input type="number" id="partB" name="partB" min="1" max="20">
+                        </div>
+                    </div>
+
+                    <div id="preview-box" style="display:none; background: var(--bg-hover); padding: 16px; border-radius: 8px; font-size: 13px; font-family: monospace; margin-bottom: 24px; border: 1px solid var(--border); color:var(--text-main); white-space: pre-wrap;"></div>
+
+                    <div class="form-group">
+                        <label class="form-label">Number of Sets</label>
+                        <input type="number" name="numSets" value="1" min="1" max="10">
+                    </div>
+
+                    <button type="submit" class="btn btn-accent btn-block" style="font-size: 16px; padding: 14px; margin-top:8px;">Generate Paper</button>
+                </form>
+            </div>
+        </div>
     </div>
 
-
-
-    <h2>Add Question Manually</h2>
-    <div class="card">
-        <form action="/sessions/${session.id}/questions" method="post">
-            <div class="form-grid">
-                <select name="unit" required>
-                    <option value="">Unit</option>
-                    <c:forEach var="u" begin="1" end="5">
-                        <option value="${u}">Unit ${u}</option>
-                    </c:forEach>
-                </select>
-                <select name="co" required>
-                    <option value="">CO</option>
-                    <c:forEach var="c" begin="1" end="5">
-                        <option value="CO${c}">CO${c}</option>
-                    </c:forEach>
-                </select>
-                <select name="marks" required>
-                    <option value="">Marks</option>
-                    <option value="2">2</option>
-                    <option value="16">16</option>
-                </select>
-                <div></div>
-            </div>
-            <textarea name="content" placeholder="Question content..." required></textarea>
-            <button type="submit" style="margin-top:10px;">Add Question</button>
-        </form>
+    <!-- Question Bank Table -->
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; margin-top:32px;">
+        <h2 class="card-title" style="margin-bottom:0;">Current Question Bank</h2>
+        <span class="tag tag-marks">${questions.size()} Questions</span>
     </div>
-
-    <h2 id="generate-section">Generate Question Paper</h2>
-    <div class="card">
-        <form action="/sessions/${session.id}/generate" method="post">
-            <label style="display: block; font-size: 14px; color: #64748b; margin-bottom: 6px;">Exam Type</label>
-            <select name="examType" required style="margin-bottom: 16px;">
-                <option value="INTERNAL_1">Internal 1</option>
-                <option value="INTERNAL_2">Internal 2</option>
-                <option value="SEMESTER">Semester</option>
-            </select>
-
-            <label style="display: block; font-size: 14px; color: #64748b; margin-bottom: 6px;">Number of Sets</label>
-            <input type="number" name="numSets" value="1" min="1" max="10" style="margin-bottom: 16px;">
-
-            <button type="submit" class="btn-green" style="width: 100%; font-size: 16px; padding: 14px;">Generate Paper</button>
-        </form>
+    <div class="card" style="padding:0; overflow:hidden;">
+        <div class="table-responsive">
+            <table>
+                <thead>
+                    <tr><th style="width:50px;">#</th><th>Details</th><th>T</th><th>Content</th><th>Source</th></tr>
+                </thead>
+                <tbody>
+                    <c:forEach var="q" items="${questions}" varStatus="i">
+                        <tr>
+                            <td style="color:var(--text-muted); font-weight:500;">${i.count}</td>
+                            <td>
+                                <div style="display:flex; gap:4px;">
+                                    <span class="tag tag-unit">U${q.unit}</span>
+                                    <span class="tag tag-co">${q.co}</span>
+                                    <span class="tag tag-marks">${q.marks}M</span>
+                                </div>
+                            </td>
+                            <td style="font-size:13px; font-weight:600; color:var(--text-muted);">T${q.t}</td>
+                            <td>${q.questionContent.length() > 80 ? q.questionContent.substring(0,80).concat('...') : q.questionContent}</td>
+                            <td style="font-size:13px; color:var(--text-muted);">${q.sourceFileName != null ? q.sourceFileName : 'Manual'}</td>
+                        </tr>
+                    </c:forEach>
+                    <c:if test="${empty questions}">
+                        <tr>
+                            <td colspan="5" style="text-align:center; padding:40px; color:var(--text-muted);">
+                                No questions found. Upload a DOCX file or add questions manually.
+                            </td>
+                        </tr>
+                    </c:if>
+                </tbody>
+            </table>
+        </div>
     </div>
 </div>
+
+<script>
+    let isFetchingDefaults = false;
+
+    function fetchPreview() {
+        const type = document.getElementById('examType').value;
+        const partA = document.getElementById('partA').value;
+        const partB = document.getElementById('partB').value;
+        const previewBox = document.getElementById('preview-box');
+        
+        if (!type) return;
+        
+        let url = '/sessions/${session.id}/generate/preview?examType=' + type;
+        if (!isFetchingDefaults) {
+            if (partA) url += '&partA=' + partA;
+            if (partB) url += '&partB=' + partB;
+        }
+        
+        fetch(url)
+            .then(res => res.json())
+            .then(data => {
+                let html = '<strong>Distribution Plan Preview:</strong><br>';
+                data.sections.forEach(sec => {
+                    html += '<br><span style="color:var(--primary); font-weight:600;">' + sec.marks + ' Marks Section (Need ' + sec.totalRequired + ')</span><br>';
+                    sec.units.forEach(u => {
+                        html += ' - Unit ' + u.unit + ': ' + u.requiredCount + ' Qs ' +
+                                '(T1: ' + u.t1Required + ', T2: ' + u.t2Required + ')<br>';
+                    });
+
+                    if (isFetchingDefaults) {
+                        if (sec.marks === 2) document.getElementById('partA').value = sec.totalRequired;
+                        if (sec.marks === 16) document.getElementById('partB').value = sec.totalRequired / 2;
+                    }
+                });
+                previewBox.innerHTML = html;
+                previewBox.style.display = 'block';
+                document.getElementById('dynamic-counts').style.display = 'flex';
+                isFetchingDefaults = false;
+            })
+            .catch(err => {
+                console.error(err);
+                previewBox.innerHTML = 'Error loading preview.';
+                previewBox.style.display = 'block';
+            });
+    }
+
+    document.getElementById('examType').addEventListener('change', function(e) {
+        isFetchingDefaults = true;
+        fetchPreview();
+    });
+
+    document.getElementById('partA').addEventListener('input', function(e) {
+        if (!isFetchingDefaults) fetchPreview();
+    });
+
+    document.getElementById('partB').addEventListener('input', function(e) {
+        if (!isFetchingDefaults) fetchPreview();
+    });
+</script>
 </body>
 </html>

@@ -14,7 +14,7 @@ public class QuestionBankService {
     private final QuestionRepository repo;
 
     public Question addQuestion(Long subjectId, Long sessionId,
-                                 int unit, String co, int marks,
+                                 int unit, String co, int marks, int t,
                                  Integer serialNo, String content) {
         return repo.save(Question.builder()
                 .subjectId(subjectId)
@@ -22,6 +22,7 @@ public class QuestionBankService {
                 .unit(unit)
                 .co(co)
                 .marks(marks)
+                .t(t)
                 .serialNo(serialNo)
                 .questionContent(content)
                 .build());

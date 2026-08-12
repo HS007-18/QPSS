@@ -1,5 +1,6 @@
 package com.qpss.service.parser;
 
+import org.apache.poi.xwpf.usermodel.XWPFDocument;
 import org.apache.poi.xwpf.usermodel.XWPFTableCell;
 import org.apache.poi.xwpf.usermodel.XWPFTableRow;
 
@@ -9,7 +10,7 @@ public class QuestionRowParser {
 
     private final QuestionContentExtractor contentExtractor = new QuestionContentExtractor();
 
-    public ParsedQuestion parseRow(XWPFTableRow row, Integer currentUnit, QuestionParseResult result) {
+    public ParsedQuestion parseRow(XWPFTableRow row, Integer currentUnit, QuestionParseResult result, XWPFDocument document) {
         List<XWPFTableCell> cells = row.getTableCells();
         if (cells.size() < 5) {
             return null;
@@ -27,49 +28,51 @@ public class QuestionRowParser {
             return null; // Not a valid question row
         }
 
-        String questionContent = contentExtractor.extractPlainText(cells.get(1));
+        String questionContent = contentExtractor.extractRichContent(cells.get(1), document);
         String rawOoxml = contentExtractor.extractRawOoxml(cells.get(1));
         
         if (questionContent.isEmpty()) {
-            result.addError("Row " + snoStr + ": Missing question content.");
-            return null;
+            questionContent = null;
         }
 
         String marksStr = cells.get(2).getText().trim();
-        Integer marks;
-        try {
-            marks = Integer.parseInt(marksStr.replaceAll("[^0-9]", ""));
-            if (marks != 2 && marks != 16) {
-                result.addError("Row " + snoStr + ": Invalid marks (" + marksStr + "). Only 2 or 16 supported.");
-                return null;
+        Integer marks = null;
+        if (!marksStr.isEmpty()) {
+            try {
+                marks = Integer.parseInt(marksStr.replaceAll("[^0-9]", ""));
+                if (marks != 2 && marks != 16) {
+                    marks = null; // invalid marks, treat as missing
+                }
+            } catch (NumberFormatException e) {
+                // invalid marks, treat as missing
             }
-        } catch (NumberFormatException e) {
-            result.addError("Row " + snoStr + ": Invalid marks format (" + marksStr + ").");
-            return null;
         }
 
         String co = cells.get(3).getText().trim();
         if (co.isEmpty()) {
-            result.addError("Row " + snoStr + ": Missing CO.");
-            return null;
+            co = null;
         }
 
         String tStr = cells.get(4).getText().trim();
-        Integer t;
-        try {
-            t = Integer.parseInt(tStr.replaceAll("[^0-9]", ""));
-            if (t != 1 && t != 2) {
-                result.addError("Row " + snoStr + ": Invalid T (" + tStr + "). Only 1 or 2 supported.");
-                return null;
+        Integer t = null;
+        if (!tStr.isEmpty()) {
+            try {
+                t = Integer.parseInt(tStr.replaceAll("[^0-9]", ""));
+                if (t != 1 && t != 2) {
+                    t = null; // invalid T, treat as missing
+                }
+            } catch (NumberFormatException e) {
+                // invalid T, treat as missing
             }
-        } catch (NumberFormatException e) {
-            result.addError("Row " + snoStr + ": Invalid T format (" + tStr + ").");
-            return null;
         }
 
-        if (currentUnit == null) {
-            result.addError("Row " + snoStr + ": Unit not identified from context. Cannot proceed.");
-            return null;
+        Integer resolvedUnit = currentUnit;
+        if (resolvedUnit == null && co != null) {
+            try {
+                resolvedUnit = Integer.parseInt(co.replaceAll("[^0-9]", ""));
+            } catch (NumberFormatException e) {
+                // leave as null
+            }
         }
 
         return ParsedQuestion.builder()
@@ -79,7 +82,7 @@ public class QuestionRowParser {
                 .marks(marks)
                 .co(co)
                 .t(t)
-                .unit(currentUnit)
+                .unit(resolvedUnit)
                 .build();
     }
 }

@@ -39,8 +39,7 @@ public class QuestionBankImportService {
         this.questionRepository = questionRepository;
     }
 
-    @Transactional
-    public QuestionBankImportResult createImportBatch(Long subjectId, Long sessionId, List<MultipartFile> files) {
+    public PendingUploadSession prepareImportBatch(Long subjectId, Long sessionId, List<MultipartFile> files) {
         if (subjectId == null || sessionId == null) {
             throw new IllegalArgumentException("Subject ID and Session ID must be provided.");
         }
@@ -48,10 +47,11 @@ public class QuestionBankImportService {
             throw new IllegalArgumentException("No files provided for import.");
         }
 
-        // --- PHASE 1: Parse ALL files in memory and collect ALL errors across the entire batch ---
-        List<FileImportHolder> holders = new ArrayList<>();
+        PendingUploadSession session = new PendingUploadSession();
+        session.setSubjectId(subjectId);
+        session.setSessionId(sessionId);
+        List<PendingUploadSession.FileImportHolder> holders = new ArrayList<>();
         List<String> processedChecksums = new ArrayList<>();
-        List<String> allErrors = new ArrayList<>();
 
         for (MultipartFile file : files) {
             if (file.isEmpty()) {
@@ -64,46 +64,44 @@ public class QuestionBankImportService {
             }
 
             String checksum = calculateChecksum(file);
-
             if (processedChecksums.contains(checksum)) {
-                continue; // Skip duplicate within the same batch silently
+                continue; 
             }
             processedChecksums.add(checksum);
 
-            // Parse file in memory
             QuestionParseResult parseResult;
             try {
                 parseResult = parserService.parseDocx(file);
             } catch (IOException e) {
-                allErrors.add(originalName + ": Failed to read DOCX file: " + e.getMessage());
-                continue;
+                throw new RuntimeException("Failed to read DOCX file: " + e.getMessage());
             }
 
-            if (parseResult.hasErrors()) {
-                for (String error : parseResult.getErrors()) {
-                    allErrors.add(originalName + ": " + error);
-                }
+            PendingUploadSession.FileImportHolder holder = new PendingUploadSession.FileImportHolder();
+            holder.setOriginalName(originalName);
+            holder.setChecksum(checksum);
+            holder.setParseResult(parseResult);
+            holder.setContentType(file.getContentType());
+            holder.setSize(file.getSize());
+            try {
+                holder.setFileBytes(file.getBytes());
+            } catch (IOException e) {
+                throw new RuntimeException("Failed to read file content.", e);
             }
-
-            holders.add(new FileImportHolder(file, originalName, checksum, parseResult));
-        }
-
-        // If ANY file in the batch has a parsing error, abort the entire batch BEFORE any disk/DB mutations
-        if (!allErrors.isEmpty()) {
-            return QuestionBankImportResult.builder()
-                    .successful(false)
-                    .parsingErrors(allErrors)
-                    .build();
+            holders.add(holder);
         }
 
         if (holders.isEmpty()) {
             throw new IllegalArgumentException("No valid documents to import after deduplication.");
         }
+        session.setFiles(holders);
+        return session;
+    }
 
-        // --- PHASE 2: Persist import batch, source files, and questions atomically ---
+    @Transactional
+    public QuestionBankImportResult commitImportBatch(PendingUploadSession pendingSession) {
         QuestionBankImport importBatch = QuestionBankImport.builder()
-                .subjectId(subjectId)
-                .sessionId(sessionId)
+                .subjectId(pendingSession.getSubjectId())
+                .sessionId(pendingSession.getSessionId())
                 .build();
 
         importBatch = importRepository.save(importBatch);
@@ -111,40 +109,54 @@ public class QuestionBankImportService {
         List<SourceDocument> savedDocuments = new ArrayList<>();
         List<String> storedFileNames = new ArrayList<>();
         List<Question> allQuestions = new ArrayList<>();
+        List<String> allErrors = new ArrayList<>(); // from pending session if any hard errors existed
 
         try {
-            for (FileImportHolder holder : holders) {
-                // Check if duplicate against existing batches in DB
-                boolean existsInDb = sourceDocumentRepository.existsByImportBatchIdAndChecksum(importBatch.getId(), holder.checksum);
+            for (PendingUploadSession.FileImportHolder holder : pendingSession.getFiles()) {
+                boolean existsInDb = sourceDocumentRepository.existsByImportBatchIdAndChecksum(importBatch.getId(), holder.getChecksum());
                 if (existsInDb) {
                     continue;
                 }
 
+                if (holder.getParseResult().hasErrors()) {
+                    for (String error : holder.getParseResult().getErrors()) {
+                        allErrors.add(holder.getOriginalName() + ": " + error);
+                    }
+                    continue; // Skip file with hard errors
+                }
+
                 String extension = ".docx";
-                String storedFileName = storageService.storeDocument(holder.file, extension);
+                String storedFileName = storageService.storeDocument(holder.getFileBytes(), extension);
                 storedFileNames.add(storedFileName);
 
                 SourceDocument doc = SourceDocument.builder()
                         .importBatch(importBatch)
-                        .originalFileName(holder.originalName)
+                        .originalFileName(holder.getOriginalName())
                         .storedFileName(storedFileName)
                         .fileExtension(extension)
-                        .contentType(holder.file.getContentType())
-                        .fileSize(holder.file.getSize())
-                        .checksum(holder.checksum)
+                        .contentType(holder.getContentType())
+                        .fileSize(holder.getSize())
+                        .checksum(holder.getChecksum())
                         .build();
 
                 doc = sourceDocumentRepository.save(doc);
                 savedDocuments.add(doc);
 
                 List<Question> questions = parserService.toQuestions(
-                        holder.parseResult.getValidQuestions(),
-                        subjectId,
-                        sessionId,
+                        holder.getParseResult().getValidQuestions(),
+                        pendingSession.getSubjectId(),
+                        pendingSession.getSessionId(),
                         doc.getId(),
-                        holder.originalName
+                        holder.getOriginalName()
                 );
                 allQuestions.addAll(questions);
+            }
+            
+            if (allQuestions.isEmpty() && !allErrors.isEmpty()) {
+                 return QuestionBankImportResult.builder()
+                    .successful(false)
+                    .parsingErrors(allErrors)
+                    .build();
             }
 
             importBatch.setSourceDocuments(savedDocuments);
@@ -158,25 +170,10 @@ public class QuestionBankImportService {
                     .build();
 
         } catch (Exception e) {
-            // Clean up any files saved to disk in Phase 2 if DB commit fails
             for (String storedFileName : storedFileNames) {
                 storageService.deleteDocument(storedFileName);
             }
             throw new RuntimeException("Failed to process import batch. Rolled back stored files.", e);
-        }
-    }
-
-    private static class FileImportHolder {
-        final MultipartFile file;
-        final String originalName;
-        final String checksum;
-        final QuestionParseResult parseResult;
-
-        FileImportHolder(MultipartFile file, String originalName, String checksum, QuestionParseResult parseResult) {
-            this.file = file;
-            this.originalName = originalName;
-            this.checksum = checksum;
-            this.parseResult = parseResult;
         }
     }
 

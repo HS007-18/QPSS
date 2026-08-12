@@ -15,17 +15,30 @@ public class GenerationController {
     private final PaperGenerationService generationService;
     private final SessionService sessionService;
     private final SubjectService subjectService;
-    private final PdfExportService pdfExportService;
+    private final DocxRendererService docxRendererService;
+    private final ExamConfigService examConfigService;
+
+    @GetMapping("/preview")
+    @ResponseBody
+    public com.qpss.service.distribution.DistributionPlan preview(@RequestParam String examType, 
+                                                                   @RequestParam(required = false) Integer partA, 
+                                                                   @RequestParam(required = false) Integer partB) {
+        Integer actualPartB = partB != null ? partB * 2 : null;
+        return examConfigService.getDistributionPlan(examType, partA, actualPartB);
+    }
 
     @PostMapping
     public String generate(@PathVariable Long sessionId,
                             @RequestParam String examType,
                             @RequestParam(defaultValue = "1") int numSets,
+                            @RequestParam(required = false) Integer partA,
+                            @RequestParam(required = false) Integer partB,
                             Model model,
                             RedirectAttributes redirect) {
         var session = sessionService.findById(sessionId);
+        Integer actualPartB = partB != null ? partB * 2 : null;
         var result = generationService.generate(
-                examType, session.getSubjectId(), sessionId, numSets);
+                examType, session.getSubjectId(), sessionId, numSets, partA, actualPartB);
 
         if (!result.isSuccessful()) {
             redirect.addFlashAttribute("shortages", result.getShortages());
@@ -47,19 +60,28 @@ public class GenerationController {
         return "finalized";
     }
 
+    @PostMapping("/{paperId}/swap")
+    @ResponseBody
+    public org.springframework.http.ResponseEntity<?> swapQuestion(@PathVariable Long sessionId, @PathVariable Long paperId, @RequestParam Long oldQuestionId) {
+        try {
+            com.qpss.model.Question newQuestion = generationService.swapQuestion(paperId, oldQuestionId);
+            return org.springframework.http.ResponseEntity.ok().body("{\"status\":\"success\", \"newId\": " + newQuestion.getId() + ", \"newContent\": \"" + newQuestion.getQuestionContent().replace("\"", "\\\"").replace("\n", "\\n") + "\"}");
+        } catch (Exception e) {
+            return org.springframework.http.ResponseEntity.badRequest().body("{\"error\":\"" + e.getMessage() + "\"}");
+        }
+    }
 
     @GetMapping("/export/{paperId}")
-    public org.springframework.http.ResponseEntity<byte[]> exportPdf(@PathVariable Long paperId) {
-        // We might want to verify paper belongs to session here
+    public org.springframework.http.ResponseEntity<byte[]> exportDocx(@PathVariable Long paperId) {
         var paper = generationService.getPaperById(paperId)
                 .orElseThrow(() -> new IllegalArgumentException("Invalid paper id"));
         
-        byte[] pdfBytes = pdfExportService.exportPaperToPdf(paper);
+        byte[] docxBytes = docxRendererService.exportPaperToDocx(paper);
         
         org.springframework.http.HttpHeaders headers = new org.springframework.http.HttpHeaders();
-        headers.setContentType(org.springframework.http.MediaType.APPLICATION_PDF);
-        headers.setContentDispositionFormData("attachment", "QuestionPaper_" + paperId + ".pdf");
+        headers.setContentType(org.springframework.http.MediaType.valueOf("application/vnd.openxmlformats-officedocument.wordprocessingml.document"));
+        headers.setContentDispositionFormData("attachment", "QuestionPaper_" + paperId + ".docx");
         
-        return new org.springframework.http.ResponseEntity<>(pdfBytes, headers, org.springframework.http.HttpStatus.OK);
+        return new org.springframework.http.ResponseEntity<>(docxBytes, headers, org.springframework.http.HttpStatus.OK);
     }
 }

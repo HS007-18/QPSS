@@ -28,7 +28,17 @@ public class QuestionBankImportController {
         
         try {
             List<MultipartFile> fileList = Arrays.asList(files);
-            QuestionBankImportResult result = importService.createImportBatch(subjectId, sessionId, fileList);
+            var pendingSession = importService.prepareImportBatch(subjectId, sessionId, fileList);
+            
+            boolean needsFix = pendingSession.getFiles().stream()
+                    .flatMap(f -> f.getParseResult().getValidQuestions().stream())
+                    .anyMatch(q -> !q.isComplete());
+
+            if (needsFix) {
+                return ResponseEntity.badRequest().body("Import failed: Some questions are missing required data (Marks, CO, Unit, T, or Content). Interactive UI is required to fix this.");
+            }
+
+            QuestionBankImportResult result = importService.commitImportBatch(pendingSession);
             
             if (!result.isSuccessful()) {
                 return ResponseEntity.badRequest().body("Import failed with parsing errors:\n" + String.join("\n", result.getParsingErrors()));

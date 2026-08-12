@@ -4,56 +4,57 @@
 <html>
 <head>
     <title>QPSS - Dashboard</title>
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Segoe UI', sans-serif; background: #f8fafc; color: #1e293b; min-height: 100vh; }
-        .container { max-width: 900px; margin: 0 auto; padding: 40px 20px; }
-        h1 { font-size: 28px; font-weight: 600; margin-bottom: 30px; color: #0f172a; }
-        .card { background: #ffffff; border-radius: 12px; padding: 24px; margin-bottom: 16px; border: 1px solid #e2e8f0; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.05); transition: border-color 0.2s; }
-        .card:hover { border-color: #2563eb; }
-        .card h3 { font-size: 18px; color: #0f172a; margin-bottom: 6px; }
-        .card .meta { font-size: 13px; color: #64748b; }
-        .card a { color: #2563eb; text-decoration: none; font-weight: 500; }
-        .card a:hover { text-decoration: underline; }
-        .form-row { display: flex; gap: 12px; margin-bottom: 30px; }
-        input[type="text"] { flex: 1; padding: 12px 16px; background: #ffffff; border: 1px solid #cbd5e1; border-radius: 8px; color: #1e293b; font-size: 15px; outline: none; }
-        input[type="text"]:focus { border-color: #2563eb; }
-        button, .btn { padding: 12px 24px; background: #2563eb; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 14px; font-weight: 500; text-decoration: none;}
-        button:hover, .btn:hover { background: #1d4ed8; }
-        .empty { text-align: center; padding: 60px; color: #64748b; font-size: 15px; }
-        .badge { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 12px; background: #dbeafe; color: #1e40af; }
-        .actions { display: flex; gap: 12px; align-items: center; margin-top: 10px; }
-        .btn-sm { padding: 6px 14px; font-size: 12px; border-radius: 6px; }
-        .btn-danger { background: #dc2626; }
-        .btn-danger:hover { background: #b91c1c; }
-    </style>
+    <link rel="stylesheet" href="/css/style.css">
 </head>
 <body>
-<div class="container">
-    <h1>Question Paper Selection System</h1>
+<nav class="navbar">
+    <a href="/" class="navbar-brand">
+        <svg style="width:24px;height:24px;color:var(--accent);" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9.5a2.5 2.5 0 00-2.5-2.5H15"></path></svg>
+        QPSS <span>Dashboard</span>
+    </a>
+    <div style="margin-left:auto;">
+        <a href="/history" class="btn btn-outline btn-sm">View History</a>
+    </div>
+</nav>
 
-    <form action="/subjects" method="post" class="form-row">
-        <input type="text" name="name" placeholder="New subject name..." required>
-        <button type="submit">Create Subject</button>
-    </form>
+<div class="container">
+    <div class="page-header">
+        <h1 class="page-title">Subjects</h1>
+        <div class="page-subtitle">Manage your subjects and question banks</div>
+    </div>
+
+    <div class="card">
+        <form action="/subjects" method="post" style="display:flex; gap:16px; align-items:flex-end;">
+            <div class="form-group" style="flex:1; margin-bottom:0;">
+                <label class="form-label">New Subject Name</label>
+                <input type="text" name="name" placeholder="e.g. Data Structures" required>
+            </div>
+            <button type="submit" class="btn btn-primary">Create Subject</button>
+        </form>
+    </div>
 
     <c:if test="${empty subjects}">
-        <div class="empty">No subjects yet. Create one to get started.</div>
+        <div class="upload-zone" style="cursor:default; margin-top:24px;">
+            <div style="font-size:48px; color:var(--border); margin-bottom:16px;">📚</div>
+            <div style="font-size:16px; font-weight:500; color:var(--text-main);">No subjects yet</div>
+            <div style="color:var(--text-muted); font-size:14px; margin-top:4px;">Create your first subject to start building question banks.</div>
+        </div>
     </c:if>
 
-    <c:forEach var="s" items="${subjects}">
-        <div class="card">
-            <h3><a href="/subjects/${s.id}">${s.name}</a></h3>
-            <div class="meta">Created: ${s.createdAt}</div>
-            <div class="actions">
-                <a href="/subjects/${s.id}" class="btn btn-sm">Open</a>
-                <form action="/subjects/${s.id}/delete" method="post" style="margin:0;">
-                    <button type="submit" class="btn btn-sm btn-danger"
-                            onclick="return confirm('Delete this subject?')">Delete</button>
-                </form>
+    <div class="grid-3" style="margin-top:24px;">
+        <c:forEach var="s" items="${subjects}">
+            <div class="card" style="margin-bottom:0; display:flex; flex-direction:column;">
+                <h3 style="font-size:18px; margin-bottom:8px;"><a href="/subjects/${s.id}" style="color:var(--text-main); text-decoration:none;">${s.name}</a></h3>
+                <div style="font-size:13px; color:var(--text-muted); margin-bottom:16px;">Created: ${s.createdAt}</div>
+                <div style="margin-top:auto; display:flex; gap:12px;">
+                    <a href="/subjects/${s.id}" class="btn btn-primary btn-sm" style="flex:1;">Open</a>
+                    <form action="/subjects/${s.id}/delete" method="post" style="margin:0;">
+                        <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Delete this subject?')">Delete</button>
+                    </form>
+                </div>
             </div>
-        </div>
-    </c:forEach>
+        </c:forEach>
+    </div>
 </div>
 </body>
 </html>
