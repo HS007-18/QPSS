@@ -23,6 +23,8 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.util.Base64;
 import java.util.List;
+import java.util.Set;
+import java.util.TreeSet;
 import java.util.stream.Collectors;
 
 @Service
@@ -57,27 +59,121 @@ public class DocxRendererService {
 
         try (XWPFDocument document = new XWPFDocument()) {
             
+            // Top Header: QP CODE, Date, Register No
+            XWPFParagraph topPara = document.createParagraph();
+            topPara.setAlignment(ParagraphAlignment.LEFT);
+            XWPFRun topRun = topPara.createRun();
+            topRun.setBold(true);
+            topRun.setFontSize(11);
+            topRun.setText("QP CODE:                                        Date:                                        Register No.: ..........................");
+            
             // Header
             XWPFParagraph headerPara = document.createParagraph();
             headerPara.setAlignment(ParagraphAlignment.CENTER);
-            XWPFRun headerRun = headerPara.createRun();
-            headerRun.setBold(true);
-            headerRun.setFontSize(16);
-            headerRun.setText("COLLEGE OF ENGINEERING");
-            headerRun.addCarriageReturn();
+            XWPFRun instRun = headerPara.createRun();
+            instRun.setBold(true);
+            instRun.setFontSize(16);
+            instRun.setText("KANGEYAM INSTITUTE OF TECHNOLOGY");
+            instRun.addCarriageReturn();
             
-            XWPFRun examRun = headerPara.createRun();
-            examRun.setBold(true);
-            examRun.setFontSize(14);
-            examRun.setText(paper.getExamType().toUpperCase().replace("_", " ") + " EXAMINATIONS");
-            examRun.addCarriageReturn();
+            XWPFRun autoRun = headerPara.createRun();
+            autoRun.setBold(true);
+            autoRun.setFontSize(12);
+            autoRun.setText("(An Autonomous Institution)");
+            autoRun.addCarriageReturn();
             
-            XWPFRun subjectRun = headerPara.createRun();
-            subjectRun.setBold(true);
-            subjectRun.setFontSize(14);
-            subjectRun.setText(subject.getName());
+            XWPFRun assessRun = headerPara.createRun();
+            assessRun.setBold(true);
+            assessRun.setFontSize(14);
+            assessRun.setText(paper.getExamType().toUpperCase().replace("_", " ") + " - [ I / II ]");
+            assessRun.addCarriageReturn();
             
-            document.createParagraph().createRun().addBreak();
+            XWPFRun subRun = headerPara.createRun();
+            subRun.setBold(true);
+            subRun.setFontSize(14);
+            subRun.setText("[ SUBJECT CODE ] - " + subject.getName().toUpperCase());
+            subRun.addCarriageReturn();
+            
+            XWPFRun regRun = headerPara.createRun();
+            regRun.setBold(true);
+            regRun.setFontSize(12);
+            regRun.setText("(Regulation ");
+            XWPFRun regRunRed = headerPara.createRun();
+            regRunRed.setBold(true);
+            regRunRed.setFontSize(12);
+            regRunRed.setText("[ 202X ]");
+            XWPFRun regRunEnd = headerPara.createRun();
+            regRunEnd.setBold(true);
+            regRunEnd.setFontSize(12);
+            regRunEnd.setText(")");
+            regRunEnd.addCarriageReturn();
+            
+            XWPFRun semRunRed = headerPara.createRun();
+            semRunRed.setBold(true);
+            semRunRed.setFontSize(12);
+            semRunRed.setText("[ I / II / III ]");
+            XWPFRun semRun = headerPara.createRun();
+            semRun.setBold(true);
+            semRun.setFontSize(12);
+            semRun.setText(" Semester");
+            semRun.addCarriageReturn();
+            
+            XWPFRun deptRun = headerPara.createRun();
+            deptRun.setBold(true);
+            deptRun.setFontSize(12);
+            deptRun.setText("[ B.E. Department Name ]");
+            deptRun.addCarriageReturn();
+            
+            XWPFRun commRun = headerPara.createRun();
+            commRun.setFontSize(12);
+            commRun.setText("Common to: ");
+            XWPFRun commRunRed = headerPara.createRun();
+            commRunRed.setFontSize(12);
+            commRunRed.setText("[ Branches / NIL ]");
+            commRunRed.addCarriageReturn();
+            
+            XWPFRun noteRun = headerPara.createRun();
+            noteRun.setFontSize(12);
+            noteRun.setText("Note: [ Enter Note Here ]");
+            noteRun.addCarriageReturn();
+            
+            // CO Table
+            Set<String> uniqueCos = new TreeSet<>();
+            for (PaperQuestion pq : sectionA) {
+                Question q = questionRepository.findById(pq.getQuestionId()).orElse(null);
+                if (q != null && q.getCo() != null) {
+                    uniqueCos.add(q.getCo().toUpperCase().startsWith("CO") ? q.getCo() : "CO" + q.getCo());
+                }
+            }
+            for (PaperQuestion pq : sectionB) {
+                Question q = questionRepository.findById(pq.getQuestionId()).orElse(null);
+                if (q != null && q.getCo() != null) {
+                    uniqueCos.add(q.getCo().toUpperCase().startsWith("CO") ? q.getCo() : "CO" + q.getCo());
+                }
+            }
+            
+            if (!uniqueCos.isEmpty()) {
+                XWPFTable coTable = document.createTable(uniqueCos.size(), 2);
+                coTable.setWidth("100%");
+                
+                int rIdx = 0;
+                for (String co : uniqueCos) {
+                    XWPFTableRow r = coTable.getRow(rIdx++);
+                    XWPFTableCell c0 = r.getCell(0);
+                    c0.setWidth("15%");
+                    if (c0.getParagraphs().isEmpty()) c0.addParagraph();
+                    XWPFParagraph cp0 = c0.getParagraphs().get(0);
+                    cp0.setAlignment(ParagraphAlignment.CENTER);
+                    XWPFRun cr0 = cp0.createRun();
+                    cr0.setBold(true);
+                    cr0.setText(co);
+                    
+                    XWPFTableCell c1 = r.getCell(1);
+                    c1.setWidth("85%");
+                }
+                
+                document.createParagraph().createRun().addBreak();
+            }
 
             // PART A
             if (!sectionA.isEmpty()) {
