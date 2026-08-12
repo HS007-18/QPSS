@@ -80,44 +80,55 @@ public class DocxRendererService {
             document.createParagraph().createRun().addBreak();
 
             // PART A
-            XWPFParagraph partAPara = document.createParagraph();
-            partAPara.setAlignment(ParagraphAlignment.CENTER);
-            XWPFRun partARun = partAPara.createRun();
-            partARun.setBold(true);
-            partARun.setText("PART A - (10 x 2 = 20 marks)");
-            
-            XWPFTable tableA = document.createTable(sectionA.size() + 1, 4);
-            tableA.setWidth("100%");
-            
-            // Header row Part A
-            setCellText(tableA.getRow(0).getCell(0), "Q.No.", true);
-            setCellText(tableA.getRow(0).getCell(1), "Question", true);
-            setCellText(tableA.getRow(0).getCell(2), "M", true);
-            setCellText(tableA.getRow(0).getCell(3), "CO", true);
-
-            for (int i = 0; i < sectionA.size(); i++) {
-                PaperQuestion pq = sectionA.get(i);
-                Question q = questionRepository.findById(pq.getQuestionId()).orElse(null);
-                if (q == null) continue;
+            if (!sectionA.isEmpty()) {
+                XWPFParagraph partAPara = document.createParagraph();
+                partAPara.setAlignment(ParagraphAlignment.CENTER);
+                XWPFRun partARun = partAPara.createRun();
+                partARun.setBold(true);
+                int qCountA = sectionA.size();
+                partARun.setText("PART A - (" + qCountA + " x 2 = " + (qCountA * 2) + " marks)");
                 
-                XWPFTableRow row = tableA.getRow(i + 1);
-                setCellText(row.getCell(0), String.valueOf(pq.getQuestionNumber()), false);
-                setCellHtml(row.getCell(1), q.getQuestionContent());
-                setCellText(row.getCell(2), "2", false);
-                setCellText(row.getCell(3), q.getCo() != null && q.getCo().toUpperCase().startsWith("CO") ? q.getCo() : "CO" + q.getCo(), false);
+                XWPFTable tableA = document.createTable(sectionA.size() + 1, 4);
+                tableA.setWidth("100%");
+                
+                // Header row Part A
+                setCellText(tableA.getRow(0).getCell(0), "Q.No.", true);
+                setCellText(tableA.getRow(0).getCell(1), "Question", true);
+                setCellText(tableA.getRow(0).getCell(2), "M", true);
+                setCellText(tableA.getRow(0).getCell(3), "CO", true);
+
+                for (int i = 0; i < sectionA.size(); i++) {
+                    PaperQuestion pq = sectionA.get(i);
+                    Question q = questionRepository.findById(pq.getQuestionId()).orElse(null);
+                    if (q == null) continue;
+                    
+                    XWPFTableRow row = tableA.getRow(i + 1);
+                    setCellText(row.getCell(0), String.valueOf(pq.getQuestionNumber()), false);
+                    setCellHtml(row.getCell(1), q.getQuestionContent());
+                    setCellText(row.getCell(2), "2", false);
+                    setCellText(row.getCell(3), q.getCo() != null && q.getCo().toUpperCase().startsWith("CO") ? q.getCo() : "CO" + q.getCo(), false);
+                }
+                
+                document.createParagraph().createRun().addBreak();
             }
             
-            document.createParagraph().createRun().addBreak();
-            
             // PART B
-            XWPFParagraph partBPara = document.createParagraph();
-            partBPara.setAlignment(ParagraphAlignment.CENTER);
-            XWPFRun partBRun = partBPara.createRun();
-            partBRun.setBold(true);
-            partBRun.setText("PART B - (5 x 16 = 80 marks)");
+            if (!sectionB.isEmpty()) {
+                int sampleMarks = 16;
+                Question sampleQ = questionRepository.findById(sectionB.get(0).getQuestionId()).orElse(null);
+                if (sampleQ != null && sampleQ.getMarks() != null) {
+                    sampleMarks = sampleQ.getMarks();
+                }
+                int pairsCount = sectionB.size() / 2;
 
-            XWPFTable tableB = document.createTable(sectionB.size() + 1 + (sectionB.size()/2), 4);
-            tableB.setWidth("100%");
+                XWPFParagraph partBPara = document.createParagraph();
+                partBPara.setAlignment(ParagraphAlignment.CENTER);
+                XWPFRun partBRun = partBPara.createRun();
+                partBRun.setBold(true);
+                partBRun.setText("PART B - (" + pairsCount + " x " + sampleMarks + " = " + (pairsCount * sampleMarks) + " marks)");
+
+                XWPFTable tableB = document.createTable(sectionB.size() + 1 + (sectionB.size()/2), 4);
+                tableB.setWidth("100%");
             
             // Header row Part B
             setCellText(tableB.getRow(0).getCell(0), "Q.No.", true);
@@ -150,6 +161,7 @@ public class DocxRendererService {
                 setCellHtml(row.getCell(1), q.getQuestionContent());
                 setCellText(row.getCell(2), String.valueOf(q.getMarks()), false);
                 setCellText(row.getCell(3), q.getCo() != null && q.getCo().toUpperCase().startsWith("CO") ? q.getCo() : "CO" + q.getCo(), false);
+            }
             }
 
             ByteArrayOutputStream out = new ByteArrayOutputStream();

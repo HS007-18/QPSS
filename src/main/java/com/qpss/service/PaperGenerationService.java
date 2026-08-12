@@ -37,7 +37,7 @@ public class PaperGenerationService {
     }
 
     @Transactional
-    public GenerationResult generate(String examType, Long subjectId, Long sessionId, int numSets, Integer partA, Integer partB) {
+    public GenerationResult generate(String examType, Long subjectId, Long sessionId, int numSets, String format) {
         // Clear previous non-finalized drafts for this session
         List<GeneratedPaper> existingDrafts = paperRepo.findBySessionId(sessionId).stream()
                 .filter(p -> !Boolean.TRUE.equals(p.getIsFinal()))
@@ -48,7 +48,7 @@ public class PaperGenerationService {
             paperRepo.deleteAll(existingDrafts);
         }
 
-        com.qpss.service.distribution.DistributionPlan plan = examConfigService.getDistributionPlan(examType, partA, partB);
+        com.qpss.service.distribution.DistributionPlan plan = examConfigService.getDistributionPlan(examType, format);
         String diversityWarning = checkDiversity(plan, sessionId, numSets);
 
         List<GeneratedSet> sets = new ArrayList<>();
@@ -74,14 +74,14 @@ public class PaperGenerationService {
 
             int partBMarks = plan.getSections().stream()
                     .mapToInt(s -> s.getMarks())
-                    .filter(m -> m != 2)
+                    .filter(m -> m == 16 || m == 20)
                     .findFirst().orElse(16);
 
             List<PairingEngine.QuestionPair> pairs = pairingEngine.createPairs(
                     selection.getPartBQuestions(partBMarks));
 
             ValidationEngine.ValidationResult validation = validationEngine.validate(
-                    examType, subjectId, sessionId, partA, partB,
+                    examType, subjectId, sessionId, format,
                     selection.getTwoMarkQuestions(), pairs);
 
             if (!validation.isValid()) {

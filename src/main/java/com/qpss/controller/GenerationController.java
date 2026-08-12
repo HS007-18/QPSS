@@ -21,24 +21,20 @@ public class GenerationController {
     @GetMapping("/preview")
     @ResponseBody
     public com.qpss.service.distribution.DistributionPlan preview(@RequestParam String examType, 
-                                                                   @RequestParam(required = false) Integer partA, 
-                                                                   @RequestParam(required = false) Integer partB) {
-        Integer actualPartB = partB != null ? partB * 2 : null;
-        return examConfigService.getDistributionPlan(examType, partA, actualPartB);
+                                                                   @RequestParam(defaultValue = "FORMAT_1") String format) {
+        return examConfigService.getDistributionPlan(examType, format);
     }
 
     @PostMapping
     public String generate(@PathVariable Long sessionId,
                             @RequestParam String examType,
                             @RequestParam(defaultValue = "1") int numSets,
-                            @RequestParam(required = false) Integer partA,
-                            @RequestParam(required = false) Integer partB,
+                            @RequestParam(defaultValue = "FORMAT_1") String format,
                             Model model,
                             RedirectAttributes redirect) {
         var session = sessionService.findById(sessionId);
-        Integer actualPartB = partB != null ? partB * 2 : null;
         var result = generationService.generate(
-                examType, session.getSubjectId(), sessionId, numSets, partA, actualPartB);
+                examType, session.getSubjectId(), sessionId, numSets, format);
 
         if (!result.isSuccessful()) {
             redirect.addFlashAttribute("shortages", result.getShortages());

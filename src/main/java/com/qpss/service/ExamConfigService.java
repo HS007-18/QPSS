@@ -22,16 +22,24 @@ public class ExamConfigService {
     private final ExamSectionConfigRepository sectionConfigRepo;
     private final DistributionCalculationService calculationService;
 
-    private static final Set<Integer> SUPPORTED_MARKS = Set.of(2, 16);
+    private static final Set<Integer> SUPPORTED_MARKS = Set.of(2, 16, 20);
 
     @Transactional(readOnly = true)
-    public DistributionPlan getDistributionPlan(String examType, Integer overridePartA, Integer overridePartB) {
+    public DistributionPlan getDistributionPlan(String examType, String format) {
         if (examType == null || examType.trim().isEmpty()) {
             throw new IllegalArgumentException("Invalid exam type");
         }
 
         List<ExamSectionConfig> sections = sectionConfigRepo.findAll().stream()
                 .filter(s -> s.getExamType().equals(examType))
+                .filter(s -> {
+                    if ("FORMAT_2".equals(format)) {
+                        return s.getMarks() == 20;
+                    } else {
+                        // Default / FORMAT_1
+                        return s.getMarks() == 2 || s.getMarks() == 16;
+                    }
+                })
                 .sorted(Comparator.comparingInt(ExamSectionConfig::getMarks))
                 .collect(Collectors.toList());
 
@@ -45,11 +53,6 @@ public class ExamConfigService {
 
         for (ExamSectionConfig section : sections) {
             int required = section.getTotalRequired();
-            if (section.getMarks() == 2 && overridePartA != null) {
-                required = overridePartA;
-            } else if (section.getMarks() == 16 && overridePartB != null) {
-                required = overridePartB;
-            }
             
             List<DistributionCalculationService.UnitConfigInput> unitInputs = unitConfigs.stream()
                     .filter(c -> c.getMarks().equals(section.getMarks()))
@@ -68,7 +71,7 @@ public class ExamConfigService {
     
     @Transactional(readOnly = true)
     public DistributionPlan getDistributionPlan(String examType) {
-        return getDistributionPlan(examType, null, null);
+        return getDistributionPlan(examType, "FORMAT_1");
     }
 
     @Transactional

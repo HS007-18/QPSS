@@ -5,10 +5,13 @@ DELETE FROM exam_co_rules;
 INSERT INTO exam_section_configs (exam_type, marks, total_required) VALUES
 ('INTERNAL_1', 2, 10),
 ('INTERNAL_1', 16, 10),
+('INTERNAL_1', 20, 10),
 ('INTERNAL_2', 2, 10),
 ('INTERNAL_2', 16, 10),
+('INTERNAL_2', 20, 10),
 ('SEMESTER', 2, 10),
-('SEMESTER', 16, 10);
+('SEMESTER', 16, 10),
+('SEMESTER', 20, 10);
 
 INSERT INTO exam_configs (exam_type, unit, marks, required_count, distribution_pct, t1_pct, t2_pct, t1_required_count, t2_required_count) VALUES
 ('INTERNAL_1', 1, 2,  4, 40.00, 50.00, 50.00, 2, 2),
@@ -17,6 +20,9 @@ INSERT INTO exam_configs (exam_type, unit, marks, required_count, distribution_p
 ('INTERNAL_1', 1, 16, 4, 40.00, 50.00, 50.00, 2, 2),
 ('INTERNAL_1', 2, 16, 4, 40.00, 50.00, 50.00, 2, 2),
 ('INTERNAL_1', 3, 16, 2, 20.00, 100.00, 0.00, 2, 0),
+('INTERNAL_1', 1, 20, 4, 40.00, 50.00, 50.00, 2, 2),
+('INTERNAL_1', 2, 20, 4, 40.00, 50.00, 50.00, 2, 2),
+('INTERNAL_1', 3, 20, 2, 20.00, 100.00, 0.00, 2, 0),
 
 ('INTERNAL_2', 3, 2,  2, 20.00, 0.00, 100.00, 0, 2),
 ('INTERNAL_2', 4, 2,  4, 40.00, 50.00, 50.00, 2, 2),
@@ -24,6 +30,9 @@ INSERT INTO exam_configs (exam_type, unit, marks, required_count, distribution_p
 ('INTERNAL_2', 3, 16, 2, 20.00, 0.00, 100.00, 0, 2),
 ('INTERNAL_2', 4, 16, 4, 40.00, 50.00, 50.00, 2, 2),
 ('INTERNAL_2', 5, 16, 4, 40.00, 50.00, 50.00, 2, 2),
+('INTERNAL_2', 3, 20, 2, 20.00, 0.00, 100.00, 0, 2),
+('INTERNAL_2', 4, 20, 4, 40.00, 50.00, 50.00, 2, 2),
+('INTERNAL_2', 5, 20, 4, 40.00, 50.00, 50.00, 2, 2),
 
 ('SEMESTER', 1, 2,  2, 20.00, 50.00, 50.00, 1, 1),
 ('SEMESTER', 2, 2,  2, 20.00, 50.00, 50.00, 1, 1),
@@ -34,7 +43,12 @@ INSERT INTO exam_configs (exam_type, unit, marks, required_count, distribution_p
 ('SEMESTER', 2, 16, 2, 20.00, 50.00, 50.00, 1, 1),
 ('SEMESTER', 3, 16, 2, 20.00, 50.00, 50.00, 1, 1),
 ('SEMESTER', 4, 16, 2, 20.00, 50.00, 50.00, 1, 1),
-('SEMESTER', 5, 16, 2, 20.00, 50.00, 50.00, 1, 1);
+('SEMESTER', 5, 16, 2, 20.00, 50.00, 50.00, 1, 1),
+('SEMESTER', 1, 20, 2, 20.00, 50.00, 50.00, 1, 1),
+('SEMESTER', 2, 20, 2, 20.00, 50.00, 50.00, 1, 1),
+('SEMESTER', 3, 20, 2, 20.00, 50.00, 50.00, 1, 1),
+('SEMESTER', 4, 20, 2, 20.00, 50.00, 50.00, 1, 1),
+('SEMESTER', 5, 20, 2, 20.00, 50.00, 50.00, 1, 1);
 
 INSERT INTO exam_co_rules (exam_type, co) VALUES
 ('INTERNAL_1', 'CO1'),

@@ -36,13 +36,12 @@ public class ValidationEngine {
             String examType,
             Long subjectId,
             Long sessionId,
-            Integer partA,
-            Integer partB,
+            String format,
             List<Question> sectionA,
             List<PairingEngine.QuestionPair> sectionBPairs) {
 
         List<String> failures = new ArrayList<>();
-        com.qpss.service.distribution.DistributionPlan plan = examConfigService.getDistributionPlan(examType, partA, partB);
+        com.qpss.service.distribution.DistributionPlan plan = examConfigService.getDistributionPlan(examType, format);
         Set<String> requiredCOs = coRuleRepo.findByExamType(examType).stream()
                 .map(r -> r.getCo())
                 .collect(Collectors.toSet());
@@ -50,7 +49,7 @@ public class ValidationEngine {
         long expectedSectionA = plan.getSections().stream()
                 .filter(s -> s.getMarks() == 2).findFirst().map(s -> (long) s.getTotalRequired()).orElse(0L);
         long expectedSectionBPairs = plan.getSections().stream()
-                .filter(s -> s.getMarks() == 16).findFirst().map(s -> (long) s.getTotalRequired() / 2).orElse(0L);
+                .filter(s -> s.getMarks() == 16 || s.getMarks() == 20).findFirst().map(s -> (long) s.getTotalRequired() / 2).orElse(0L);
 
         if (sectionA.size() != expectedSectionA) {
             failures.add("Section A must have " + expectedSectionA + " questions, got " + sectionA.size());
@@ -76,8 +75,8 @@ public class ValidationEngine {
             Question a = pair.getChoiceA();
             Question b = pair.getChoiceB();
 
-            if (a.getMarks() != 16) failures.add("Pair " + pair.getPairIndex() + " choice A not 16M");
-            if (b.getMarks() != 16) failures.add("Pair " + pair.getPairIndex() + " choice B not 16M");
+            if (a.getMarks() != 16 && a.getMarks() != 20) failures.add("Pair " + pair.getPairIndex() + " choice A not 16M/20M");
+            if (b.getMarks() != 16 && b.getMarks() != 20) failures.add("Pair " + pair.getPairIndex() + " choice B not 16M/20M");
             if (a.getUnit() != b.getUnit()) {
                 failures.add("Pair " + pair.getPairIndex() + " mixed units: " + a.getUnit() + "/" + b.getUnit());
             }

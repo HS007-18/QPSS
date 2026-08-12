@@ -88,6 +88,7 @@
                             <option value="">Marks</option>
                             <option value="2">2</option>
                             <option value="16">16</option>
+                            <option value="20">20</option>
                         </select>
                         <select name="t" required>
                             <option value="">T (Half)</option>
@@ -118,12 +119,11 @@
 
                     <div id="dynamic-counts" style="display:none; gap: 16px; margin-bottom: 16px;">
                         <div class="form-group" style="flex:1; margin-bottom:0;">
-                            <label class="form-label">Part A (2-Marks)</label>
-                            <input type="number" id="partA" name="partA" min="1" max="50">
-                        </div>
-                        <div class="form-group" style="flex:1; margin-bottom:0;">
-                            <label class="form-label">Part B (16-Marks)</label>
-                            <input type="number" id="partB" name="partB" min="1" max="20">
+                            <label class="form-label">Paper Format</label>
+                            <select name="format" id="paperFormat">
+                                <option value="FORMAT_1">Format 1 (10x2M, 5x16M)</option>
+                                <option value="FORMAT_2">Format 2 (5x20M)</option>
+                            </select>
                         </div>
                     </div>
 
@@ -185,17 +185,12 @@
 
     function fetchPreview() {
         const type = document.getElementById('examType').value;
-        const partA = document.getElementById('partA').value;
-        const partB = document.getElementById('partB').value;
+        const format = document.getElementById('paperFormat').value;
         const previewBox = document.getElementById('preview-box');
         
         if (!type) return;
         
-        let url = '/sessions/${session.id}/generate/preview?examType=' + type;
-        if (!isFetchingDefaults) {
-            if (partA) url += '&partA=' + partA;
-            if (partB) url += '&partB=' + partB;
-        }
+        let url = '/sessions/${session.id}/generate/preview?examType=' + type + '&format=' + format;
         
         fetch(url)
             .then(res => res.json())
@@ -207,11 +202,6 @@
                         html += ' - Unit ' + u.unit + ': ' + u.requiredCount + ' Qs ' +
                                 '(T1: ' + u.t1Required + ', T2: ' + u.t2Required + ')<br>';
                     });
-
-                    if (isFetchingDefaults) {
-                        if (sec.marks === 2) document.getElementById('partA').value = sec.totalRequired;
-                        if (sec.marks === 16) document.getElementById('partB').value = sec.totalRequired / 2;
-                    }
                 });
                 previewBox.innerHTML = html;
                 previewBox.style.display = 'block';
@@ -230,12 +220,8 @@
         fetchPreview();
     });
 
-    document.getElementById('partA').addEventListener('input', function(e) {
-        if (!isFetchingDefaults) fetchPreview();
-    });
-
-    document.getElementById('partB').addEventListener('input', function(e) {
-        if (!isFetchingDefaults) fetchPreview();
+    document.getElementById('paperFormat').addEventListener('change', function(e) {
+        fetchPreview();
     });
 </script>
 </body>
