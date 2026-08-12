@@ -13,19 +13,54 @@ CREATE TABLE IF NOT EXISTS sessions (
     FOREIGN KEY (subject_id) REFERENCES subjects(id)
 );
 
+CREATE TABLE IF NOT EXISTS question_bank_imports (
+    id          BIGINT AUTO_INCREMENT PRIMARY KEY,
+    subject_id  BIGINT NOT NULL,
+    session_id  BIGINT NOT NULL,
+    imported_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (subject_id) REFERENCES subjects(id),
+    FOREIGN KEY (session_id) REFERENCES sessions(id)
+);
+
+CREATE TABLE IF NOT EXISTS source_documents (
+    id                 BIGINT AUTO_INCREMENT PRIMARY KEY,
+    import_batch_id    BIGINT NOT NULL,
+    original_file_name VARCHAR(255) NOT NULL,
+    stored_file_name   VARCHAR(255) NOT NULL,
+    file_extension     VARCHAR(10) NOT NULL,
+    content_type       VARCHAR(100),
+    file_size          BIGINT NOT NULL,
+    checksum           VARCHAR(64) NOT NULL,
+    uploaded_at        TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (import_batch_id) REFERENCES question_bank_imports(id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_source_document_checksum ON source_documents(checksum);
+
 CREATE TABLE IF NOT EXISTS questions (
     id                  BIGINT AUTO_INCREMENT PRIMARY KEY,
     subject_id          BIGINT NOT NULL,
     session_id          BIGINT NOT NULL,
+    source_document_id  BIGINT,
     unit                INT NOT NULL,
     co                  VARCHAR(10) NOT NULL,
     marks               INT NOT NULL,
     serial_no           INT,
     question_content    TEXT NOT NULL,
+    raw_ooxml           LONGTEXT,
     source_file_name    VARCHAR(255),
     source_page_number  INT,
+    t                   INT NOT NULL,
     FOREIGN KEY (subject_id) REFERENCES subjects(id),
-    FOREIGN KEY (session_id) REFERENCES sessions(id)
+    FOREIGN KEY (session_id) REFERENCES sessions(id),
+    FOREIGN KEY (source_document_id) REFERENCES source_documents(id)
+);
+
+CREATE TABLE IF NOT EXISTS exam_section_configs (
+    id              BIGINT AUTO_INCREMENT PRIMARY KEY,
+    exam_type       VARCHAR(20) NOT NULL,
+    marks           INT NOT NULL,
+    total_required  INT NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS exam_configs (
@@ -34,7 +69,11 @@ CREATE TABLE IF NOT EXISTS exam_configs (
     unit            INT NOT NULL,
     marks           INT NOT NULL,
     required_count  INT NOT NULL,
-    distribution_pct DECIMAL(5,2)
+    distribution_pct DECIMAL(5,2),
+    t1_pct          DECIMAL(5,2),
+    t2_pct          DECIMAL(5,2),
+    t1_required_count INT,
+    t2_required_count INT
 );
 
 CREATE TABLE IF NOT EXISTS exam_co_rules (

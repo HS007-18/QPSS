@@ -18,7 +18,7 @@ public class PaperGenerationService {
     private final ValidationEngine validationEngine;
     private final GeneratedPaperRepository paperRepo;
     private final PaperQuestionRepository paperQuestionRepo;
-    private final ExamConfigRepository configRepo;
+    private final ExamConfigService examConfigService;
     private final QuestionRepository questionRepo;
 
     @Data @AllArgsConstructor
@@ -38,14 +38,15 @@ public class PaperGenerationService {
 
     @Transactional
     public GenerationResult generate(String examType, Long subjectId, Long sessionId, int numSets) {
-        String diversityWarning = checkDiversity(examType, subjectId, sessionId, numSets);
+        com.qpss.service.distribution.DistributionPlan plan = examConfigService.getDistributionPlan(examType);
+        String diversityWarning = checkDiversity(plan, sessionId, numSets);
 
         List<GeneratedSet> sets = new ArrayList<>();
         Set<Long> usedIds = new HashSet<>();
 
         for (int i = 0; i < numSets; i++) {
             SelectionEngine.SelectionResult selection = selectionEngine.select(
-                    examType, subjectId, sessionId, usedIds);
+                    plan, subjectId, sessionId, usedIds);
 
             if (!selection.isSuccessful()) {
                 if (i == 0) {
@@ -53,7 +54,7 @@ public class PaperGenerationService {
                             Collections.emptyList(), selection.getShortages(), null, false);
                 }
                 SelectionEngine.SelectionResult fallback = selectionEngine.select(
-                        examType, subjectId, sessionId, Collections.emptySet());
+                        plan, subjectId, sessionId, Collections.emptySet());
                 if (!fallback.isSuccessful()) {
                     return new GenerationResult(
                             Collections.emptyList(), fallback.getShortages(), null, false);
@@ -124,17 +125,19 @@ public class PaperGenerationService {
         }
     }
 
-    private String checkDiversity(String examType, Long subjectId, Long sessionId, int numSets) {
+    private String checkDiversity(com.qpss.service.distribution.DistributionPlan plan, Long sessionId, int numSets) {
         if (numSets <= 1) return null;
 
-        List<ExamConfig> rules = configRepo.findByExamTypeOrderByMarksAscUnitAsc(examType);
         int minUniqueSets = Integer.MAX_VALUE;
 
-        for (ExamConfig rule : rules) {
-            int poolSize = questionRepo.countBySessionIdAndUnitAndMarks(
-                    sessionId, rule.getUnit(), rule.getMarks());
-            int maxSets = poolSize / rule.getRequiredCount();
-            minUniqueSets = Math.min(minUniqueSets, maxSets);
+        for (com.qpss.service.distribution.DistributionPlan.SectionPlan section : plan.getSections()) {
+            for (com.qpss.service.distribution.DistributionPlan.UnitPlan rule : section.getUnits()) {
+                if (rule.getRequiredCount() == 0) continue;
+                int poolSize = questionRepo.countBySessionIdAndUnitAndMarks(
+                        sessionId, rule.getUnit(), section.getMarks());
+                int maxSets = poolSize / rule.getRequiredCount();
+                minUniqueSets = Math.min(minUniqueSets, maxSets);
+            }
         }
 
         if (numSets > minUniqueSets) {

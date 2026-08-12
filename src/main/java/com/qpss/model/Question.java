@@ -17,6 +17,9 @@ public class Question {
     @Column(name = "session_id", nullable = false)
     private Long sessionId;
 
+    @Column(name = "source_document_id")
+    private Long sourceDocumentId;
+
     @Column(nullable = false)
     private Integer unit;
 
@@ -32,9 +35,23 @@ public class Question {
     @Column(name = "question_content", nullable = false, columnDefinition = "TEXT")
     private String questionContent;
 
+    @Column(name = "raw_ooxml", columnDefinition = "LONGTEXT")
+    private String rawOoxml;
+
     @Column(name = "source_file_name")
     private String sourceFileName;
 
     @Column(name = "source_page_number")
     private Integer sourcePageNumber;
+
+    @Column(nullable = false)
+    private Integer t;
+
+    @PrePersist
+    @PreUpdate
+    private void validateT() {
+        if (t == null || (t != 1 && t != 2)) {
+            throw new IllegalStateException("Question T value must be exactly 1 or 2. Found: " + t);
+        }
+    }
 }

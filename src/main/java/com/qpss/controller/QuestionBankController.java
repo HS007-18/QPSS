@@ -20,6 +20,7 @@ public class QuestionBankController {
     private final QuestionParserService parserService;
     private final SessionService sessionService;
     private final SubjectService subjectService;
+    private final QuestionBankImportService importService;
 
     @GetMapping
     public String session(@PathVariable Long sessionId, Model model) {
@@ -35,12 +36,14 @@ public class QuestionBankController {
                           RedirectAttributes redirect) {
         try {
             var session = sessionService.findById(sessionId);
-            var parsed = parserService.parseDocx(file);
-            var questions = parserService.toQuestions(
-                    parsed, session.getSubjectId(), sessionId, file.getOriginalFilename());
-            bankService.saveAll(questions);
-            redirect.addFlashAttribute("message",
-                    "Uploaded " + questions.size() + " questions from " + file.getOriginalFilename());
+            var result = importService.createImportBatch(session.getSubjectId(), sessionId, List.of(file));
+            
+            if (result.isSuccessful()) {
+                redirect.addFlashAttribute("message",
+                        "Uploaded " + result.getQuestionsParsed() + " questions from " + file.getOriginalFilename());
+            } else {
+                redirect.addFlashAttribute("error", "Upload failed due to parsing errors: " + String.join(", ", result.getParsingErrors()));
+            }
         } catch (Exception e) {
             redirect.addFlashAttribute("error", "Upload failed: " + e.getMessage());
         }

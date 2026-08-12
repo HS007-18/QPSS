@@ -1,9 +1,8 @@
 package com.qpss.service;
 
-import com.qpss.model.ExamConfig;
 import com.qpss.model.Question;
-import com.qpss.repository.ExamConfigRepository;
 import com.qpss.repository.QuestionRepository;
+import com.qpss.service.distribution.DistributionPlan;
 import lombok.*;
 import org.springframework.stereotype.Service;
 
@@ -16,7 +15,6 @@ import java.util.stream.Collectors;
 public class SelectionEngine {
 
     private final QuestionRepository questionRepo;
-    private final ExamConfigRepository configRepo;
     private final SecureRandom random = new SecureRandom();
 
     @Data @AllArgsConstructor
@@ -43,14 +41,13 @@ public class SelectionEngine {
         }
     }
 
-    public SelectionResult select(String examType, Long subjectId, Long sessionId) {
-        return select(examType, subjectId, sessionId, Collections.emptySet());
+    public SelectionResult select(DistributionPlan plan, Long subjectId, Long sessionId) {
+        return select(plan, subjectId, sessionId, Collections.emptySet());
     }
 
-    public SelectionResult select(String examType, Long subjectId, Long sessionId, Set<Long> excludeIds) {
-        List<ExamConfig> rules = configRepo.findByExamTypeOrderByMarksAscUnitAsc(examType);
-        if (rules.isEmpty()) {
-            throw new IllegalArgumentException("No exam config found for: " + examType);
+    public SelectionResult select(DistributionPlan plan, Long subjectId, Long sessionId, Set<Long> excludeIds) {
+        if (plan == null || plan.getSections().isEmpty()) {
+            throw new IllegalArgumentException("Invalid or empty distribution plan");
         }
 
         List<Shortage> shortages = new ArrayList<>();
@@ -59,34 +56,49 @@ public class SelectionEngine {
 
         Set<String> usedContents = new HashSet<>();
 
-        for (ExamConfig rule : rules) {
-            List<Question> pool = questionRepo
-                    .findBySubjectIdAndSessionIdAndUnitAndMarks(subjectId, sessionId, rule.getUnit(), rule.getMarks())
-                    .stream()
-                    .filter(q -> !excludeIds.contains(q.getId()))
-                    .collect(Collectors.toList());
+        for (DistributionPlan.SectionPlan section : plan.getSections()) {
+            for (DistributionPlan.UnitPlan rule : section.getUnits()) {
+                List<Question> pool = questionRepo
+                        .findBySubjectIdAndSessionIdAndUnitAndMarks(subjectId, sessionId, rule.getUnit(), section.getMarks())
+                        .stream()
+                        .filter(q -> !excludeIds.contains(q.getId()))
+                        .collect(Collectors.toList());
 
-            // Remove duplicates from pool and avoid contents already used in this paper
-            Set<String> localSeen = new HashSet<>();
-            pool.removeIf(q -> {
-                String content = q.getQuestionContent().trim();
-                return usedContents.contains(content) || !localSeen.add(content);
-            });
+                // Remove duplicates from pool and avoid contents already used in this paper
+                Set<String> localSeen = new HashSet<>();
+                pool.removeIf(q -> {
+                    String content = q.getQuestionContent().trim();
+                    return usedContents.contains(content) || !localSeen.add(content);
+                });
 
-            if (pool.size() < rule.getRequiredCount()) {
-                shortages.add(new Shortage(rule.getUnit(), rule.getMarks(), rule.getRequiredCount(), pool.size()));
-                continue;
-            }
+                if (pool.size() < rule.getRequiredCount()) {
+                    shortages.add(new Shortage(rule.getUnit(), section.getMarks(), rule.getRequiredCount(), pool.size()));
+                    continue;
+                }
 
-            Collections.shuffle(pool, random);
-            List<Question> picked = pool.subList(0, rule.getRequiredCount());
+                // Currently just doing basic randomized selection logic from original code, but satisfying T1/T2 required counts
+                List<Question> t1Pool = pool.stream().filter(q -> q.getT() == 1).collect(Collectors.toList());
+                List<Question> t2Pool = pool.stream().filter(q -> q.getT() == 2).collect(Collectors.toList());
 
-            for (Question q : picked) {
-                usedContents.add(q.getQuestionContent().trim());
-                if (rule.getMarks() == 2) {
-                    selected2m.add(q);
-                } else {
-                    selected16m.add(q);
+                Collections.shuffle(t1Pool, random);
+                Collections.shuffle(t2Pool, random);
+
+                if (t1Pool.size() < rule.getT1Required() || t2Pool.size() < rule.getT2Required()) {
+                     shortages.add(new Shortage(rule.getUnit(), section.getMarks(), rule.getRequiredCount(), pool.size()));
+                     continue;
+                }
+
+                List<Question> picked = new ArrayList<>();
+                picked.addAll(t1Pool.subList(0, rule.getT1Required()));
+                picked.addAll(t2Pool.subList(0, rule.getT2Required()));
+
+                for (Question q : picked) {
+                    usedContents.add(q.getQuestionContent().trim());
+                    if (section.getMarks() == 2) {
+                        selected2m.add(q);
+                    } else {
+                        selected16m.add(q);
+                    }
                 }
             }
         }

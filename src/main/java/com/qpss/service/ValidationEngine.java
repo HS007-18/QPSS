@@ -14,7 +14,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class ValidationEngine {
 
-    private final ExamConfigRepository configRepo;
+    private final ExamConfigService examConfigService;
     private final ExamCoRuleRepository coRuleRepo;
 
     @Data @Builder
@@ -40,7 +40,7 @@ public class ValidationEngine {
             List<PairingEngine.QuestionPair> pairs) {
 
         List<String> failures = new ArrayList<>();
-        List<ExamConfig> rules = configRepo.findByExamTypeOrderByMarksAscUnitAsc(examType);
+        com.qpss.service.distribution.DistributionPlan plan = examConfigService.getDistributionPlan(examType);
         Set<String> requiredCOs = coRuleRepo.findByExamType(examType).stream()
                 .map(r -> r.getCo())
                 .collect(Collectors.toSet());
@@ -97,13 +97,15 @@ public class ValidationEngine {
                     .merge(q.getUnit(), 1L, Long::sum);
         }
 
-        for (ExamConfig rule : rules) {
-            String markKey = rule.getMarks() + "M";
-            long actual = distribution.getOrDefault(markKey, Collections.emptyMap())
-                    .getOrDefault(rule.getUnit(), 0L);
-            if (actual != rule.getRequiredCount()) {
-                failures.add("Unit " + rule.getUnit() + " " + markKey
-                        + ": expected " + rule.getRequiredCount() + ", got " + actual);
+        for (com.qpss.service.distribution.DistributionPlan.SectionPlan sp : plan.getSections()) {
+            String markKey = sp.getMarks() + "M";
+            for (com.qpss.service.distribution.DistributionPlan.UnitPlan up : sp.getUnits()) {
+                long actual = distribution.getOrDefault(markKey, Collections.emptyMap())
+                        .getOrDefault(up.getUnit(), 0L);
+                if (actual != up.getRequiredCount()) {
+                    failures.add("Unit " + up.getUnit() + " " + markKey
+                            + ": expected " + up.getRequiredCount() + ", got " + actual);
+                }
             }
         }
 

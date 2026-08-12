@@ -26,4 +26,16 @@ public class ExamConfig {
 
     @Column(name = "distribution_pct")
     private BigDecimal distributionPct;
+
+    @Column(name = "t1_pct")
+    private BigDecimal t1Pct;
+
+    @Column(name = "t2_pct")
+    private BigDecimal t2Pct;
+
+    @Column(name = "t1_required_count")
+    private Integer t1RequiredCount;
+
+    @Column(name = "t2_required_count")
+    private Integer t2RequiredCount;
 }
