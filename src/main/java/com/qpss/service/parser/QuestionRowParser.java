@@ -56,13 +56,19 @@ public class QuestionRowParser {
         String tStr = cells.get(4).getText().trim();
         Integer t = null;
         if (!tStr.isEmpty()) {
-            try {
-                t = Integer.parseInt(tStr.replaceAll("[^0-9]", ""));
-                if (t != 1 && t != 2) {
-                    t = null; // invalid T, treat as missing
+            if (tStr.equalsIgnoreCase("I")) {
+                t = 1;
+            } else if (tStr.equalsIgnoreCase("II")) {
+                t = 2;
+            } else {
+                try {
+                    t = Integer.parseInt(tStr.replaceAll("[^0-9]", ""));
+                    if (t != 1 && t != 2) {
+                        t = null; // invalid T, treat as missing
+                    }
+                } catch (NumberFormatException e) {
+                    // invalid T, treat as missing
                 }
-            } catch (NumberFormatException e) {
-                // invalid T, treat as missing
             }
         }
 

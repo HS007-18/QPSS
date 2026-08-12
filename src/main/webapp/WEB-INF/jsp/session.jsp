@@ -91,9 +91,9 @@
                             <option value="20">20</option>
                         </select>
                         <select name="t" required>
-                            <option value="">T (Half)</option>
-                            <option value="1">T1</option>
-                            <option value="2">T2</option>
+                            <option value="">I / II Half</option>
+                            <option value="1">I</option>
+                            <option value="2">II</option>
                         </select>
                     </div>
                     <textarea name="content" placeholder="Type question content here..." required style="margin-bottom:12px;"></textarea>
@@ -162,7 +162,7 @@
                                     <span class="tag tag-marks">${q.marks}M</span>
                                 </div>
                             </td>
-                            <td style="font-size:13px; font-weight:600; color:var(--text-muted);">T${q.t}</td>
+                            <td style="font-size:13px; font-weight:600; color:var(--text-muted);">${q.t == 1 ? 'I' : (q.t == 2 ? 'II' : '')}</td>
                             <td>${q.questionContent.length() > 80 ? q.questionContent.substring(0,80).concat('...') : q.questionContent}</td>
                             <td style="font-size:13px; color:var(--text-muted);">${q.sourceFileName != null ? q.sourceFileName : 'Manual'}</td>
                         </tr>
