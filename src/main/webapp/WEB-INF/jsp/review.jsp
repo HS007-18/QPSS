@@ -58,8 +58,11 @@
             <div class="set-header">
                 <span class="set-label">Set ${set.paper.setLabel}</span>
                 <div style="display:flex; gap: 12px; align-items: center;">
-                    <a href="/sessions/${session.id}#generate-section" class="btn btn-outline btn-sm">Regenerate</a>
-                    <a href="/sessions/${session.id}/generate/export/${set.paper.id}" target="_blank" class="btn btn-outline btn-sm" style="color:var(--primary); border-color:var(--primary);">Download DOCX</a>
+                    <form action="/sessions/${session.id}/generate" method="post" style="margin:0;">
+                        <input type="hidden" name="examType" value="${examType}">
+                        <input type="hidden" name="numSets" value="${result.sets.size()}">
+                        <button type="submit" class="btn btn-outline btn-sm">Regenerate</button>
+                    </form>
                     <form action="/sessions/${session.id}/generate/${set.paper.id}/finalize" method="post" style="margin:0;">
                         <button type="submit" class="btn btn-primary btn-sm">Finalize Set</button>
                     </form>
@@ -109,7 +112,7 @@
     </c:forEach>
 
     <div style="margin-top: 32px;">
-        <a href="/sessions/${session.id}" class="btn btn-outline">Back to Session</a>
+        <a href="/" class="btn btn-outline">Back to Dashboard</a>
     </div>
 </div>
 <script>

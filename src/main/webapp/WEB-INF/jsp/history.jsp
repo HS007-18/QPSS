@@ -26,7 +26,7 @@
     
     <div class="page-header">
         <h1 class="page-title">Paper History</h1>
-        <div class="page-subtitle">View and download all finalized question papers</div>
+        <div class="page-subtitle">View all finalized question papers</div>
     </div>
     
     <div class="card" style="padding:0; overflow:hidden;">
@@ -39,7 +39,6 @@
                         <th>Set Label</th>
                         <th>Session ID</th>
                         <th>Subject ID</th>
-                        <th style="text-align:right;">Actions</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -50,17 +49,11 @@
                             <td><span class="tag tag-unit" style="background:var(--accent-light); color:var(--accent-hover);">Set ${p.setLabel}</span></td>
                             <td style="color:var(--text-muted);">Session #${p.sessionId}</td>
                             <td style="color:var(--text-muted);">Sub #${p.subjectId}</td>
-                            <td style="text-align:right;">
-                                <a href="/sessions/${p.sessionId}/generate/export/${p.id}" target="_blank" class="btn btn-primary btn-sm" style="display:inline-flex;">
-                                    <svg style="width:16px;height:16px;margin-right:4px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
-                                    Download
-                                </a>
-                            </td>
                         </tr>
                     </c:forEach>
                     <c:if test="${empty papers}">
                         <tr>
-                            <td colspan="6" style="text-align: center; padding: 40px; color: var(--text-muted);">
+                            <td colspan="5" style="text-align: center; padding: 40px; color: var(--text-muted);">
                                 No finalized papers found in your history.
                             </td>
                         </tr>
