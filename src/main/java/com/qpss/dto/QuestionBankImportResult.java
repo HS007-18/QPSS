@@ -1,4 +1,4 @@
-package com.qpss.service;
+package com.qpss.dto;
 
 import com.qpss.model.QuestionBankImport;
 import lombok.Builder;

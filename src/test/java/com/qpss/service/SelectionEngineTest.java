@@ -3,6 +3,7 @@ package com.qpss.service;
 import com.qpss.model.Question;
 import com.qpss.repository.QuestionRepository;
 import com.qpss.service.distribution.DistributionPlan;
+import com.qpss.service.selection.SelectionEngine;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
@@ -65,7 +66,7 @@ class SelectionEngineTest {
         for (int i = 0; i < uniqueCount; i++) {
             Question q = makeQuestion(subjectId, sessionId, unit, marks, t, "CO1");
             questions.add(q);
-            questions.add(q); // Add duplicate reference to same object (same ID)
+            questions.add(q);
         }
         when(questionRepository.findBySubjectIdAndSessionIdAndUnitAndMarksAndT(
                 eq(subjectId), eq(sessionId), eq(unit), eq(marks), eq(t)))
@@ -93,7 +94,7 @@ class SelectionEngineTest {
 
     @Test
     void testExactUnitAllocation_4_4_2() {
-        // 1. Exact unit allocation (4+4+2)
+
         long subId = 1L;
         long sessId = 1L;
 
@@ -114,18 +115,18 @@ class SelectionEngineTest {
 
         SelectionEngine.SelectionResult result = selectionEngine.select(plan, subId, sessId);
         assertTrue(result.isSuccessful());
-        
-        List<Question> q2m = result.getTwoMarkQuestions();
-        assertEquals(10, q2m.size()); // 16. Global selected count
 
-        assertEquals(4, q2m.stream().filter(q -> q.getUnit() == 1).count()); // 17, 18, 19 tests
+        List<Question> q2m = result.getTwoMarkQuestions();
+        assertEquals(10, q2m.size());
+
+        assertEquals(4, q2m.stream().filter(q -> q.getUnit() == 1).count());
         assertEquals(4, q2m.stream().filter(q -> q.getUnit() == 2).count());
         assertEquals(2, q2m.stream().filter(q -> q.getUnit() == 3).count());
     }
 
     @Test
     void testExactTAllocation() {
-        // 2. Exact T allocation
+
         long subId = 1L;
         long sessId = 1L;
 
@@ -140,7 +141,7 @@ class SelectionEngineTest {
 
         SelectionEngine.SelectionResult result = selectionEngine.select(plan, subId, sessId);
         assertTrue(result.isSuccessful());
-        
+
         List<Question> q2m = result.getTwoMarkQuestions();
         assertEquals(2, q2m.stream().filter(q -> q.getT() == 1).count());
         assertEquals(2, q2m.stream().filter(q -> q.getT() == 2).count());
@@ -148,7 +149,7 @@ class SelectionEngineTest {
 
     @Test
     void testUnequalTAllocation() {
-        // 3. Unequal T allocation
+
         long subId = 1L;
         long sessId = 1L;
 
@@ -163,7 +164,7 @@ class SelectionEngineTest {
 
         SelectionEngine.SelectionResult result = selectionEngine.select(plan, subId, sessId);
         assertTrue(result.isSuccessful());
-        
+
         List<Question> q2m = result.getTwoMarkQuestions();
         assertEquals(2, q2m.stream().filter(q -> q.getT() == 1).count());
         assertEquals(1, q2m.stream().filter(q -> q.getT() == 2).count());
@@ -171,12 +172,12 @@ class SelectionEngineTest {
 
     @Test
     void testZeroTAllocation() {
-        // 4. Zero T allocation
+
         long subId = 1L;
         long sessId = 1L;
 
         mockQuestions(subId, sessId, 1, 2, 1, 5);
-        mockQuestions(subId, sessId, 1, 2, 2, 5); // T2 available
+        mockQuestions(subId, sessId, 1, 2, 2, 5);
 
         DistributionPlan plan = makePlan(List.of(
                 DistributionPlan.SectionPlan.builder().marks(2).totalRequired(2).units(List.of(
@@ -186,19 +187,19 @@ class SelectionEngineTest {
 
         SelectionEngine.SelectionResult result = selectionEngine.select(plan, subId, sessId);
         assertTrue(result.isSuccessful());
-        
+
         List<Question> q2m = result.getTwoMarkQuestions();
         assertEquals(2, q2m.stream().filter(q -> q.getT() == 1).count());
-        assertEquals(0, q2m.stream().filter(q -> q.getT() == 2).count()); // No T2 selected
+        assertEquals(0, q2m.stream().filter(q -> q.getT() == 2).count());
     }
 
     @Test
     void testT1Shortage() {
-        // 5. T1 shortage
+
         long subId = 1L;
         long sessId = 1L;
 
-        mockQuestions(subId, sessId, 1, 2, 1, 1); // Only 1 available, but need 2
+        mockQuestions(subId, sessId, 1, 2, 1, 1);
         mockQuestions(subId, sessId, 1, 2, 2, 5);
 
         DistributionPlan plan = makePlan(List.of(
@@ -210,7 +211,7 @@ class SelectionEngineTest {
         SelectionEngine.SelectionResult result = selectionEngine.select(plan, subId, sessId);
         assertFalse(result.isSuccessful());
         assertEquals(1, result.getShortages().size());
-        
+
         SelectionEngine.SelectionShortage shortage = result.getShortages().get(0);
         assertEquals(1, shortage.getUnit());
         assertEquals(2, shortage.getMarks());
@@ -219,15 +220,15 @@ class SelectionEngineTest {
         assertEquals(1, shortage.getAvailable());
         assertEquals(1, shortage.getShortage());
     }
-    
+
     @Test
     void testT2Shortage() {
-        // 6. T2 shortage
+
         long subId = 1L;
         long sessId = 1L;
 
         mockQuestions(subId, sessId, 1, 2, 1, 5);
-        mockQuestions(subId, sessId, 1, 2, 2, 0); // None available, need 1
+        mockQuestions(subId, sessId, 1, 2, 2, 0);
 
         DistributionPlan plan = makePlan(List.of(
                 DistributionPlan.SectionPlan.builder().marks(2).totalRequired(3).units(List.of(
@@ -243,13 +244,13 @@ class SelectionEngineTest {
 
     @Test
     void testNoPartialSelection() {
-        // 7. No partial selection when ANY bucket is short
+
         long subId = 1L;
         long sessId = 1L;
 
         mockQuestions(subId, sessId, 1, 2, 1, 10);
         mockQuestions(subId, sessId, 1, 2, 2, 10);
-        mockQuestions(subId, sessId, 2, 2, 1, 1); // SHORTAGE: available 1, need 2
+        mockQuestions(subId, sessId, 2, 2, 1, 1);
 
         DistributionPlan plan = makePlan(List.of(
                 DistributionPlan.SectionPlan.builder().marks(2).totalRequired(4).units(List.of(
@@ -260,20 +261,18 @@ class SelectionEngineTest {
 
         SelectionEngine.SelectionResult result = selectionEngine.select(plan, subId, sessId);
         assertFalse(result.isSuccessful());
-        assertEquals(0, result.getTwoMarkQuestions().size()); // Zero selected
-        assertEquals(0, result.getSixteenMarkQuestions().size()); // Zero selected
+        assertEquals(0, result.getTwoMarkQuestions().size());
+        assertEquals(0, result.getQuestionsByMarks(16).size());
     }
 
     @Test
     void testDuplicateQuestionIdProtection() {
-        // 8. Duplicate Question ID protection (repository returning duplicate IDs)
-        // 24. Repository returning duplicate Question IDs
+
         long subId = 1L;
         long sessId = 1L;
 
-        // Will return 3 unique questions, but each duplicated in the list (total 6 items, 3 unique)
         mockQuestionsWithDuplicates(subId, sessId, 1, 2, 1, 3);
-        
+
         DistributionPlan plan = makePlan(List.of(
                 DistributionPlan.SectionPlan.builder().marks(2).totalRequired(2).units(List.of(
                         makeUnitPlan(1, 2, 0)
@@ -285,15 +284,15 @@ class SelectionEngineTest {
         assertEquals(2, result.getTwoMarkQuestions().size());
         assertNotEquals(result.getTwoMarkQuestions().get(0).getId(), result.getTwoMarkQuestions().get(1).getId());
     }
-    
+
     @Test
     void testDuplicateQuestionIdCausesShortage() {
-        // Same as above but only 1 unique question available, need 2
+
         long subId = 1L;
         long sessId = 1L;
 
         mockQuestionsWithDuplicates(subId, sessId, 1, 2, 1, 1);
-        
+
         DistributionPlan plan = makePlan(List.of(
                 DistributionPlan.SectionPlan.builder().marks(2).totalRequired(2).units(List.of(
                         makeUnitPlan(1, 2, 0)
@@ -303,15 +302,12 @@ class SelectionEngineTest {
         SelectionEngine.SelectionResult result = selectionEngine.select(plan, subId, sessId);
         assertFalse(result.isSuccessful());
         assertEquals(1, result.getShortages().size());
-        assertEquals(1, result.getShortages().get(0).getAvailable()); // Recognized only 1 unique available
+        assertEquals(1, result.getShortages().get(0).getAvailable());
     }
 
     @Test
     void testSubjectSessionMarksUnitTIsolation() {
-        // Tests 9, 10, 11, 12, 13 (Isolation)
-        // We verify isolation inherently because we mock the exact DB call by arguments.
-        // If the engine queried for a wrong subject/session, it would get null/empty from mock 
-        // and fail due to shortage. Thus, successful completion implies correct isolation parameters.
+
         long subId = 99L;
         long sessId = 88L;
 
@@ -329,9 +325,7 @@ class SelectionEngineTest {
 
     @Test
     void testCOIndependence() {
-        // 14. CO independence
-        // In `mockQuestions` we set CO to CO1, CO2, etc. 
-        // We never pass CO into the engine or DB mock query, so it's fully independent.
+
         long subId = 1L;
         long sessId = 1L;
 
@@ -350,7 +344,7 @@ class SelectionEngineTest {
 
     @Test
     void testBothSections() {
-        // 15. Both 2M and 16M sections together
+
         long subId = 1L;
         long sessId = 1L;
 
@@ -368,20 +362,20 @@ class SelectionEngineTest {
 
         SelectionEngine.SelectionResult result = selectionEngine.select(plan, subId, sessId);
         assertTrue(result.isSuccessful());
-        
+
         List<Question> q2m = result.getTwoMarkQuestions();
-        List<Question> q16m = result.getSixteenMarkQuestions();
-        
+        List<Question> q16m = result.getQuestionsByMarks(16);
+
         assertEquals(2, q2m.size());
         assertEquals(2, q2m.get(0).getMarks());
-        
+
         assertEquals(2, q16m.size());
         assertEquals(16, q16m.get(0).getMarks());
     }
 
     @Test
     void testInvalidPlanHandling() {
-        // 20. Invalid/null DistributionPlan handling
+
         assertThrows(IllegalArgumentException.class, () -> {
             selectionEngine.select(null, 1L, 1L);
         });
@@ -393,11 +387,10 @@ class SelectionEngineTest {
 
     @Test
     void testEmptyCandidatePool() {
-        // 23. Empty candidate pool handling
+
         long subId = 1L;
         long sessId = 1L;
 
-        // DB returns nothing
         when(questionRepository.findBySubjectIdAndSessionIdAndUnitAndMarksAndT(
                 eq(subId), eq(sessId), eq(1), eq(2), eq(1)))
                 .thenReturn(new ArrayList<>());

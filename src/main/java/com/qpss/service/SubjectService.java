@@ -37,27 +37,23 @@ public class SubjectService {
 
     @Transactional
     public void delete(Long id) {
-        // 1. Find all sessions for this subject
+
         List<Session> sessions = sessionRepo.findBySubjectId(id);
         if (!sessions.isEmpty()) {
             List<Long> sessionIds = sessions.stream().map(Session::getId).collect(Collectors.toList());
-            
-            // 2. Delete all questions for this subject
+
             questionRepo.deleteBySubjectId(id);
-            
-            // 3. Find and delete all generated papers and their questions
+
             List<GeneratedPaper> papers = paperRepo.findBySessionIdIn(sessionIds);
             if (!papers.isEmpty()) {
                 List<Long> paperIds = papers.stream().map(GeneratedPaper::getId).collect(Collectors.toList());
                 paperQuestionRepo.deleteByPaperIdIn(paperIds);
                 paperRepo.deleteBySessionIdIn(sessionIds);
             }
-            
-            // 4. Delete the sessions
+
             sessionRepo.deleteBySubjectId(id);
         }
-        
-        // 5. Finally delete the subject
+
         repo.deleteById(id);
     }
 }

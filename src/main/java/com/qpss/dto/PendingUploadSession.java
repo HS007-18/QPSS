@@ -1,4 +1,4 @@
-package com.qpss.service;
+package com.qpss.dto;
 
 import com.qpss.service.parser.QuestionParseResult;
 import lombok.Data;
@@ -11,7 +11,7 @@ public class PendingUploadSession {
     private Long subjectId;
     private Long sessionId;
     private List<FileImportHolder> files;
-    
+
     @Data
     public static class FileImportHolder {
         private String originalName;

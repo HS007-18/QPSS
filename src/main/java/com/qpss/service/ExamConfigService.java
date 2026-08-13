@@ -36,7 +36,7 @@ public class ExamConfigService {
                     if ("FORMAT_2".equals(format)) {
                         return s.getMarks() == 20;
                     } else {
-                        // Default / FORMAT_1
+
                         return s.getMarks() == 2 || s.getMarks() == 16;
                     }
                 })
@@ -53,14 +53,14 @@ public class ExamConfigService {
 
         for (ExamSectionConfig section : sections) {
             int required = section.getTotalRequired();
-            
+
             List<DistributionCalculationService.UnitConfigInput> unitInputs = unitConfigs.stream()
                     .filter(c -> c.getMarks().equals(section.getMarks()))
                     .map(c -> new DistributionCalculationService.UnitConfigInput(
                             c.getUnit(), c.getDistributionPct(), c.getT1Pct(), c.getT2Pct()
                     ))
                     .collect(Collectors.toList());
-            
+
             sectionInputs.add(new DistributionCalculationService.SectionConfigInput(
                     section.getMarks(), required, unitInputs
             ));
@@ -68,7 +68,7 @@ public class ExamConfigService {
 
         return calculationService.calculate(examType, sectionInputs);
     }
-    
+
     @Transactional(readOnly = true)
     public DistributionPlan getDistributionPlan(String examType) {
         return getDistributionPlan(examType, "FORMAT_1");
@@ -80,7 +80,6 @@ public class ExamConfigService {
             throw new IllegalArgumentException("Invalid exam type");
         }
 
-        // Validate
         for (DistributionCalculationService.SectionConfigInput section : sectionInputs) {
             if (!SUPPORTED_MARKS.contains(section.getMarks())) {
                 throw new IllegalArgumentException("Unsupported marks: " + section.getMarks());
@@ -91,25 +90,25 @@ public class ExamConfigService {
 
             BigDecimal unitSum = BigDecimal.ZERO;
             Set<Integer> seenUnits = new HashSet<>();
-            
+
             for (DistributionCalculationService.UnitConfigInput u : section.getUnits()) {
                 if (!seenUnits.add(u.getUnit())) {
                     throw new IllegalArgumentException("Duplicate unit configuration for unit " + u.getUnit());
                 }
-                
+
                 validatePercentage(u.getPercentage(), "Unit percentage");
                 validatePercentage(u.getT1Percentage(), "T1 percentage");
                 validatePercentage(u.getT2Percentage(), "T2 percentage");
-                
-                if (u.getT1Percentage().add(u.getT2Percentage()).compareTo(new BigDecimal("100.00")) != 0 && 
+
+                if (u.getT1Percentage().add(u.getT2Percentage()).compareTo(new BigDecimal("100.00")) != 0 &&
                     u.getT1Percentage().add(u.getT2Percentage()).compareTo(new BigDecimal("100.0")) != 0 &&
                     u.getT1Percentage().add(u.getT2Percentage()).compareTo(new BigDecimal("100")) != 0) {
                     throw new IllegalArgumentException("T1 + T2 percentage must exactly equal 100 for unit " + u.getUnit());
                 }
-                
+
                 unitSum = unitSum.add(u.getPercentage());
             }
-            
+
             if (unitSum.compareTo(new BigDecimal("100.00")) != 0 &&
                 unitSum.compareTo(new BigDecimal("100.0")) != 0 &&
                 unitSum.compareTo(new BigDecimal("100")) != 0) {
@@ -117,10 +116,8 @@ public class ExamConfigService {
             }
         }
 
-        // Calculate
         DistributionPlan plan = calculationService.calculate(examType, sectionInputs);
 
-        // Persist
         List<ExamSectionConfig> existingSections = sectionConfigRepo.findAll().stream()
                 .filter(s -> s.getExamType().equals(examType))
                 .collect(Collectors.toList());
@@ -135,7 +132,7 @@ public class ExamConfigService {
                     .marks(sp.getMarks())
                     .totalRequired(sp.getTotalRequired())
                     .build());
-            
+
             for (DistributionPlan.UnitPlan up : sp.getUnits()) {
                 configRepo.save(ExamConfig.builder()
                         .examType(examType)

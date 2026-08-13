@@ -1,11 +1,23 @@
 package com.qpss.controller;
 
-import com.qpss.service.*;
+import com.qpss.model.Question;
+import com.qpss.service.ExamConfigService;
+import com.qpss.service.PaperGenerationService;
+import com.qpss.service.SessionService;
+import com.qpss.service.SubjectService;
+import com.qpss.service.DocxRendererService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+
+import java.util.HashMap;
+import java.util.Map;
 
 @Controller
 @RequiredArgsConstructor
@@ -20,7 +32,7 @@ public class GenerationController {
 
     @GetMapping("/preview")
     @ResponseBody
-    public com.qpss.service.distribution.DistributionPlan preview(@RequestParam String examType, 
+    public com.qpss.service.distribution.DistributionPlan preview(@RequestParam String examType,
                                                                    @RequestParam(defaultValue = "FORMAT_1") String format) {
         return examConfigService.getDistributionPlan(examType, format);
     }
@@ -58,26 +70,34 @@ public class GenerationController {
 
     @PostMapping("/{paperId}/swap")
     @ResponseBody
-    public org.springframework.http.ResponseEntity<?> swapQuestion(@PathVariable Long sessionId, @PathVariable Long paperId, @RequestParam Long oldQuestionId) {
+    public ResponseEntity<Map<String, Object>> swapQuestion(@PathVariable Long sessionId,
+                                                            @PathVariable Long paperId,
+                                                            @RequestParam Long oldQuestionId) {
         try {
-            com.qpss.model.Question newQuestion = generationService.swapQuestion(paperId, oldQuestionId);
-            return org.springframework.http.ResponseEntity.ok().body("{\"status\":\"success\", \"newId\": " + newQuestion.getId() + ", \"newContent\": \"" + newQuestion.getQuestionContent().replace("\"", "\\\"").replace("\n", "\\n") + "\"}");
+            Question newQuestion = generationService.swapQuestion(paperId, oldQuestionId);
+            Map<String, Object> body = new HashMap<>();
+            body.put("status", "success");
+            body.put("newId", newQuestion.getId());
+            body.put("newContent", newQuestion.getQuestionContent());
+            return ResponseEntity.ok(body);
         } catch (Exception e) {
-            return org.springframework.http.ResponseEntity.badRequest().body("{\"error\":\"" + e.getMessage() + "\"}");
+            Map<String, Object> body = new HashMap<>();
+            body.put("error", e.getMessage());
+            return ResponseEntity.badRequest().body(body);
         }
     }
 
     @GetMapping("/export/{paperId}")
-    public org.springframework.http.ResponseEntity<byte[]> exportDocx(@PathVariable Long paperId) {
+    public ResponseEntity<byte[]> exportDocx(@PathVariable Long paperId) {
         var paper = generationService.getPaperById(paperId)
                 .orElseThrow(() -> new IllegalArgumentException("Invalid paper id"));
-        
+
         byte[] docxBytes = docxRendererService.exportPaperToDocx(paper);
-        
-        org.springframework.http.HttpHeaders headers = new org.springframework.http.HttpHeaders();
-        headers.setContentType(org.springframework.http.MediaType.valueOf("application/vnd.openxmlformats-officedocument.wordprocessingml.document"));
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.valueOf("application/vnd.openxmlformats-officedocument.wordprocessingml.document"));
         headers.setContentDispositionFormData("attachment", "QuestionPaper_" + paperId + ".docx");
-        
-        return new org.springframework.http.ResponseEntity<>(docxBytes, headers, org.springframework.http.HttpStatus.OK);
+
+        return new ResponseEntity<>(docxBytes, headers, HttpStatus.OK);
     }
 }

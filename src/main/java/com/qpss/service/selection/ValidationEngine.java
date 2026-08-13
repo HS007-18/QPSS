@@ -1,9 +1,10 @@
-package com.qpss.service;
+package com.qpss.service.selection;
 
 import com.qpss.model.ExamConfig;
 import com.qpss.model.Question;
 import com.qpss.repository.ExamCoRuleRepository;
 import com.qpss.repository.ExamConfigRepository;
+import com.qpss.service.ExamConfigService;
 import lombok.*;
 import org.springframework.stereotype.Service;
 
@@ -106,7 +107,7 @@ public class ValidationEngine {
                 long actualT1 = unitDist.getOrDefault(1, 0L);
                 long actualT2 = unitDist.getOrDefault(2, 0L);
                 long actualTotal = actualT1 + actualT2;
-                
+
                 if (actualTotal != up.getRequiredCount()) {
                     failures.add("Unit " + up.getUnit() + " " + markKey
                             + ": expected " + up.getRequiredCount() + " total, got " + actualTotal);

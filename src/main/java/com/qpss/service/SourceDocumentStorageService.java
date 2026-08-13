@@ -72,14 +72,9 @@ public class SourceDocumentStorageService {
         try {
             Files.deleteIfExists(target);
         } catch (IOException e) {
-            // Log this in a real system, but don't fail if we're just rolling back
         }
     }
 
-    public Path getDocument(String storedFileName) {
-        return getSafePath(storedFileName);
-    }
-    
     private Path getSafePath(String filename) {
         Path destinationFile = this.rootLocation.resolve(Paths.get(filename)).normalize().toAbsolutePath();
         if (!destinationFile.getParent().equals(this.rootLocation.toAbsolutePath())) {

@@ -68,8 +68,7 @@ public class ExamConfigServiceTest {
         assertNotNull(result);
         verify(sectionConfigRepo).deleteAll(any());
         verify(configRepo).deleteAll(any());
-        // 1 section + 3 units = 4 saves total, but verify by class
-        // Just checking it didn't throw an exception is the main validation goal
+
     }
 
     @Test
@@ -77,7 +76,7 @@ public class ExamConfigServiceTest {
         DistributionCalculationService.SectionConfigInput input = new DistributionCalculationService.SectionConfigInput(2, 10, List.of(
                 new DistributionCalculationService.UnitConfigInput(1, new BigDecimal("40.00"), new BigDecimal("50.00"), new BigDecimal("50.00")),
                 new DistributionCalculationService.UnitConfigInput(2, new BigDecimal("40.00"), new BigDecimal("50.00"), new BigDecimal("50.00"))
-                // sum is 80.00
+
         ));
 
         IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, () -> {

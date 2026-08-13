@@ -2,6 +2,9 @@ package com.qpss.service;
 
 import com.qpss.model.*;
 import com.qpss.repository.*;
+import com.qpss.service.selection.PairingEngine;
+import com.qpss.service.selection.SelectionEngine;
+import com.qpss.service.selection.ValidationEngine;
 import lombok.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -38,7 +41,6 @@ public class PaperGenerationService {
 
     @Transactional
     public GenerationResult generate(String examType, Long subjectId, Long sessionId, int numSets, String format) {
-        // Clear previous non-finalized drafts for this session
         List<GeneratedPaper> existingDrafts = paperRepo.findBySessionId(sessionId).stream()
                 .filter(p -> !Boolean.TRUE.equals(p.getIsFinal()))
                 .collect(Collectors.toList());
@@ -157,41 +159,9 @@ public class PaperGenerationService {
 
         if (numSets > minUniqueSets) {
             return "Only " + minUniqueSets + " meaningfully different sets possible. "
-                    + "Requested " + numSets + " — some questions will repeat across sets.";
+                    + "Requested " + numSets + " â€” some questions will repeat across sets.";
         }
         return null;
-    }
-
-    public GeneratedSet loadPaper(Long paperId) {
-        GeneratedPaper paper = paperRepo.findById(paperId)
-                .orElseThrow(() -> new NoSuchElementException("Paper not found: " + paperId));
-
-        List<PaperQuestion> mappings = paperQuestionRepo
-                .findByPaperIdOrderByQuestionNumberAscChoiceLabelAsc(paperId);
-
-        List<Question> sectionA = new ArrayList<>();
-        Map<Integer, Question[]> pairMap = new TreeMap<>();
-
-        for (PaperQuestion pq : mappings) {
-            Question q = questionRepo.findById(pq.getQuestionId())
-                    .orElseThrow(() -> new NoSuchElementException("Question not found: " + pq.getQuestionId()));
-
-            if ("SECTION_A".equals(pq.getSection())) {
-                sectionA.add(q);
-            } else {
-                Question[] pair = pairMap.computeIfAbsent(pq.getPairIndex(), k -> new Question[2]);
-                pair["a".equals(pq.getChoiceLabel()) ? 0 : 1] = q;
-            }
-        }
-
-        List<PairingEngine.QuestionPair> pairs = new ArrayList<>();
-        for (Map.Entry<Integer, Question[]> entry : pairMap.entrySet()) {
-            pairs.add(new PairingEngine.QuestionPair(
-                    entry.getValue()[0], entry.getValue()[1],
-                    entry.getValue()[0].getUnit(), entry.getKey()));
-        }
-
-        return new GeneratedSet(paper, sectionA, pairs);
     }
 
     @Transactional
@@ -243,7 +213,7 @@ public class PaperGenerationService {
 
         oldPq.setQuestionId(newQuestion.getId());
         paperQuestionRepo.save(oldPq);
-        
+
         return newQuestion;
     }
 }

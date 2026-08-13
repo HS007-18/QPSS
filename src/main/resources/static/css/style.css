@@ -1,27 +1,23 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 
 :root {
-    /* Color Palette */
+
     --bg-main: #f8fafc;
     --bg-card: #ffffff;
     --bg-hover: #f1f5f9;
-    
-    /* Blue */
+
     --primary: #2563eb;
     --primary-hover: #1d4ed8;
     --primary-light: #eff6ff;
-    
-    /* Peach */
+
     --accent: #f97316;
     --accent-hover: #ea580c;
     --accent-light: #ffedd5;
-    
-    /* Text */
+
     --text-main: #0f172a;
     --text-muted: #64748b;
     --border: #e2e8f0;
-    
-    /* Feedback */
+
     --success: #10b981;
     --success-light: #d1fae5;
     --danger: #ef4444;
@@ -30,7 +26,7 @@
     --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
     --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
     --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
-    
+
     --radius: 12px;
 }
 
@@ -44,7 +40,6 @@ body {
     -webkit-font-smoothing: antialiased;
 }
 
-/* Navbar */
 .navbar {
     background: var(--bg-card);
     border-bottom: 1px solid var(--border);
@@ -70,7 +65,6 @@ body {
 
 .navbar-brand span { color: var(--accent); }
 
-/* Layout */
 .container {
     max-width: 1200px;
     margin: 0 auto;
@@ -81,7 +75,6 @@ body {
 .page-title { font-size: 28px; font-weight: 700; color: var(--text-main); margin-bottom: 8px; }
 .page-subtitle { font-size: 14px; color: var(--text-muted); }
 
-/* Breadcrumbs */
 .breadcrumb {
     font-size: 13px;
     color: var(--text-muted);
@@ -93,7 +86,6 @@ body {
 .breadcrumb a { color: var(--primary); text-decoration: none; font-weight: 500; }
 .breadcrumb a:hover { text-decoration: underline; }
 
-/* Cards */
 .card {
     background: var(--bg-card);
     border-radius: var(--radius);
@@ -112,7 +104,6 @@ body {
     gap: 8px;
 }
 
-/* Forms & Inputs */
 .form-group { margin-bottom: 16px; }
 .form-label { display: block; font-size: 13px; font-weight: 500; color: var(--text-muted); margin-bottom: 6px; }
 
@@ -134,7 +125,6 @@ input:focus, select:focus, textarea:focus {
 }
 textarea { resize: vertical; min-height: 100px; }
 
-/* Buttons */
 .btn {
     display: inline-flex;
     align-items: center;
@@ -161,7 +151,6 @@ textarea { resize: vertical; min-height: 100px; }
 .btn-block { width: 100%; }
 .btn-sm { padding: 6px 12px; font-size: 12px; }
 
-/* Tables */
 .table-responsive { overflow-x: auto; }
 table { width: 100%; border-collapse: collapse; text-align: left; }
 th { padding: 12px 16px; font-size: 12px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; border-bottom: 1px solid var(--border); background: var(--bg-main); }
@@ -169,7 +158,6 @@ td { padding: 16px; font-size: 14px; border-bottom: 1px solid var(--bg-hover); v
 tr:last-child td { border-bottom: none; }
 tr:hover td { background: var(--bg-hover); }
 
-/* Tags */
 .tag {
     display: inline-block;
     padding: 4px 10px;
@@ -181,7 +169,6 @@ tr:hover td { background: var(--bg-hover); }
 .tag-co { background: var(--accent-light); color: var(--accent-hover); }
 .tag-marks { background: var(--bg-hover); color: var(--text-muted); border: 1px solid var(--border); }
 
-/* Upload Zone */
 .upload-zone {
     border: 2px dashed var(--border);
     border-radius: var(--radius);
@@ -194,7 +181,6 @@ tr:hover td { background: var(--bg-hover); }
 .upload-zone:hover { border-color: var(--primary); background: var(--primary-light); }
 .upload-icon { font-size: 32px; color: var(--primary); margin-bottom: 12px; }
 
-/* Toast Notifications */
 .toast-container { position: fixed; bottom: 24px; right: 24px; z-index: 100; display: flex; flex-direction: column; gap: 10px; }
 .toast {
     min-width: 300px;
@@ -215,7 +201,6 @@ tr:hover td { background: var(--bg-hover); }
 
 @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
 
-/* Grid Layouts */
 .grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 24px; }
 .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
 .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }

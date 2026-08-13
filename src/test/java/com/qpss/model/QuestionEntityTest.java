@@ -51,6 +51,7 @@ public class QuestionEntityTest {
                 .marks(16)
                 .questionContent("Sample content")
                 .t(1)
+                .rbt("R")
                 .build();
 
         Question saved = questionRepository.saveAndFlush(q);
@@ -68,6 +69,7 @@ public class QuestionEntityTest {
                 .marks(2)
                 .questionContent("Sample content 2")
                 .t(2)
+                .rbt("U")
                 .build();
 
         Question saved = questionRepository.saveAndFlush(q);
@@ -84,13 +86,14 @@ public class QuestionEntityTest {
                 .co("CO1")
                 .marks(2)
                 .questionContent("Sample content 3")
-                .t(3) // Invalid
+                .t(3)
+                .rbt("R")
                 .build();
 
         Exception thrown = assertThrows(Exception.class, () -> {
             questionRepository.saveAndFlush(q);
         });
-        
+
         String errorMessage = thrown.getMessage();
         if (thrown.getCause() != null) {
             errorMessage += " " + thrown.getCause().getMessage();
@@ -110,12 +113,13 @@ public class QuestionEntityTest {
                 .co("CO1")
                 .marks(2)
                 .questionContent("Sample content 4")
-                .build(); // t is null
+                .rbt("R")
+                .build();
 
         Exception thrown = assertThrows(Exception.class, () -> {
             questionRepository.saveAndFlush(q);
         });
-        
+
         String errorMessage = thrown.getMessage();
         if (thrown.getCause() != null) {
             errorMessage += " " + thrown.getCause().getMessage();

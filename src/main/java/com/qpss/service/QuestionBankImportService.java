@@ -1,5 +1,7 @@
 package com.qpss.service;
 
+import com.qpss.dto.PendingUploadSession;
+import com.qpss.dto.QuestionBankImportResult;
 import com.qpss.model.Question;
 import com.qpss.model.QuestionBankImport;
 import com.qpss.model.SourceDocument;
@@ -65,7 +67,7 @@ public class QuestionBankImportService {
 
             String checksum = calculateChecksum(file);
             if (processedChecksums.contains(checksum)) {
-                continue; 
+                continue;
             }
             processedChecksums.add(checksum);
 
@@ -109,12 +111,11 @@ public class QuestionBankImportService {
         List<SourceDocument> savedDocuments = new ArrayList<>();
         List<String> storedFileNames = new ArrayList<>();
         List<Question> allQuestions = new ArrayList<>();
-        List<String> allErrors = new ArrayList<>(); // from pending session if any hard errors existed
+        List<String> allErrors = new ArrayList<>();
 
         try {
             for (PendingUploadSession.FileImportHolder holder : pendingSession.getFiles()) {
-                boolean existsInDb = sourceDocumentRepository.existsByImportBatchIdAndChecksum(importBatch.getId(), holder.getChecksum());
-                if (existsInDb) {
+                if (sourceDocumentRepository.existsByChecksum(holder.getChecksum())) {
                     continue;
                 }
 
@@ -122,7 +123,7 @@ public class QuestionBankImportService {
                     for (String error : holder.getParseResult().getErrors()) {
                         allErrors.add(holder.getOriginalName() + ": " + error);
                     }
-                    continue; // Skip file with hard errors
+                    continue;
                 }
 
                 String extension = ".docx";
@@ -151,12 +152,12 @@ public class QuestionBankImportService {
                 );
                 allQuestions.addAll(questions);
             }
-            
+
             if (allQuestions.isEmpty() && !allErrors.isEmpty()) {
-                 return QuestionBankImportResult.builder()
-                    .successful(false)
-                    .parsingErrors(allErrors)
-                    .build();
+                return QuestionBankImportResult.builder()
+                        .successful(false)
+                        .parsingErrors(allErrors)
+                        .build();
             }
 
             importBatch.setSourceDocuments(savedDocuments);

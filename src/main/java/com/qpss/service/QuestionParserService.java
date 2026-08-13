@@ -15,8 +15,7 @@ import java.util.List;
 public class QuestionParserService {
 
     public QuestionParseResult parseDocx(MultipartFile file) throws IOException {
-        DocxDocumentReader reader = new DocxDocumentReader();
-        return reader.parse(file.getInputStream(), file.getOriginalFilename());
+        return new DocxDocumentReader().parse(file.getInputStream(), file.getOriginalFilename());
     }
 
     public List<Question> toQuestions(List<ParsedQuestion> parsed, Long subjectId,
@@ -28,11 +27,11 @@ public class QuestionParserService {
                     .sessionId(sessionId)
                     .sourceDocumentId(sourceDocumentId)
                     .unit(p.getUnit())
+                    .rbt(p.getRbt())
                     .co(p.getCo())
                     .marks(p.getMarks())
                     .serialNo(p.getSerialNo())
                     .questionContent(p.getQuestionContent())
-                    .rawOoxml(p.getRawOoxml())
                     .sourceFileName(sourceFileName)
                     .t(p.getT())
                     .build());
@@ -40,4 +39,3 @@ public class QuestionParserService {
         return questions;
     }
 }
-

@@ -1,7 +1,7 @@
 package com.qpss.controller;
 
 import com.qpss.model.QuestionBankImport;
-import com.qpss.service.QuestionBankImportResult;
+import com.qpss.dto.QuestionBankImportResult;
 import com.qpss.service.QuestionBankImportService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -25,11 +25,11 @@ public class QuestionBankImportController {
             @RequestParam("subjectId") Long subjectId,
             @RequestParam("sessionId") Long sessionId,
             @RequestParam("files") MultipartFile[] files) {
-        
+
         try {
             List<MultipartFile> fileList = Arrays.asList(files);
             var pendingSession = importService.prepareImportBatch(subjectId, sessionId, fileList);
-            
+
             boolean needsFix = pendingSession.getFiles().stream()
                     .flatMap(f -> f.getParseResult().getValidQuestions().stream())
                     .anyMatch(q -> !q.isComplete());
@@ -39,12 +39,12 @@ public class QuestionBankImportController {
             }
 
             QuestionBankImportResult result = importService.commitImportBatch(pendingSession);
-            
+
             if (!result.isSuccessful()) {
                 return ResponseEntity.badRequest().body("Import failed with parsing errors:\n" + String.join("\n", result.getParsingErrors()));
             }
 
-            return ResponseEntity.ok().body(String.format("Import successful. Batch ID: %d, Questions parsed: %d", 
+            return ResponseEntity.ok().body(String.format("Import successful. Batch ID: %d, Questions parsed: %d",
                     result.getImportBatch().getId(), result.getQuestionsParsed()));
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(e.getMessage());

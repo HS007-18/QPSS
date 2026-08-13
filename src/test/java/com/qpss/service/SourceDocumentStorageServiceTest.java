@@ -25,41 +25,43 @@ class SourceDocumentStorageServiceTest {
     }
 
     @Test
-    void testFileStorageAndRetrieval() throws Exception {
-        MultipartFile file = new MockMultipartFile("test.docx", "test.docx", "application/vnd.openxmlformats-officedocument.wordprocessingml.document", "dummy content".getBytes());
+    void testFileStorage() throws Exception {
+        MultipartFile file = new MockMultipartFile("test.docx", "test.docx",
+                "application/vnd.openxmlformats-officedocument.wordprocessingml.document", "dummy content".getBytes());
         String storedFileName = storageService.storeDocument(file, ".docx");
 
         assertNotNull(storedFileName);
         assertTrue(storedFileName.endsWith(".docx"));
 
-        Path retrieved = storageService.getDocument(storedFileName);
-        assertTrue(Files.exists(retrieved));
-        assertEquals("dummy content", Files.readString(retrieved));
+        Path stored = tempDir.resolve(storedFileName);
+        assertTrue(Files.exists(stored));
+        assertEquals("dummy content", Files.readString(stored));
     }
 
     @Test
     void testPathTraversalProtection() {
         assertThrows(SecurityException.class, () -> {
-            storageService.getDocument("../outside.docx");
+            storageService.deleteDocument("../outside.docx");
         });
     }
 
     @Test
     void testAbsolutePathProtection() {
         assertThrows(SecurityException.class, () -> {
-            storageService.getDocument("/etc/passwd");
+            storageService.deleteDocument("/etc/passwd");
         });
     }
 
     @Test
     void testFileDeletion() throws Exception {
-        MultipartFile file = new MockMultipartFile("test.docx", "test.docx", "application/vnd.openxmlformats-officedocument.wordprocessingml.document", "dummy content".getBytes());
+        MultipartFile file = new MockMultipartFile("test.docx", "test.docx",
+                "application/vnd.openxmlformats-officedocument.wordprocessingml.document", "dummy content".getBytes());
         String storedFileName = storageService.storeDocument(file, ".docx");
 
-        Path retrieved = storageService.getDocument(storedFileName);
-        assertTrue(Files.exists(retrieved));
+        Path stored = tempDir.resolve(storedFileName);
+        assertTrue(Files.exists(stored));
 
         storageService.deleteDocument(storedFileName);
-        assertFalse(Files.exists(retrieved));
+        assertFalse(Files.exists(stored));
     }
 }

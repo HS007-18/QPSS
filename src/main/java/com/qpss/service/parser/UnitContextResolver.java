@@ -7,7 +7,7 @@ public class UnitContextResolver {
 
     private static final Pattern UNIT_PATTERN = Pattern.compile("(?i)^\\s*UNIT\\s*(?:-|:)?\\s*(\\d+).*");
     private static final Pattern FILE_UNIT_PATTERN = Pattern.compile("(?i)unit\\s*[-_]?\\s*(\\d+)");
-    
+
     private Integer currentUnit;
 
     public UnitContextResolver(String filename) {
@@ -26,7 +26,7 @@ public class UnitContextResolver {
         if (text == null || text.trim().isEmpty()) {
             return;
         }
-        
+
         Matcher matcher = UNIT_PATTERN.matcher(text);
         if (matcher.matches()) {
             try {

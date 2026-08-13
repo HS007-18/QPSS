@@ -1,4 +1,4 @@
-package com.qpss.service;
+package com.qpss.service.selection;
 
 import com.qpss.model.Question;
 import lombok.*;

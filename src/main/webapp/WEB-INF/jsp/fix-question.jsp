@@ -30,70 +30,105 @@
         <form action="/sessions/${session.id}/upload/fix" method="post">
             <input type="hidden" name="file" value="${file}" />
             <input type="hidden" name="serialNo" value="${question.serialNo}" />
-            
-            <div class="form-group">
-                <label class="form-label">Question S.No ${question.serialNo} Content:</label>
-                <c:choose>
-                    <c:when test="${empty question.questionContent}">
-                        <textarea name="questionContent" style="border-color: var(--danger); box-shadow: 0 0 0 3px var(--danger-light);" required placeholder="Enter missing question content..."></textarea>
-                    </c:when>
-                    <c:otherwise>
-                        <div class="original-text">${question.questionContent}</div>
-                        <input type="hidden" name="questionContent" value="${question.questionContent}" />
-                    </c:otherwise>
-                </c:choose>
-            </div>
-            
-            <!-- Unit is derived from CO automatically -->
-            <input type="hidden" name="unit" value="${question.unit}" />
-            
-            <div class="form-group">
-                <label class="form-label">CO (e.g., CO1):</label>
-                <c:choose>
-                    <c:when test="${empty question.co}">
-                        <input type="text" name="co" style="border-color: var(--danger); box-shadow: 0 0 0 3px var(--danger-light);" placeholder="Enter missing CO (e.g., CO1)" required />
-                    </c:when>
-                    <c:otherwise>
-                        <div class="original-text">${question.co}</div>
-                        <input type="hidden" name="co" value="${question.co}" />
-                    </c:otherwise>
-                </c:choose>
-            </div>
-            
-            <div class="form-group">
-                <label class="form-label">Marks (2 or 16):</label>
-                <c:choose>
-                    <c:when test="${empty question.marks}">
-                        <select name="marks" style="border-color: var(--danger); box-shadow: 0 0 0 3px var(--danger-light);" required>
-                            <option value="" disabled selected>Select missing marks...</option>
-                            <option value="2">2</option>
-                            <option value="16">16</option>
-                        </select>
-                    </c:when>
-                    <c:otherwise>
-                        <div class="original-text">${question.marks}</div>
-                        <input type="hidden" name="marks" value="${question.marks}" />
-                    </c:otherwise>
-                </c:choose>
-            </div>
-            
-            <div class="form-group">
-                <label class="form-label">T (1=First Half, 2=Second Half):</label>
-                <c:choose>
-                    <c:when test="${empty question.t}">
-                        <select name="t" style="border-color: var(--danger); box-shadow: 0 0 0 3px var(--danger-light);" required>
-                            <option value="" disabled selected>Select missing T value...</option>
-                            <option value="1">1 (First Half)</option>
-                            <option value="2">2 (Second Half)</option>
-                        </select>
-                    </c:when>
-                    <c:otherwise>
-                        <div class="original-text">${question.t}</div>
-                        <input type="hidden" name="t" value="${question.t}" />
-                    </c:otherwise>
-                </c:choose>
-            </div>
-            
+
+            <c:if test="${empty question.questionContent}">
+                <div class="form-group">
+                    <label class="form-label">Question S.No ${question.serialNo} Content:</label>
+                    <textarea name="questionContent" style="border-color: var(--danger); box-shadow: 0 0 0 3px var(--danger-light);" required placeholder="Enter missing question content..."></textarea>
+                </div>
+            </c:if>
+            <c:if test="${not empty question.questionContent}">
+                <div class="form-group">
+                    <label class="form-label">Question S.No ${question.serialNo} Content:</label>
+                    <div class="original-text">${question.questionContent}</div>
+                    <input type="hidden" name="questionContent" value="${question.questionContent}" />
+                </div>
+            </c:if>
+
+            <c:if test="${empty question.unit}">
+                <div class="form-group">
+                    <label class="form-label">Unit (1-5):</label>
+                    <select name="unit" style="border-color: var(--danger); box-shadow: 0 0 0 3px var(--danger-light);" required>
+                        <option value="" disabled selected>Select missing unit...</option>
+                        <c:forEach var="u" begin="1" end="5"><option value="${u}">Unit ${u}</option></c:forEach>
+                    </select>
+                </div>
+            </c:if>
+            <c:if test="${not empty question.unit}">
+                <input type="hidden" name="unit" value="${question.unit}" />
+            </c:if>
+
+            <c:if test="${empty question.co}">
+                <div class="form-group">
+                    <label class="form-label">CO (e.g., CO1):</label>
+                    <input type="text" name="co" style="border-color: var(--danger); box-shadow: 0 0 0 3px var(--danger-light);" placeholder="Enter missing CO (e.g., CO1)" required />
+                </div>
+            </c:if>
+            <c:if test="${not empty question.co}">
+                <div class="form-group">
+                    <label class="form-label">CO:</label>
+                    <div class="original-text">${question.co}</div>
+                    <input type="hidden" name="co" value="${question.co}" />
+                </div>
+            </c:if>
+
+            <c:if test="${empty question.marks}">
+                <div class="form-group">
+                    <label class="form-label">Marks (2, 16 or 20):</label>
+                    <select name="marks" style="border-color: var(--danger); box-shadow: 0 0 0 3px var(--danger-light);" required>
+                        <option value="" disabled selected>Select missing marks...</option>
+                        <option value="2">2</option>
+                        <option value="16">16</option>
+                        <option value="20">20</option>
+                    </select>
+                </div>
+            </c:if>
+            <c:if test="${not empty question.marks}">
+                <div class="form-group">
+                    <label class="form-label">Marks:</label>
+                    <div class="original-text">${question.marks}</div>
+                    <input type="hidden" name="marks" value="${question.marks}" />
+                </div>
+            </c:if>
+
+            <c:if test="${empty question.t}">
+                <div class="form-group">
+                    <label class="form-label">I / II Half (1=First Half, 2=Second Half):</label>
+                    <select name="t" style="border-color: var(--danger); box-shadow: 0 0 0 3px var(--danger-light);" required>
+                        <option value="" disabled selected>Select missing I / II Half value...</option>
+                        <option value="1">1 (First Half)</option>
+                        <option value="2">2 (Second Half)</option>
+                    </select>
+                </div>
+            </c:if>
+            <c:if test="${not empty question.t}">
+                <div class="form-group">
+                    <label class="form-label">I / II Half:</label>
+                    <div class="original-text">${question.t == 1 ? '1 (First Half)' : '2 (Second Half)'}</div>
+                    <input type="hidden" name="t" value="${question.t}" />
+                </div>
+            </c:if>
+
+            <c:if test="${empty question.rbt}">
+                <div class="form-group">
+                    <label class="form-label">RBT Level (R, U, AP, AZ):</label>
+                    <select name="rbt" style="border-color: var(--danger); box-shadow: 0 0 0 3px var(--danger-light);" required>
+                        <option value="" disabled selected>Select missing RBT level...</option>
+                        <option value="R">R - Remember</option>
+                        <option value="U">U - Understand</option>
+                        <option value="AP">AP - Apply</option>
+                        <option value="AZ">AZ - Analyse</option>
+                    </select>
+                </div>
+            </c:if>
+            <c:if test="${not empty question.rbt}">
+                <div class="form-group">
+                    <label class="form-label">RBT Level:</label>
+                    <div class="original-text">${question.rbt}</div>
+                    <input type="hidden" name="rbt" value="${question.rbt}" />
+                </div>
+            </c:if>
+
             <button type="submit" class="btn btn-primary btn-block" style="font-size:16px; padding:14px; margin-top:24px;">Save & Continue</button>
         </form>
     </div>

@@ -22,19 +22,21 @@ public class DocxDocumentReader {
             List<IBodyElement> bodyElements = doc.getBodyElements();
             for (IBodyElement element : bodyElements) {
                 if (element instanceof XWPFParagraph) {
-                    XWPFParagraph p = (XWPFParagraph) element;
-                    unitResolver.processParagraph(p.getText());
+                    unitResolver.processParagraph(((XWPFParagraph) element).getText());
                 } else if (element instanceof XWPFTable) {
                     XWPFTable table = (XWPFTable) element;
-                    if (tableDetector.isQuestionTable(table)) {
-                        for (XWPFTableRow row : table.getRows()) {
-                            if (tableDetector.isHeaderRow(row)) {
-                                continue;
-                            }
-                            ParsedQuestion q = rowParser.parseRow(row, unitResolver.getCurrentUnit(), result, doc);
-                            if (q != null) {
-                                result.addValidQuestion(q);
-                            }
+                    XWPFTableRow headerRow = tableDetector.findHeaderRow(table);
+                    if (headerRow == null) {
+                        continue;
+                    }
+                    ColumnLayout layout = new ColumnLayout(headerRow);
+                    for (XWPFTableRow row : table.getRows()) {
+                        if (row == headerRow) {
+                            continue;
+                        }
+                        ParsedQuestion q = rowParser.parseRow(row, layout, unitResolver.getCurrentUnit(), result, doc);
+                        if (q != null) {
+                            result.addValidQuestion(q);
                         }
                     }
                 }

@@ -19,10 +19,10 @@
 
 <div class="container">
     <div class="breadcrumb">
-        <a href="/">Dashboard</a> 
-        <svg style="width:14px;height:14px;margin-top:2px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg> 
-        ${subject.name} 
-        <svg style="width:14px;height:14px;margin-top:2px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg> 
+        <a href="/">Dashboard</a>
+        <svg style="width:14px;height:14px;margin-top:2px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+        ${subject.name}
+        <svg style="width:14px;height:14px;margin-top:2px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
         Session #${session.id}
     </div>
 
@@ -46,17 +46,17 @@
             <strong style="display:block; margin-bottom:8px;">Insufficient Question Bank:</strong>
             <ul style="margin-left:20px; font-size:14px;">
             <c:forEach var="s" items="${shortages}">
-                <li>Unit ${s.unit} — ${s.marks}M: Need ${s.required}, have ${s.available} (${s.required - s.available} more needed)</li>
+                <li>Unit ${s.unit} â€” ${s.marks}M: Need ${s.required}, have ${s.available} (${s.required - s.available} more needed)</li>
             </c:forEach>
             </ul>
         </div>
     </c:if>
 
     <div class="grid-2">
-        <!-- Left Column: Bank Management -->
+
         <div>
             <h2 class="card-title" style="margin-bottom:16px; margin-top:0;">Question Bank Input</h2>
-            
+
             <div class="card">
                 <form action="/sessions/${session.id}/upload" method="post" enctype="multipart/form-data">
                     <label class="form-label">Upload DOCX File(s)</label>
@@ -80,6 +80,13 @@
                             <option value="">Unit</option>
                             <c:forEach var="u" begin="1" end="5"><option value="${u}">U${u}</option></c:forEach>
                         </select>
+                        <select name="rbt" required>
+                            <option value="">RBT</option>
+                            <option value="R">R</option>
+                            <option value="U">U</option>
+                            <option value="AP">AP</option>
+                            <option value="AZ">AZ</option>
+                        </select>
                         <select name="co" required>
                             <option value="">CO</option>
                             <c:forEach var="c" begin="1" end="5"><option value="CO${c}">CO${c}</option></c:forEach>
@@ -102,7 +109,6 @@
             </div>
         </div>
 
-        <!-- Right Column: Generation -->
         <div>
             <h2 class="card-title" style="margin-bottom:16px; margin-top:0;">Generate Question Paper</h2>
             <div class="card">
@@ -140,7 +146,6 @@
         </div>
     </div>
 
-    <!-- Question Bank Table -->
     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; margin-top:32px;">
         <h2 class="card-title" style="margin-bottom:0;">Current Question Bank</h2>
         <span class="tag tag-marks">${questions.size()} Questions</span>
@@ -158,6 +163,7 @@
                             <td>
                                 <div style="display:flex; gap:4px;">
                                     <span class="tag tag-unit">U${q.unit}</span>
+                                    <span class="tag tag-rbt">${q.rbt}</span>
                                     <span class="tag tag-co">${q.co}</span>
                                     <span class="tag tag-marks">${q.marks}M</span>
                                 </div>
@@ -187,11 +193,11 @@
         const type = document.getElementById('examType').value;
         const format = document.getElementById('paperFormat').value;
         const previewBox = document.getElementById('preview-box');
-        
+
         if (!type) return;
-        
+
         let url = '/sessions/${session.id}/generate/preview?examType=' + type + '&format=' + format;
-        
+
         fetch(url)
             .then(res => res.json())
             .then(data => {

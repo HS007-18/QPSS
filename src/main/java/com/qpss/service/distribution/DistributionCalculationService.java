@@ -77,7 +77,7 @@ public class DistributionCalculationService {
 
     public DistributionPlan calculate(String examType, List<SectionConfigInput> sections) {
         List<DistributionPlan.SectionPlan> sectionPlans = new ArrayList<>();
-        
+
         for (SectionConfigInput section : sections) {
             List<DistributionPlan.UnitPlan> unitPlans = calculateSection(section);
             sectionPlans.add(DistributionPlan.SectionPlan.builder()
@@ -96,14 +96,14 @@ public class DistributionCalculationService {
     private List<DistributionPlan.UnitPlan> calculateSection(SectionConfigInput section) {
         int totalRequired = section.getTotalRequired();
         List<UnitConfigInput> units = section.getUnits();
-        
+
         if (totalRequired <= 0) {
             throw new IllegalArgumentException("Total required must be greater than 0");
         }
-        
+
         List<AllocationItem> allocations = new ArrayList<>();
         int currentSum = 0;
-        
+
         for (UnitConfigInput u : units) {
             double raw = totalRequired * u.getPercentage().doubleValue() / 100.0;
             int base = (int) Math.floor(raw);
@@ -111,28 +111,28 @@ public class DistributionCalculationService {
             allocations.add(new AllocationItem(u, base, remainder));
             currentSum += base;
         }
-        
+
         int remaining = totalRequired - currentSum;
-        
+
         allocations.sort((a, b) -> {
             int cmp = Double.compare(b.remainder, a.remainder);
             if (cmp != 0) return cmp;
             return Integer.compare(((UnitConfigInput)a.key).getUnit(), ((UnitConfigInput)b.key).getUnit());
         });
-        
+
         for (int i = 0; i < remaining; i++) {
             allocations.get(i).baseCount++;
         }
-        
+
         allocations.sort(Comparator.comparingInt(a -> ((UnitConfigInput)a.key).getUnit()));
-        
+
         List<DistributionPlan.UnitPlan> unitPlans = new ArrayList<>();
         for (AllocationItem item : allocations) {
             UnitConfigInput u = (UnitConfigInput) item.key;
             int unitRequired = item.baseCount;
-            
+
             int[] tAllocations = calculateTAllocation(unitRequired, u.getT1Percentage().doubleValue(), u.getT2Percentage().doubleValue());
-            
+
             unitPlans.add(DistributionPlan.UnitPlan.builder()
                     .unit(u.getUnit())
                     .percentage(u.getPercentage())
@@ -143,41 +143,41 @@ public class DistributionCalculationService {
                     .t2Required(tAllocations[1])
                     .build());
         }
-        
+
         return unitPlans;
     }
 
     private int[] calculateTAllocation(int unitRequired, double t1Pct, double t2Pct) {
         if (unitRequired == 0) return new int[]{0, 0};
-        
+
         double rawT1 = unitRequired * t1Pct / 100.0;
         double rawT2 = unitRequired * t2Pct / 100.0;
-        
+
         int baseT1 = (int) Math.floor(rawT1);
         int baseT2 = (int) Math.floor(rawT2);
-        
+
         double remT1 = rawT1 - baseT1;
         double remT2 = rawT2 - baseT2;
-        
+
         int remaining = unitRequired - (baseT1 + baseT2);
-        
+
         List<AllocationItem> items = Arrays.asList(
                 new AllocationItem(1, baseT1, remT1),
                 new AllocationItem(2, baseT2, remT2)
         );
-        
+
         items.sort((a, b) -> {
             int cmp = Double.compare(b.remainder, a.remainder);
             if (cmp != 0) return cmp;
             return Integer.compare((Integer)a.key, (Integer)b.key);
         });
-        
+
         for (int i = 0; i < remaining; i++) {
             items.get(i).baseCount++;
         }
-        
+
         items.sort(Comparator.comparingInt(a -> (Integer)a.key));
-        
+
         return new int[]{items.get(0).baseCount, items.get(1).baseCount};
     }
 }

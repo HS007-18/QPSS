@@ -34,15 +34,15 @@
 
 <div class="container" style="max-width: 900px;">
     <div class="breadcrumb">
-        <a href="/">Dashboard</a> 
-        <svg style="width:14px;height:14px;margin-top:2px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg> 
-        ${subject.name} 
-        <svg style="width:14px;height:14px;margin-top:2px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg> 
+        <a href="/">Dashboard</a>
+        <svg style="width:14px;height:14px;margin-top:2px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+        ${subject.name}
+        <svg style="width:14px;height:14px;margin-top:2px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
         <a href="/sessions/${session.id}">Session #${session.id}</a>
     </div>
-    
+
     <div class="page-header">
-        <h1 class="page-title">Generated Papers — ${examType.replace('_', ' ')}</h1>
+        <h1 class="page-title">Generated Papers â€” ${examType.replace('_', ' ')}</h1>
         <div class="page-subtitle">${subject.name}</div>
     </div>
 
@@ -69,30 +69,34 @@
                 </div>
             </div>
 
-            <div class="section-title">Part A — 2 Marks (10 × 2 = 20 Marks)</div>
+            <div class="section-title">Part A â€” 2 Marks (${set.sectionA.size()} Ã— 2 = ${set.sectionA.size() * 2} Marks)</div>
             <div style="background:#ffffff; border:1px solid var(--border); border-radius:8px; padding:0 16px; margin-bottom:24px;">
                 <c:forEach var="q" items="${set.sectionA}" varStatus="i">
                     <div class="question" id="q-${q.id}" style="${i.last ? 'border-bottom:none;' : ''}">
                         <div class="num">${i.count}.</div>
                         <div class="content">${q.questionContent}</div>
                         <div class="meta">
-                            <span class="tag tag-marks">2M</span>
+                            <span class="tag tag-marks">${q.marks}M</span>
                             <span class="tag tag-unit">U${q.unit}</span>
+                            <span class="tag tag-rbt">${q.rbt}</span>
                             <button class="btn btn-outline btn-sm swap-btn" data-paper="${set.paper.id}" data-id="${q.id}" style="padding: 4px 8px; font-size: 11px;">Swap</button>
                         </div>
                     </div>
                 </c:forEach>
             </div>
 
-            <div class="section-title">Part B — 16 Marks (5 × 16 = 80 Marks)</div>
+            <c:set var="partBQuestion" value="${not empty set.sectionB ? set.sectionB[0].choiceA : null}" />
+            <c:set var="partBMarks" value="${partBQuestion != null ? partBQuestion.marks : 16}" />
+            <div class="section-title">Part B â€” ${partBMarks} Marks (${set.sectionB.size()} Ã— ${partBMarks} = ${set.sectionB.size() * partBMarks} Marks)</div>
             <c:forEach var="pair" items="${set.sectionB}">
                 <div class="pair-block">
                     <div class="question" id="q-${pair.choiceA.id}">
                         <div class="num">${10 + pair.pairIndex}.(a)</div>
                         <div class="content">${pair.choiceA.questionContent}</div>
                         <div class="meta">
-                            <span class="tag tag-marks">16M</span>
+                            <span class="tag tag-marks">${pair.choiceA.marks}M</span>
                             <span class="tag tag-unit">U${pair.unit}</span>
+                            <span class="tag tag-rbt">${pair.choiceA.rbt}</span>
                             <button class="btn btn-outline btn-sm swap-btn" data-paper="${set.paper.id}" data-id="${pair.choiceA.id}" style="padding: 4px 8px; font-size: 11px;">Swap</button>
                         </div>
                     </div>
@@ -101,8 +105,9 @@
                         <div class="num">${10 + pair.pairIndex}.(b)</div>
                         <div class="content">${pair.choiceB.questionContent}</div>
                         <div class="meta">
-                            <span class="tag tag-marks">16M</span>
+                            <span class="tag tag-marks">${pair.choiceB.marks}M</span>
                             <span class="tag tag-unit">U${pair.unit}</span>
+                            <span class="tag tag-rbt">${pair.choiceB.rbt}</span>
                             <button class="btn btn-outline btn-sm swap-btn" data-paper="${set.paper.id}" data-id="${pair.choiceB.id}" style="padding: 4px 8px; font-size: 11px;">Swap</button>
                         </div>
                     </div>
@@ -121,7 +126,7 @@
             const paperId = this.getAttribute('data-paper');
             const oldId = this.getAttribute('data-id');
             const sessionId = ${session.id};
-            
+
             const originalText = this.innerText;
             this.innerText = '...';
             this.disabled = true;

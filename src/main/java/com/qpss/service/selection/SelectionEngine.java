@@ -1,4 +1,4 @@
-package com.qpss.service;
+package com.qpss.service.selection;
 
 import com.qpss.model.Question;
 import com.qpss.repository.QuestionRepository;
@@ -69,10 +69,6 @@ public class SelectionEngine {
             return getQuestionsByMarks(2);
         }
 
-        public List<Question> getSixteenMarkQuestions() {
-            return getQuestionsByMarks(16);
-        }
-
         public List<Question> getPartBQuestions(int partBMarks) {
             return getQuestionsByMarks(partBMarks);
         }
@@ -87,23 +83,17 @@ public class SelectionEngine {
 
         List<SelectionBucket> buckets = flattenPlan(plan);
 
-        // Complete availability check
         List<SelectionShortage> shortages = checkAvailability(buckets, subjectId, sessionId, excludeIds);
         if (!shortages.isEmpty()) {
             return SelectionResult.failure(shortages);
         }
 
-        // Random Selection
         List<SelectedBucket> selectedBuckets = performSelection(buckets, subjectId, sessionId, excludeIds);
         if (selectedBuckets == null) {
-            // Selection failed due to deduplication issues creating a shortage at selection time
-            // which couldn't be detected during initial count.
-            // Recalculate strict availability using distinct IDs to generate precise shortages.
-            shortages = checkStrictAvailability(buckets, subjectId, sessionId, excludeIds);
+            shortages = checkAvailability(buckets, subjectId, sessionId, excludeIds);
             return SelectionResult.failure(shortages);
         }
 
-        // Consistency check
         validateConsistency(plan, selectedBuckets);
 
         return SelectionResult.success(selectedBuckets);
@@ -138,7 +128,7 @@ public class SelectionEngine {
 
     private List<SelectionShortage> checkAvailability(List<SelectionBucket> buckets, Long subjectId, Long sessionId, Set<Long> excludeIds) {
         List<SelectionShortage> shortages = new ArrayList<>();
-        
+
         Set<Long> seenIds = new HashSet<>(excludeIds);
 
         for (SelectionBucket bucket : buckets) {
@@ -157,21 +147,10 @@ public class SelectionEngine {
                         bucket.getRequired(), (int) uniqueAvailable,
                         bucket.getRequired() - (int) uniqueAvailable));
             } else {
-                // To accurately predict shortages, we might need to simulate consuming IDs, 
-                // but since buckets are strictly segregated by (Unit, Marks, T), 
-                // candidates from one bucket will not overlap with candidates from another bucket
-                // UNLESS there are duplicates in the DB for the exact same constraints.
-                // It's safe to just accumulate the unique IDs here.
                 candidates.stream().map(Question::getId).forEach(seenIds::add);
             }
         }
         return shortages;
-    }
-    
-    private List<SelectionShortage> checkStrictAvailability(List<SelectionBucket> buckets, Long subjectId, Long sessionId, Set<Long> excludeIds) {
-         // Deep check for cases where deduplication across buckets caused unexpected shortages.
-         // Given (subject, session, unit, marks, t) uniqueness, this is mostly for completeness.
-         return checkAvailability(buckets, subjectId, sessionId, excludeIds);
     }
 
     private List<SelectedBucket> performSelection(List<SelectionBucket> buckets, Long subjectId, Long sessionId, Set<Long> excludeIds) {
@@ -196,9 +175,9 @@ public class SelectionEngine {
             }
 
             if (picked.size() < bucket.getRequired()) {
-                return null; // Signals failure during selection (e.g. due to dedup)
+                return null;
             }
-            
+
             selectedBuckets.add(new SelectedBucket(bucket.getMarks(), bucket.getUnit(), bucket.getT(), picked));
         }
 
@@ -223,14 +202,14 @@ public class SelectionEngine {
                 totalQuestions++;
             }
         }
-        
+
         for (DistributionPlan.SectionPlan section : plan.getSections()) {
             long sectionSelected = selectedBuckets.stream()
                     .filter(b -> b.getMarks() == section.getMarks())
                     .flatMap(b -> b.getQuestions().stream())
                     .count();
             if (sectionSelected != section.getTotalRequired()) {
-                throw new IllegalStateException(String.format("Section %dM mismatch: selected=%d, required=%d", 
+                throw new IllegalStateException(String.format("Section %dM mismatch: selected=%d, required=%d",
                         section.getMarks(), sectionSelected, section.getTotalRequired()));
             }
 
@@ -240,7 +219,7 @@ public class SelectionEngine {
                         .flatMap(b -> b.getQuestions().stream())
                         .count();
                 if (unitT1Selected != unitPlan.getT1Required()) {
-                    throw new IllegalStateException(String.format("Unit %d T1 mismatch: selected=%d, required=%d", 
+                    throw new IllegalStateException(String.format("Unit %d T1 mismatch: selected=%d, required=%d",
                             unitPlan.getUnit(), unitT1Selected, unitPlan.getT1Required()));
                 }
 
@@ -249,13 +228,13 @@ public class SelectionEngine {
                         .flatMap(b -> b.getQuestions().stream())
                         .count();
                 if (unitT2Selected != unitPlan.getT2Required()) {
-                    throw new IllegalStateException(String.format("Unit %d T2 mismatch: selected=%d, required=%d", 
+                    throw new IllegalStateException(String.format("Unit %d T2 mismatch: selected=%d, required=%d",
                             unitPlan.getUnit(), unitT2Selected, unitPlan.getT2Required()));
                 }
-                
+
                 long totalUnitSelected = unitT1Selected + unitT2Selected;
                 if (totalUnitSelected != unitPlan.getRequiredCount()) {
-                     throw new IllegalStateException(String.format("Unit %d mismatch: selected=%d, required=%d", 
+                    throw new IllegalStateException(String.format("Unit %d mismatch: selected=%d, required=%d",
                             unitPlan.getUnit(), totalUnitSelected, unitPlan.getRequiredCount()));
                 }
             }

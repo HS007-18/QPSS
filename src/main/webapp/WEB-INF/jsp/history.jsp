@@ -19,16 +19,16 @@
 
 <div class="container" style="max-width: 1000px;">
     <div class="breadcrumb">
-        <a href="/">Dashboard</a> 
-        <svg style="width:14px;height:14px;margin-top:2px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg> 
+        <a href="/">Dashboard</a>
+        <svg style="width:14px;height:14px;margin-top:2px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
         History
     </div>
-    
+
     <div class="page-header">
         <h1 class="page-title">Paper History</h1>
         <div class="page-subtitle">View all finalized question papers</div>
     </div>
-    
+
     <div class="card" style="padding:0; overflow:hidden;">
         <div class="table-responsive">
             <table>

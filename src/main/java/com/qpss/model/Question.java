@@ -35,17 +35,14 @@ public class Question {
     @Column(name = "question_content", nullable = false, columnDefinition = "TEXT")
     private String questionContent;
 
-    @Column(name = "raw_ooxml", columnDefinition = "LONGTEXT")
-    private String rawOoxml;
-
     @Column(name = "source_file_name")
     private String sourceFileName;
 
-    @Column(name = "source_page_number")
-    private Integer sourcePageNumber;
-
     @Column(nullable = false)
     private Integer t;
+
+    @Column(nullable = false, length = 10)
+    private String rbt;
 
     @PrePersist
     @PreUpdate

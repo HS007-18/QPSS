@@ -68,11 +68,7 @@ public class DistributionCalculationServiceTest {
 
     @Test
     void testLargestRemainder_TieBreaker() {
-        // Total = 5, 20/30/50 -> 1.0, 1.5, 2.5
-        // Base = 1, 1, 2. Remaining = 1.
-        // Remainder = 0.0, 0.5, 0.5.
-        // Tie-breaker: lowest unit number first -> Unit 2 gets the +1.
-        // Expected: 1, 2, 2
+
         SectionConfigInput input = new SectionConfigInput(2, 5, List.of(
                 new UnitConfigInput(1, new BigDecimal("20.00"), new BigDecimal("50.00"), new BigDecimal("50.00")),
                 new UnitConfigInput(2, new BigDecimal("30.00"), new BigDecimal("50.00"), new BigDecimal("50.00")),
@@ -103,7 +99,7 @@ public class DistributionCalculationServiceTest {
 
     @Test
     void testT1_T2_50_50_Odd() {
-        // T1 tie breaker: T1 gets it
+
         SectionConfigInput input = new SectionConfigInput(2, 5, List.of(
                 new UnitConfigInput(1, new BigDecimal("100.00"), new BigDecimal("50.00"), new BigDecimal("50.00"))
         ));
@@ -177,7 +173,7 @@ public class DistributionCalculationServiceTest {
             unitSum += u.getRequiredCount();
             assertEquals(u.getRequiredCount(), u.getT1Required() + u.getT2Required(), "T sums must equal unit required");
         }
-        
+
         assertEquals(17, unitSum, "Unit sum must equal total required");
     }
 
