@@ -30,6 +30,7 @@ public class QuestionParserService {
                     .rbt(p.getRbt())
                     .co(p.getCo())
                     .marks(p.getMarks())
+                    .marksSplit(p.getMarksSplit())
                     .serialNo(p.getSerialNo())
                     .questionContent(p.getQuestionContent())
                     .sourceFileName(sourceFileName)

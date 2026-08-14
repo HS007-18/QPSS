@@ -41,6 +41,10 @@ public class DocxDocumentReader {
                     }
                 }
             }
+            List<ParsedQuestion> validQuestions = result.getValidQuestions();
+            for (int i = 0; i < validQuestions.size(); i++) {
+                validQuestions.get(i).setSerialNo(i + 1);
+            }
         } catch (Exception e) {
             result.addError("Failed to read DOCX document: " + e.getMessage());
         }

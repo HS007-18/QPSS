@@ -4,7 +4,12 @@ import com.qpss.model.PaperQuestion;
 import com.qpss.model.Question;
 import com.qpss.repository.QuestionRepository;
 import lombok.RequiredArgsConstructor;
-import org.apache.poi.xwpf.usermodel.*;
+import org.apache.poi.xwpf.usermodel.ParagraphAlignment;
+import org.apache.poi.xwpf.usermodel.XWPFDocument;
+import org.apache.poi.xwpf.usermodel.XWPFParagraph;
+import org.apache.poi.xwpf.usermodel.XWPFRun;
+import org.apache.poi.xwpf.usermodel.XWPFTable;
+import org.apache.poi.xwpf.usermodel.XWPFTableRow;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -47,8 +52,8 @@ public class DocxPartRenderer {
             XWPFTableRow row = tableA.getRow(i + 1);
             HtmlToWordRenderer.setCellText(row.getCell(0), String.valueOf(pq.getQuestionNumber()), false);
             HtmlToWordRenderer.setCellHtml(row.getCell(1), q.getQuestionContent());
-            HtmlToWordRenderer.setCellText(row.getCell(2), "2", false);
-            HtmlToWordRenderer.setCellText(row.getCell(3), q.getRbt(), false);
+            HtmlToWordRenderer.setCellText(row.getCell(2), marksLabel(q), false);
+            HtmlToWordRenderer.setCellText(row.getCell(3), partARbt(pq, q), false);
             HtmlToWordRenderer.setCellText(row.getCell(4), coLabel(q), false);
         }
 
@@ -108,10 +113,18 @@ public class DocxPartRenderer {
             String label = pq.getChoiceLabel() != null ? pq.getChoiceLabel() + ")" : "";
             HtmlToWordRenderer.setCellText(row.getCell(0), pq.getQuestionNumber() + " " + label, false);
             HtmlToWordRenderer.setCellHtml(row.getCell(1), q.getQuestionContent());
-            HtmlToWordRenderer.setCellText(row.getCell(2), String.valueOf(q.getMarks()), false);
+            HtmlToWordRenderer.setCellText(row.getCell(2), marksLabel(q), false);
             HtmlToWordRenderer.setCellText(row.getCell(3), q.getRbt(), false);
             HtmlToWordRenderer.setCellText(row.getCell(4), coLabel(q), false);
         }
+    }
+
+    private String marksLabel(Question q) {
+        return q.getMarksSplit() != null ? q.getMarksSplit() : String.valueOf(q.getMarks());
+    }
+
+    private String partARbt(PaperQuestion pq, Question q) {
+        return pq.getDisplayRbt() != null ? pq.getDisplayRbt() : q.getRbt();
     }
 
     private String coLabel(Question q) {

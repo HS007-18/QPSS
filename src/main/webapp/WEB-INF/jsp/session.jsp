@@ -1,4 +1,4 @@
-<%@ page contentType="text/html;charset=UTF-8" %>
+<%@ page contentType="text/html;charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <!DOCTYPE html>
 <html>
@@ -46,7 +46,7 @@
             <strong style="display:block; margin-bottom:8px;">Insufficient Question Bank:</strong>
             <ul style="margin-left:20px; font-size:14px;">
             <c:forEach var="s" items="${shortages}">
-                <li>Unit ${s.unit} â€” ${s.marks}M: Need ${s.required}, have ${s.available} (${s.required - s.available} more needed)</li>
+                <li>Unit ${s.unit} — ${s.marks}M: Need ${s.required}, have ${s.available} (${s.required - s.available} more needed)</li>
             </c:forEach>
             </ul>
         </div>

@@ -6,6 +6,10 @@ import org.apache.poi.xwpf.usermodel.XWPFTableRow;
 
 import java.util.List;
 
+import static com.qpss.service.parser.CellTextReader.cell;
+import static com.qpss.service.parser.CellTextReader.cellText;
+import static com.qpss.service.parser.CellTextReader.isBlank;
+
 public class QuestionRowParser {
 
     private final QuestionContentExtractor contentExtractor = new QuestionContentExtractor();
@@ -32,7 +36,9 @@ public class QuestionRowParser {
 
         String questionContent = contentExtractor.extractRichContent(
                 cell(cells, layout.indexOf(ColumnLayout.Role.QUESTION)), document);
-        Integer marks = parseMarks(cellText(cells, layout.indexOf(ColumnLayout.Role.MARKS)));
+        String marksRaw = cellText(cells, layout.indexOf(ColumnLayout.Role.MARKS));
+        Integer marks = parseMarks(marksRaw);
+        String marksSplit = parseMarksSplit(marksRaw, marks);
         String rbt = normalizeRbt(cellText(cells, layout.indexOf(ColumnLayout.Role.RBT)));
         String co = cellText(cells, layout.indexOf(ColumnLayout.Role.CO));
         Integer t = parseT(cellText(cells, layout.indexOf(ColumnLayout.Role.T)));
@@ -50,6 +56,7 @@ public class QuestionRowParser {
                 .serialNo(serialNo)
                 .questionContent(isBlank(questionContent) ? null : questionContent)
                 .marks(marks)
+                .marksSplit(marksSplit)
                 .rbt(rbt)
                 .co(isBlank(co) ? null : co)
                 .t(t)
@@ -57,11 +64,35 @@ public class QuestionRowParser {
                 .build();
     }
 
+    private String parseMarksSplit(String raw, Integer marks) {
+        if (isBlank(raw) || !raw.contains("+") || marks == null) {
+            return null;
+        }
+        String normalized = raw.replaceAll("\\s+", "");
+        if (normalized.matches("\\d+\\+\\d+")) {
+            int total = 0;
+            for (String part : normalized.split("\\+")) {
+                total += Integer.parseInt(part);
+            }
+            if (total == marks) {
+                return normalized;
+            }
+        }
+        return null;
+    }
+
     private Integer parseMarks(String raw) {
         if (isBlank(raw)) {
             return null;
         }
         try {
+            if (raw.contains("+")) {
+                int total = 0;
+                for (String part : raw.split("\\+")) {
+                    total += Integer.parseInt(part.replaceAll("[^0-9]", ""));
+                }
+                return QuestionConstants.MARK_VALUES.contains(total) ? total : null;
+            }
             Integer marks = Integer.parseInt(raw.replaceAll("[^0-9]", ""));
             return QuestionConstants.MARK_VALUES.contains(marks) ? marks : null;
         } catch (NumberFormatException e) {
@@ -94,25 +125,5 @@ public class QuestionRowParser {
         } catch (NumberFormatException e) {
             return null;
         }
-    }
-
-    private XWPFTableCell cell(List<XWPFTableCell> cells, int index) {
-        if (index < 0 || index >= cells.size()) {
-            return null;
-        }
-        return cells.get(index);
-    }
-
-    private String cellText(List<XWPFTableCell> cells, int index) {
-        XWPFTableCell cell = cell(cells, index);
-        if (cell == null) {
-            return "";
-        }
-        String text = cell.getText();
-        return text == null ? "" : text.trim();
-    }
-
-    private boolean isBlank(String value) {
-        return value == null || value.trim().isEmpty();
     }
 }

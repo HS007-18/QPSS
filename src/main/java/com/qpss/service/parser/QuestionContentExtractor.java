@@ -1,6 +1,12 @@
 package com.qpss.service.parser;
 
-import org.apache.poi.xwpf.usermodel.*;
+import org.apache.poi.xwpf.usermodel.UnderlinePatterns;
+import org.apache.poi.xwpf.usermodel.XWPFDocument;
+import org.apache.poi.xwpf.usermodel.XWPFParagraph;
+import org.apache.poi.xwpf.usermodel.XWPFPicture;
+import org.apache.poi.xwpf.usermodel.XWPFPictureData;
+import org.apache.poi.xwpf.usermodel.XWPFRun;
+import org.apache.poi.xwpf.usermodel.XWPFTableCell;
 
 import java.util.Base64;
 
@@ -37,6 +43,13 @@ public class QuestionContentExtractor {
                     if (run.getUnderline() != UnderlinePatterns.NONE) html.append("</u>");
                     if (run.isItalic()) html.append("</i>");
                     if (run.isBold()) html.append("</b>");
+                }
+                int brCount = 0;
+                if (run.getCTR() != null && run.getCTR().getBrList() != null) {
+                    brCount = run.getCTR().getBrList().size();
+                }
+                for (int b = 0; b < brCount; b++) {
+                    html.append("<br/>");
                 }
             }
             html.append("</p>");

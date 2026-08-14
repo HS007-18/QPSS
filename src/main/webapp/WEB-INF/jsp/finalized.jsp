@@ -1,9 +1,10 @@
-<%@ page contentType="text/html;charset=UTF-8" %>
+﻿<%@ page contentType="text/html;charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <!DOCTYPE html>
 <html>
 <head>
     <title>QPSS - Paper Finalized</title>
+    <meta http-equiv="refresh" content="0;url=/sessions/${session.id}/generate/export/${paperId}">
     <link rel="stylesheet" href="/css/style.css">
     <style>
         body { display: flex; align-items: center; justify-content: center; min-height: 100vh; background: var(--bg-hover); }
@@ -23,8 +24,10 @@
         <p>The question paper has been permanently saved to your session history and is ready for export.</p>
 
         <div class="btn-container">
+            <a href="/sessions/${session.id}/generate/export/${paperId}" class="btn btn-primary" style="padding:14px;">Download Again</a>
             <a href="/" class="btn btn-primary" style="padding:14px;">Return Home</a>
         </div>
     </div>
 </body>
 </html>
+

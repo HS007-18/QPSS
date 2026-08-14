@@ -1,4 +1,4 @@
-<%@ page contentType="text/html;charset=UTF-8" %>
+<%@ page contentType="text/html;charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <!DOCTYPE html>
 <html>
@@ -42,7 +42,7 @@
     </div>
 
     <div class="page-header">
-        <h1 class="page-title">Generated Papers â€” ${examType.replace('_', ' ')}</h1>
+        <h1 class="page-title">Generated Papers — ${examType.replace('_', ' ')}</h1>
         <div class="page-subtitle">${subject.name}</div>
     </div>
 
@@ -69,16 +69,16 @@
                 </div>
             </div>
 
-            <div class="section-title">Part A â€” 2 Marks (${set.sectionA.size()} Ã— 2 = ${set.sectionA.size() * 2} Marks)</div>
+            <div class="section-title">Part A — 2 Marks (${set.sectionA.size()} × 2 = ${set.sectionA.size() * 2} Marks)</div>
             <div style="background:#ffffff; border:1px solid var(--border); border-radius:8px; padding:0 16px; margin-bottom:24px;">
                 <c:forEach var="q" items="${set.sectionA}" varStatus="i">
                     <div class="question" id="q-${q.id}" style="${i.last ? 'border-bottom:none;' : ''}">
                         <div class="num">${i.count}.</div>
                         <div class="content">${q.questionContent}</div>
                         <div class="meta">
-                            <span class="tag tag-marks">${q.marks}M</span>
+                            <span class="tag tag-marks">${q.marksSplit != null ? q.marksSplit : q.marks}M</span>
                             <span class="tag tag-unit">U${q.unit}</span>
-                            <span class="tag tag-rbt">${q.rbt}</span>
+                            <span class="tag tag-rbt">${set.sectionARbt[q.id]}</span>
                             <button class="btn btn-outline btn-sm swap-btn" data-paper="${set.paper.id}" data-id="${q.id}" style="padding: 4px 8px; font-size: 11px;">Swap</button>
                         </div>
                     </div>
@@ -87,14 +87,14 @@
 
             <c:set var="partBQuestion" value="${not empty set.sectionB ? set.sectionB[0].choiceA : null}" />
             <c:set var="partBMarks" value="${partBQuestion != null ? partBQuestion.marks : 16}" />
-            <div class="section-title">Part B â€” ${partBMarks} Marks (${set.sectionB.size()} Ã— ${partBMarks} = ${set.sectionB.size() * partBMarks} Marks)</div>
+            <div class="section-title">Part B — ${partBMarks} Marks (${set.sectionB.size()} × ${partBMarks} = ${set.sectionB.size() * partBMarks} Marks)</div>
             <c:forEach var="pair" items="${set.sectionB}">
                 <div class="pair-block">
                     <div class="question" id="q-${pair.choiceA.id}">
                         <div class="num">${10 + pair.pairIndex}.(a)</div>
                         <div class="content">${pair.choiceA.questionContent}</div>
                         <div class="meta">
-                            <span class="tag tag-marks">${pair.choiceA.marks}M</span>
+                            <span class="tag tag-marks">${pair.choiceA.marksSplit != null ? pair.choiceA.marksSplit : pair.choiceA.marks}M</span>
                             <span class="tag tag-unit">U${pair.unit}</span>
                             <span class="tag tag-rbt">${pair.choiceA.rbt}</span>
                             <button class="btn btn-outline btn-sm swap-btn" data-paper="${set.paper.id}" data-id="${pair.choiceA.id}" style="padding: 4px 8px; font-size: 11px;">Swap</button>
@@ -105,7 +105,7 @@
                         <div class="num">${10 + pair.pairIndex}.(b)</div>
                         <div class="content">${pair.choiceB.questionContent}</div>
                         <div class="meta">
-                            <span class="tag tag-marks">${pair.choiceB.marks}M</span>
+                            <span class="tag tag-marks">${pair.choiceB.marksSplit != null ? pair.choiceB.marksSplit : pair.choiceB.marks}M</span>
                             <span class="tag tag-unit">U${pair.unit}</span>
                             <span class="tag tag-rbt">${pair.choiceB.rbt}</span>
                             <button class="btn btn-outline btn-sm swap-btn" data-paper="${set.paper.id}" data-id="${pair.choiceB.id}" style="padding: 4px 8px; font-size: 11px;">Swap</button>
@@ -140,6 +140,14 @@
                     const qDiv = document.getElementById('q-' + oldId);
                     qDiv.id = 'q-' + data.newId;
                     qDiv.querySelector('.content').innerHTML = data.newContent;
+                    const tags = qDiv.querySelectorAll('.tag');
+                    if (tags.length >= 2) {
+                        tags[0].textContent = (data.newMarksSplit || data.newMarks) + 'M';
+                        tags[1].textContent = 'U' + data.newUnit;
+                        if (qDiv.closest('.pair-block')) {
+                            tags[2].textContent = data.newRbt || tags[2].textContent;
+                        }
+                    }
                     this.setAttribute('data-id', data.newId);
                 } else {
                     alert('Error: ' + data.error);

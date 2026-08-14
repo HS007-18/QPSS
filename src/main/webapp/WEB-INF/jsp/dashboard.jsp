@@ -1,4 +1,4 @@
-<%@ page contentType="text/html;charset=UTF-8" %>
+﻿<%@ page contentType="text/html;charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <!DOCTYPE html>
 <html>
@@ -35,7 +35,7 @@
 
     <c:if test="${empty subjects}">
         <div class="upload-zone" style="cursor:default; margin-top:24px;">
-            <div style="font-size:48px; color:var(--border); margin-bottom:16px;">📚</div>
+            <div style="font-size:48px; color:var(--border); margin-bottom:16px;">ðŸ“š</div>
             <div style="font-size:16px; font-weight:500; color:var(--text-main);">No subjects yet</div>
             <div style="color:var(--text-muted); font-size:14px; margin-top:4px;">Create your first subject to start building question banks.</div>
         </div>
@@ -58,3 +58,4 @@
 </div>
 </body>
 </html>
+

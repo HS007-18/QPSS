@@ -52,6 +52,7 @@ CREATE TABLE IF NOT EXISTS questions (
     source_page_number  INT,
     t                   INT NOT NULL,
     rbt                 VARCHAR(10) NOT NULL DEFAULT 'R',
+    marks_split         VARCHAR(20),
     FOREIGN KEY (subject_id) REFERENCES subjects(id),
     FOREIGN KEY (session_id) REFERENCES sessions(id),
     FOREIGN KEY (source_document_id) REFERENCES source_documents(id)
@@ -103,6 +104,7 @@ CREATE TABLE IF NOT EXISTS paper_questions (
     question_number INT NOT NULL,
     choice_label    VARCHAR(5),
     pair_index      INT,
+    display_rbt     VARCHAR(10),
     FOREIGN KEY (paper_id) REFERENCES generated_papers(id),
     FOREIGN KEY (question_id) REFERENCES questions(id)
 );
@@ -111,3 +113,4 @@ ALTER DATABASE qpss CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
 ALTER TABLE questions CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 ALTER TABLE questions ADD COLUMN IF NOT EXISTS rbt VARCHAR(10) NOT NULL DEFAULT 'R';
+ALTER TABLE questions ADD COLUMN IF NOT EXISTS marks_split VARCHAR(20);

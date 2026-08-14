@@ -11,6 +11,7 @@ import java.util.List;
 public class QuestionBankImportResult {
     private QuestionBankImport importBatch;
     private int questionsParsed;
+    private int skippedDuplicates;
     private List<String> parsingErrors;
     private boolean successful;
 }

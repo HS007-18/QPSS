@@ -18,6 +18,7 @@ import java.io.InputStream;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 @Service
@@ -112,10 +113,13 @@ public class QuestionBankImportService {
         List<String> storedFileNames = new ArrayList<>();
         List<Question> allQuestions = new ArrayList<>();
         List<String> allErrors = new ArrayList<>();
+        int skippedDuplicates = 0;
 
         try {
             for (PendingUploadSession.FileImportHolder holder : pendingSession.getFiles()) {
-                if (sourceDocumentRepository.existsByChecksum(holder.getChecksum())) {
+                if (sourceDocumentRepository.existsByChecksumAndImportBatch_SessionId(
+                        holder.getChecksum(), pendingSession.getSessionId())) {
+                    skippedDuplicates++;
                     continue;
                 }
 
@@ -160,12 +164,23 @@ public class QuestionBankImportService {
                         .build();
             }
 
+            if (allQuestions.isEmpty() && skippedDuplicates > 0) {
+                return QuestionBankImportResult.builder()
+                        .importBatch(importBatch)
+                        .questionsParsed(0)
+                        .skippedDuplicates(skippedDuplicates)
+                        .parsingErrors(Collections.emptyList())
+                        .successful(true)
+                        .build();
+            }
+
             importBatch.setSourceDocuments(savedDocuments);
             questionRepository.saveAll(allQuestions);
 
             return QuestionBankImportResult.builder()
                     .importBatch(importBatch)
                     .questionsParsed(allQuestions.size())
+                    .skippedDuplicates(skippedDuplicates)
                     .parsingErrors(allErrors)
                     .successful(true)
                     .build();
