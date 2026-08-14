@@ -1,11 +1,12 @@
 package com.qpss.controller;
 
+import com.qpss.domain.ExamType;
 import com.qpss.model.Question;
+import com.qpss.service.DocxRendererService;
 import com.qpss.service.ExamConfigService;
 import com.qpss.service.PaperGenerationService;
 import com.qpss.service.SessionService;
 import com.qpss.service.SubjectService;
-import com.qpss.service.DocxRendererService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -13,7 +14,12 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.util.HashMap;
@@ -44,6 +50,10 @@ public class GenerationController {
                             @RequestParam(defaultValue = "FORMAT_1") String format,
                             Model model,
                             RedirectAttributes redirect) {
+        if (numSets < 1 || numSets > 10) {
+            throw new IllegalArgumentException("Number of sets must be between 1 and 10.");
+        }
+        ExamType.from(examType);
         var session = sessionService.findById(sessionId);
         var result = generationService.generate(
                 examType, session.getSubjectId(), sessionId, numSets, format);
@@ -79,6 +89,10 @@ public class GenerationController {
             body.put("status", "success");
             body.put("newId", newQuestion.getId());
             body.put("newContent", newQuestion.getQuestionContent());
+            body.put("newMarks", newQuestion.getMarks());
+            body.put("newMarksSplit", newQuestion.getMarksSplit());
+            body.put("newUnit", newQuestion.getUnit());
+            body.put("newRbt", newQuestion.getRbt());
             return ResponseEntity.ok(body);
         } catch (Exception e) {
             Map<String, Object> body = new HashMap<>();

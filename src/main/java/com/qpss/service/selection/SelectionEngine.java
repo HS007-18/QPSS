@@ -3,11 +3,20 @@ package com.qpss.service.selection;
 import com.qpss.model.Question;
 import com.qpss.repository.QuestionRepository;
 import com.qpss.service.distribution.DistributionPlan;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.security.SecureRandom;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
@@ -15,9 +24,11 @@ import java.util.stream.Collectors;
 public class SelectionEngine {
 
     private final QuestionRepository questionRepo;
-    private final SecureRandom random = new SecureRandom();
+    private final RbtPairPicker pairPicker;
+    private SecureRandom random = new SecureRandom();
 
-    @Data @AllArgsConstructor
+    @Data
+    @AllArgsConstructor
     public static class SelectionBucket {
         private int marks;
         private int unit;
@@ -25,7 +36,8 @@ public class SelectionEngine {
         private int required;
     }
 
-    @Data @AllArgsConstructor
+    @Data
+    @AllArgsConstructor
     public static class SelectedBucket {
         private int marks;
         private int unit;
@@ -33,7 +45,8 @@ public class SelectionEngine {
         private List<Question> questions;
     }
 
-    @Data @AllArgsConstructor
+    @Data
+    @AllArgsConstructor
     public static class SelectionShortage {
         private int unit;
         private int marks;
@@ -75,10 +88,15 @@ public class SelectionEngine {
     }
 
     public SelectionResult select(DistributionPlan plan, Long subjectId, Long sessionId) {
-        return select(plan, subjectId, sessionId, Collections.emptySet());
+        return select(plan, subjectId, sessionId, Collections.emptySet(), null);
     }
 
     public SelectionResult select(DistributionPlan plan, Long subjectId, Long sessionId, Set<Long> excludeIds) {
+        return select(plan, subjectId, sessionId, excludeIds, null);
+    }
+
+    public SelectionResult select(DistributionPlan plan, Long subjectId, Long sessionId, Set<Long> excludeIds,
+                                  PairingEngine.PairingMode pairingMode) {
         validateInput(plan, subjectId, sessionId);
 
         List<SelectionBucket> buckets = flattenPlan(plan);
@@ -88,7 +106,7 @@ public class SelectionEngine {
             return SelectionResult.failure(shortages);
         }
 
-        List<SelectedBucket> selectedBuckets = performSelection(buckets, subjectId, sessionId, excludeIds);
+        List<SelectedBucket> selectedBuckets = performSelection(buckets, subjectId, sessionId, excludeIds, pairingMode);
         if (selectedBuckets == null) {
             shortages = checkAvailability(buckets, subjectId, sessionId, excludeIds);
             return SelectionResult.failure(shortages);
@@ -126,7 +144,8 @@ public class SelectionEngine {
         return buckets;
     }
 
-    private List<SelectionShortage> checkAvailability(List<SelectionBucket> buckets, Long subjectId, Long sessionId, Set<Long> excludeIds) {
+    private List<SelectionShortage> checkAvailability(List<SelectionBucket> buckets, Long subjectId, Long sessionId,
+                                                      Set<Long> excludeIds) {
         List<SelectionShortage> shortages = new ArrayList<>();
 
         Set<Long> seenIds = new HashSet<>(excludeIds);
@@ -135,11 +154,7 @@ public class SelectionEngine {
             List<Question> candidates = questionRepo.findBySubjectIdAndSessionIdAndUnitAndMarksAndT(
                     subjectId, sessionId, bucket.getUnit(), bucket.getMarks(), bucket.getT());
 
-            long uniqueAvailable = candidates.stream()
-                    .map(Question::getId)
-                    .filter(id -> !seenIds.contains(id))
-                    .distinct()
-                    .count();
+            long uniqueAvailable = distinctAvailableCount(candidates, seenIds);
 
             if (uniqueAvailable < bucket.getRequired()) {
                 shortages.add(new SelectionShortage(
@@ -147,19 +162,69 @@ public class SelectionEngine {
                         bucket.getRequired(), (int) uniqueAvailable,
                         bucket.getRequired() - (int) uniqueAvailable));
             } else {
-                candidates.stream().map(Question::getId).forEach(seenIds::add);
+                int reserved = 0;
+                for (Question q : candidates) {
+                    if (reserved >= bucket.getRequired()) {
+                        break;
+                    }
+                    if (seenIds.add(q.getId())) {
+                        reserved++;
+                    }
+                }
             }
         }
         return shortages;
     }
 
-    private List<SelectedBucket> performSelection(List<SelectionBucket> buckets, Long subjectId, Long sessionId, Set<Long> excludeIds) {
+    private long distinctAvailableCount(List<Question> candidates, Set<Long> seenIds) {
+        return candidates.stream()
+                .map(Question::getId)
+                .filter(id -> !seenIds.contains(id))
+                .distinct()
+                .count();
+    }
+
+    private List<SelectedBucket> performSelection(List<SelectionBucket> buckets, Long subjectId, Long sessionId,
+                                                  Set<Long> excludeIds, PairingEngine.PairingMode pairingMode) {
         List<SelectedBucket> selectedBuckets = new ArrayList<>();
         Set<Long> selectedQuestionIds = new HashSet<>(excludeIds);
 
-        for (SelectionBucket bucket : buckets) {
+        for (int bi = 0; bi < buckets.size(); bi++) {
+            SelectionBucket bucket = buckets.get(bi);
+            boolean partB = bucket.getMarks() == 16 || bucket.getMarks() == 20;
+
+            if (pairingMode == PairingEngine.PairingMode.CROSS_HALF && partB && bucket.getT() == 1
+                    && bi + 1 < buckets.size()) {
+                SelectionBucket t2Bucket = buckets.get(bi + 1);
+                if (t2Bucket.getMarks() == bucket.getMarks() && t2Bucket.getUnit() == bucket.getUnit()
+                        && t2Bucket.getT() == 2) {
+                    bi++;
+                    List<Question> t1Pool = questionRepo.findBySubjectIdAndSessionIdAndUnitAndMarksAndT(
+                            subjectId, sessionId, bucket.getUnit(), bucket.getMarks(), 1);
+                    List<Question> t2Pool = questionRepo.findBySubjectIdAndSessionIdAndUnitAndMarksAndT(
+                            subjectId, sessionId, t2Bucket.getUnit(), t2Bucket.getMarks(), 2);
+                    RbtPairPicker.PickResult pick = pairPicker.pickCrossHalf(
+                            t1Pool, t2Pool, bucket.getRequired(), t2Bucket.getRequired(), selectedQuestionIds);
+                    if (pick.getT1().size() < bucket.getRequired() || pick.getT2().size() < t2Bucket.getRequired()) {
+                        return null;
+                    }
+                    selectedBuckets.add(new SelectedBucket(bucket.getMarks(), bucket.getUnit(), 1, pick.getT1()));
+                    selectedBuckets.add(new SelectedBucket(t2Bucket.getMarks(), t2Bucket.getUnit(), 2, pick.getT2()));
+                    continue;
+                }
+            }
+
             List<Question> pool = questionRepo.findBySubjectIdAndSessionIdAndUnitAndMarksAndT(
                     subjectId, sessionId, bucket.getUnit(), bucket.getMarks(), bucket.getT());
+
+            if (pairingMode == PairingEngine.PairingMode.SAME_HALF && partB) {
+                List<Question> picked = pairPicker.pickSameHalf(pool, bucket.getRequired(), selectedQuestionIds);
+                if (picked.size() < bucket.getRequired()) {
+                    return null;
+                }
+                selectedBuckets.add(new SelectedBucket(bucket.getMarks(), bucket.getUnit(), bucket.getT(), picked));
+                continue;
+            }
 
             Collections.shuffle(pool, random);
 

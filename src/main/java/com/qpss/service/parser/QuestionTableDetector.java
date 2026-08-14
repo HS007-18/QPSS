@@ -8,10 +8,6 @@ import java.util.List;
 
 public class QuestionTableDetector {
 
-    public boolean isQuestionTable(XWPFTable table) {
-        return findHeaderRow(table) != null;
-    }
-
     public XWPFTableRow findHeaderRow(XWPFTable table) {
         if (table.getRows().isEmpty()) {
             return null;

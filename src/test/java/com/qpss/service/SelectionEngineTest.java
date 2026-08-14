@@ -3,12 +3,15 @@ package com.qpss.service;
 import com.qpss.model.Question;
 import com.qpss.repository.QuestionRepository;
 import com.qpss.service.distribution.DistributionPlan;
+import com.qpss.service.selection.PairingEngine.PairingMode;
+import com.qpss.service.selection.RbtPairPicker;
 import com.qpss.service.selection.SelectionEngine;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.mockito.Spy;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 
@@ -27,6 +30,9 @@ class SelectionEngineTest {
 
     @Mock
     private QuestionRepository questionRepository;
+
+    @Spy
+    private RbtPairPicker pairPicker = new RbtPairPicker();
 
     @InjectMocks
     private SelectionEngine selectionEngine;
@@ -405,5 +411,137 @@ class SelectionEngineTest {
         assertFalse(result.isSuccessful());
         assertEquals(0, result.getShortages().get(0).getAvailable());
         assertEquals(2, result.getShortages().get(0).getShortage());
+    }
+
+    @Test
+    void testSameHalfSelectionPairsShareRbt() {
+
+        long subId = 1L;
+        long sessId = 1L;
+
+        mockQuestionsWithRbt(subId, sessId, 1, 16, 1, "U", "U", "AP", "AP");
+        mockQuestionsWithRbt(subId, sessId, 1, 16, 2, "U", "U", "AP", "AP");
+
+        DistributionPlan plan = makePlan(List.of(
+                DistributionPlan.SectionPlan.builder().marks(16).totalRequired(4).units(List.of(
+                        makeUnitPlan(1, 2, 2)
+                )).build()
+        ));
+
+        SelectionEngine.SelectionResult result = selectionEngine.select(
+                plan, subId, sessId, java.util.Collections.emptySet(), PairingMode.SAME_HALF);
+
+        assertTrue(result.isSuccessful());
+
+        List<Question> t1 = result.getQuestionsByMarks(16).stream()
+                .filter(q -> q.getT() == 1).collect(Collectors.toList());
+        List<Question> t2 = result.getQuestionsByMarks(16).stream()
+                .filter(q -> q.getT() == 2).collect(Collectors.toList());
+        assertEquals(2, t1.size());
+        assertEquals(2, t2.size());
+        assertEquals(t1.get(0).getRbt(), t1.get(1).getRbt());
+        assertEquals(t2.get(0).getRbt(), t2.get(1).getRbt());
+    }
+
+    @Test
+    void testSameHalfSelectionFallsBackWhenNoSameRbtPairAvailable() {
+
+        long subId = 1L;
+        long sessId = 1L;
+
+        mockQuestionsWithRbt(subId, sessId, 1, 16, 1, "U", "U", "U", "AP");
+        mockQuestionsWithRbt(subId, sessId, 1, 16, 2, "U", "U", "AP", "AP");
+
+        DistributionPlan plan = makePlan(List.of(
+                DistributionPlan.SectionPlan.builder().marks(16).totalRequired(4).units(List.of(
+                        makeUnitPlan(1, 2, 2)
+                )).build()
+        ));
+
+        SelectionEngine.SelectionResult result = selectionEngine.select(
+                plan, subId, sessId, java.util.Collections.emptySet(), PairingMode.SAME_HALF);
+
+        assertTrue(result.isSuccessful());
+        assertEquals(4, result.getQuestionsByMarks(16).size());
+    }
+
+    @Test
+    void testCrossHalfSelectionMatchesRbtBetweenHalves() {
+
+        long subId = 1L;
+        long sessId = 1L;
+
+        mockQuestionsWithRbt(subId, sessId, 1, 16, 1, "R", "U");
+        mockQuestionsWithRbt(subId, sessId, 1, 16, 2, "R", "U");
+        mockQuestionsWithRbt(subId, sessId, 2, 16, 1, "AP", "AZ");
+        mockQuestionsWithRbt(subId, sessId, 2, 16, 2, "AP", "AZ");
+
+        DistributionPlan plan = makePlan(List.of(
+                DistributionPlan.SectionPlan.builder().marks(16).totalRequired(4).units(List.of(
+                        makeUnitPlan(1, 1, 1),
+                        makeUnitPlan(2, 1, 1)
+                )).build()
+        ));
+
+        SelectionEngine.SelectionResult result = selectionEngine.select(
+                plan, subId, sessId, java.util.Collections.emptySet(), PairingMode.CROSS_HALF);
+
+        assertTrue(result.isSuccessful());
+
+        List<Question> unit1T1 = result.getQuestionsByMarks(16).stream()
+                .filter(q -> q.getUnit() == 1 && q.getT() == 1).collect(Collectors.toList());
+        List<Question> unit1T2 = result.getQuestionsByMarks(16).stream()
+                .filter(q -> q.getUnit() == 1 && q.getT() == 2).collect(Collectors.toList());
+        List<Question> unit2T1 = result.getQuestionsByMarks(16).stream()
+                .filter(q -> q.getUnit() == 2 && q.getT() == 1).collect(Collectors.toList());
+        List<Question> unit2T2 = result.getQuestionsByMarks(16).stream()
+                .filter(q -> q.getUnit() == 2 && q.getT() == 2).collect(Collectors.toList());
+
+        assertEquals(1, unit1T1.size());
+        assertEquals(1, unit1T2.size());
+        assertEquals(1, unit2T1.size());
+        assertEquals(1, unit2T2.size());
+        assertEquals(unit1T1.get(0).getRbt(), unit1T2.get(0).getRbt());
+        assertEquals(unit2T1.get(0).getRbt(), unit2T2.get(0).getRbt());
+    }
+
+    @Test
+    void testSameHalfSelectionNoDuplicateIdsOnDistinctRbtFallback() {
+
+        long subId = 1L;
+        long sessId = 1L;
+
+        mockQuestionsWithRbt(subId, sessId, 1, 16, 1, "R", "U", "AP", "AZ");
+        mockQuestionsWithRbt(subId, sessId, 1, 16, 2, "R", "U", "AP", "AZ");
+
+        DistributionPlan plan = makePlan(List.of(
+                DistributionPlan.SectionPlan.builder().marks(16).totalRequired(4).units(List.of(
+                        makeUnitPlan(1, 2, 2)
+                )).build()
+        ));
+
+        SelectionEngine.SelectionResult result = selectionEngine.select(
+                plan, subId, sessId, java.util.Collections.emptySet(), PairingMode.SAME_HALF);
+
+        assertTrue(result.isSuccessful());
+        List<Question> selected = result.getQuestionsByMarks(16);
+        assertEquals(4, selected.size());
+        assertEquals(4, selected.stream().map(Question::getId).distinct().count());
+    }
+
+    private void mockQuestionsWithRbt(long subjectId, long sessionId, int unit, int marks, int t, String... rbts) {
+        List<Question> questions = new ArrayList<>();
+        for (String rbt : rbts) {
+            questions.add(makeQuestionWithRbt(subjectId, sessionId, unit, marks, t, rbt));
+        }
+        when(questionRepository.findBySubjectIdAndSessionIdAndUnitAndMarksAndT(
+                eq(subjectId), eq(sessionId), eq(unit), eq(marks), eq(t)))
+                .thenReturn(questions);
+    }
+
+    private Question makeQuestionWithRbt(long subjectId, long sessionId, int unit, int marks, int t, String rbt) {
+        Question q = makeQuestion(subjectId, sessionId, unit, marks, t, "CO" + (questionIdCounter % 5 + 1));
+        q.setRbt(rbt);
+        return q;
     }
 }

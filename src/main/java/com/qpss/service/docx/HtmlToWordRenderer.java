@@ -1,12 +1,21 @@
 package com.qpss.service.docx;
 
-import org.apache.poi.xwpf.usermodel.*;
+import org.apache.poi.util.Units;
+import org.apache.poi.xwpf.usermodel.Document;
+import org.apache.poi.xwpf.usermodel.UnderlinePatterns;
+import org.apache.poi.xwpf.usermodel.VerticalAlign;
+import org.apache.poi.xwpf.usermodel.XWPFParagraph;
+import org.apache.poi.xwpf.usermodel.XWPFRun;
+import org.apache.poi.xwpf.usermodel.XWPFTableCell;
+import org.apache.poi.xwpf.usermodel.XWPFTableRow;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Element;
 import org.jsoup.nodes.Node;
 import org.jsoup.nodes.TextNode;
 import org.openxmlformats.schemas.wordprocessingml.x2006.main.CTTcPr;
 import org.openxmlformats.schemas.wordprocessingml.x2006.main.STMerge;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
@@ -14,6 +23,8 @@ import java.io.ByteArrayInputStream;
 import java.util.Base64;
 
 public final class HtmlToWordRenderer {
+
+    private static final Logger log = LoggerFactory.getLogger(HtmlToWordRenderer.class);
 
     private HtmlToWordRenderer() {
     }
@@ -113,11 +124,11 @@ public final class HtmlToWordRenderer {
             String mimeType = mimeAndEncoding.split(";")[0];
 
             byte[] imgData = Base64.getDecoder().decode(base64);
-            int pictureType = org.apache.poi.xwpf.usermodel.Document.PICTURE_TYPE_PNG;
+            int pictureType = Document.PICTURE_TYPE_PNG;
             if (mimeType.contains("jpeg") || mimeType.contains("jpg")) {
-                pictureType = org.apache.poi.xwpf.usermodel.Document.PICTURE_TYPE_JPEG;
+                pictureType = Document.PICTURE_TYPE_JPEG;
             } else if (mimeType.contains("gif")) {
-                pictureType = org.apache.poi.xwpf.usermodel.Document.PICTURE_TYPE_GIF;
+                pictureType = Document.PICTURE_TYPE_GIF;
             }
 
             XWPFRun run = p.createRun();
@@ -134,9 +145,9 @@ public final class HtmlToWordRenderer {
                 }
             }
             run.addPicture(new ByteArrayInputStream(imgData), pictureType, "image",
-                    org.apache.poi.util.Units.toEMU(width), org.apache.poi.util.Units.toEMU(height));
+                    Units.toEMU(width), Units.toEMU(height));
         } catch (Exception e) {
-            e.printStackTrace();
+            log.warn("Failed to embed image in Word document", e);
         }
     }
 }

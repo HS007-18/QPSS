@@ -5,10 +5,18 @@ import com.qpss.model.Question;
 import com.qpss.repository.ExamCoRuleRepository;
 import com.qpss.repository.ExamConfigRepository;
 import com.qpss.service.ExamConfigService;
-import lombok.*;
+import lombok.Builder;
+import lombok.Data;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
