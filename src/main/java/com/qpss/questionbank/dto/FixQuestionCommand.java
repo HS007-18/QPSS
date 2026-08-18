@@ -5,6 +5,7 @@ import lombok.Data;
 @Data
 public class FixQuestionCommand {
     private String file;
+    private Integer fileIndex;
     private Integer serialNo;
     private Integer unit;
     private String co;

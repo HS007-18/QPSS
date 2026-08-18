@@ -6,6 +6,7 @@ import org.springframework.stereotype.Component;
 
 import java.security.SecureRandom;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -34,7 +35,7 @@ public class RbtPairPicker {
             }
         }
 
-        java.util.Collections.shuffle(distinct, random);
+        Collections.shuffle(distinct, random);
 
         Map<String, List<Question>> byKey = new LinkedHashMap<>();
         for (Question q : distinct) {
@@ -42,6 +43,7 @@ public class RbtPairPicker {
         }
 
         List<Question> picked = new ArrayList<>();
+        Set<String> pickedContents = new HashSet<>(selectedQuestionContents);
 
         int pairsNeeded = required / 2;
         int pairs = 0;
@@ -55,23 +57,27 @@ public class RbtPairPicker {
             if (takeFrom == null) {
                 break;
             }
-            picked.add(takeFrom.remove(0));
-            picked.add(takeFrom.remove(0));
-            selectedQuestionIds.add(picked.get(picked.size() - 2).getId());
-            selectedQuestionIds.add(picked.get(picked.size() - 1).getId());
+            Question q1 = removePick(takeFrom, pickedContents);
+            Question q2 = removePick(takeFrom, pickedContents);
+            if (q1 == null || q2 == null) {
+                break;
+            }
+            picked.add(q1);
+            picked.add(q2);
+            selectedQuestionIds.add(q1.getId());
+            selectedQuestionIds.add(q2.getId());
             pairs++;
         }
 
-        if (picked.size() < required) {
-            fillRemaining(distinct, required, selectedQuestionIds, selectedQuestionContents, picked);
-        }
-
         for (Question q : picked) {
-            selectedQuestionIds.add(q.getId());
             String contentKey = contentKey(q);
             if (!contentKey.isEmpty()) {
                 selectedQuestionContents.add(contentKey);
             }
+        }
+
+        if (picked.size() < required) {
+            fillRemaining(distinct, required, selectedQuestionIds, selectedQuestionContents, picked);
         }
 
         return picked;
@@ -84,16 +90,18 @@ public class RbtPairPicker {
         Set<Long> seenT1 = new HashSet<>();
         Set<Long> seenT2 = new HashSet<>();
         for (Question q : t1Pool) {
-            String contentKey = q.getQuestionContent() != null ? q.getQuestionContent().trim().toLowerCase() : "";
-            if (!selectedQuestionIds.contains(q.getId()) && seenT1.add(q.getId()) && (!selectedQuestionContents.contains(contentKey) || contentKey.isEmpty())) t1Distinct.add(q);
+            String contentKey = contentKey(q);
+            if (!selectedQuestionIds.contains(q.getId()) && seenT1.add(q.getId())
+                    && (!selectedQuestionContents.contains(contentKey) || contentKey.isEmpty())) t1Distinct.add(q);
         }
         for (Question q : t2Pool) {
-            String contentKey = q.getQuestionContent() != null ? q.getQuestionContent().trim().toLowerCase() : "";
-            if (!selectedQuestionIds.contains(q.getId()) && seenT2.add(q.getId()) && (!selectedQuestionContents.contains(contentKey) || contentKey.isEmpty())) t2Distinct.add(q);
+            String contentKey = contentKey(q);
+            if (!selectedQuestionIds.contains(q.getId()) && seenT2.add(q.getId())
+                    && (!selectedQuestionContents.contains(contentKey) || contentKey.isEmpty())) t2Distinct.add(q);
         }
 
-        java.util.Collections.shuffle(t1Distinct, random);
-        java.util.Collections.shuffle(t2Distinct, random);
+        Collections.shuffle(t1Distinct, random);
+        Collections.shuffle(t2Distinct, random);
 
         Map<String, List<Question>> t1ByKey = new LinkedHashMap<>();
         Map<String, List<Question>> t2ByKey = new LinkedHashMap<>();
@@ -102,6 +110,7 @@ public class RbtPairPicker {
 
         List<Question> pickedT1 = new ArrayList<>();
         List<Question> pickedT2 = new ArrayList<>();
+        Set<String> pickedContents = new HashSet<>(selectedQuestionContents);
 
         int pairsNeeded = Math.min(requiredT1, requiredT2);
         int pairs = 0;
@@ -117,9 +126,12 @@ public class RbtPairPicker {
             Question t1Question;
             Question t2Question;
             if (matchedKey != null) {
-                t1Question = t1ByKey.get(matchedKey).remove(0);
-                t2Question = t2ByKey.get(matchedKey).remove(0);
+                t1Question = removePick(t1ByKey.get(matchedKey), pickedContents);
+                t2Question = removePick(t2ByKey.get(matchedKey), pickedContents);
             } else {
+                break;
+            }
+            if (t1Question == null || t2Question == null) {
                 break;
             }
             pickedT1.add(t1Question);
@@ -127,6 +139,19 @@ public class RbtPairPicker {
             selectedQuestionIds.add(t1Question.getId());
             selectedQuestionIds.add(t2Question.getId());
             pairs++;
+        }
+
+        for (Question q : pickedT1) {
+            String contentKey = contentKey(q);
+            if (!contentKey.isEmpty()) {
+                selectedQuestionContents.add(contentKey);
+            }
+        }
+        for (Question q : pickedT2) {
+            String contentKey = contentKey(q);
+            if (!contentKey.isEmpty()) {
+                selectedQuestionContents.add(contentKey);
+            }
         }
 
         if (pickedT1.size() < requiredT1) {
@@ -139,9 +164,20 @@ public class RbtPairPicker {
         return new PickResult(pickedT1, pickedT2);
     }
 
+    private Question removePick(List<Question> group, Set<String> pickedContents) {
+        for (int i = 0; i < group.size(); i++) {
+            Question q = group.get(i);
+            String contentKey = contentKey(q);
+            if (contentKey.isEmpty() || pickedContents.add(contentKey)) {
+                return group.remove(i);
+            }
+        }
+        return null;
+    }
+
     private void fillRemaining(List<Question> pool, int required, Set<Long> selectedQuestionIds, Set<String> selectedQuestionContents, List<Question> picked) {
         List<Question> candidates = new ArrayList<>(pool);
-        java.util.Collections.shuffle(candidates, random);
+        Collections.shuffle(candidates, random);
         for (Question q : candidates) {
             if (picked.size() >= required) {
                 break;

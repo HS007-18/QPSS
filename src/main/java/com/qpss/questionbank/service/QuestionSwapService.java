@@ -50,15 +50,14 @@ public class QuestionSwapService {
                         .map(PaperQuestion::getQuestionId)
                         .collect(Collectors.toList()));
 
-        List<GeneratedPaper> finalizedPapers = paperRepo.findBySessionId(paper.getSessionId()).stream()
-                .filter(p -> Boolean.TRUE.equals(p.getIsFinal()))
+        List<Long> sessionPaperIds = paperRepo.findBySessionId(paper.getSessionId()).stream()
+                .map(GeneratedPaper::getId)
                 .collect(Collectors.toList());
-        if (!finalizedPapers.isEmpty()) {
-            List<Long> finalizedPaperIds = finalizedPapers.stream().map(GeneratedPaper::getId).collect(Collectors.toList());
-            Set<Long> finalizedQuestionIds = paperQuestionRepo.findByPaperIdIn(finalizedPaperIds).stream()
+        if (!sessionPaperIds.isEmpty()) {
+            Set<Long> otherPaperQuestionIds = paperQuestionRepo.findByPaperIdIn(sessionPaperIds).stream()
                     .map(PaperQuestion::getQuestionId)
                     .collect(Collectors.toSet());
-            usedQuestionIds.addAll(finalizedQuestionIds);
+            usedQuestionIds.addAll(otherPaperQuestionIds);
         }
         Set<Long> excludedIds = new HashSet<>(usedQuestionIds);
         excludedIds.remove(oldQuestionId);

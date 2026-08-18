@@ -92,9 +92,6 @@ public class DocxPartRenderer {
         for (int i = 0; i < sectionB.size(); i++) {
             PaperQuestion pq = sectionB.get(i);
             Question q = questionRepository.findById(pq.getQuestionId()).orElse(null);
-            if (q == null) {
-                continue;
-            }
 
             if (currentQNum != null && currentQNum.equals(pq.getQuestionNumber())) {
                 XWPFTableRow orRow = tableB.getRow(rowIndex++);
@@ -111,9 +108,9 @@ public class DocxPartRenderer {
             XWPFTableRow row = tableB.getRow(rowIndex++);
             String label = pq.getChoiceLabel() != null ? pq.getChoiceLabel() + ")" : "";
             HtmlToWordRenderer.setCellText(row.getCell(0), pq.getQuestionNumber() + " " + label, false);
-            HtmlToWordRenderer.setCellHtml(row.getCell(1), q.getQuestionContent());
-            HtmlToWordRenderer.setCellText(row.getCell(2), marksLabel(q), false);
-            HtmlToWordRenderer.setCellText(row.getCell(3), coLabel(q), false);
+            HtmlToWordRenderer.setCellHtml(row.getCell(1), q != null ? q.getQuestionContent() : "");
+            HtmlToWordRenderer.setCellText(row.getCell(2), q != null ? marksLabel(q) : "", false);
+            HtmlToWordRenderer.setCellText(row.getCell(3), q != null ? coLabel(q) : "", false);
         }
     }
 

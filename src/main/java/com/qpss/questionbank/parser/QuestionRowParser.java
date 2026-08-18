@@ -47,7 +47,10 @@ public class QuestionRowParser {
         Integer resolvedUnit = currentUnit;
         if (resolvedUnit == null && !isBlank(co)) {
             try {
-                resolvedUnit = Integer.parseInt(co.replaceAll("[^0-9]", ""));
+                int fromCo = Integer.parseInt(co.replaceAll("[^0-9]", ""));
+                if (fromCo >= 1 && fromCo <= 5) {
+                    resolvedUnit = fromCo;
+                }
             } catch (NumberFormatException e) {
                 resolvedUnit = null;
             }

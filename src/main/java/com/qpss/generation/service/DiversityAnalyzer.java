@@ -14,7 +14,7 @@ public class DiversityAnalyzer {
     public String check(DistributionPlan plan, Long sessionId, int numSets) {
         if (numSets <= 1) return null;
 
-        int minUniqueSets = Integer.MAX_VALUE;
+        int minUniqueSets = numSets;
 
         for (DistributionPlan.SectionPlan section : plan.getSections()) {
             for (DistributionPlan.UnitPlan rule : section.getUnits()) {

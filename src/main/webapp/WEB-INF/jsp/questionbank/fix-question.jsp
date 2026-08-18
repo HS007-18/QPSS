@@ -23,6 +23,7 @@
     <div class="card">
         <form action="/sessions/${session.id}/upload/fix" method="post">
             <input type="hidden" name="file" value="<c:out value='${file}' />" />
+            <input type="hidden" name="fileIndex" value="${fileIndex}" />
             <input type="hidden" name="serialNo" value="${question.serialNo}" />
 
             <c:if test="${empty question.questionContent}">

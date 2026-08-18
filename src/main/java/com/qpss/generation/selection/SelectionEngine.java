@@ -107,7 +107,7 @@ public class SelectionEngine {
 
         List<SelectedBucket> selectedBuckets = performSelection(buckets, subjectId, sessionId, excludeIds, pairingMode);
         if (selectedBuckets == null) {
-            shortages = checkAvailability(buckets, subjectId, sessionId, excludeIds);
+            shortages = checkDistinctContentAvailability(buckets, subjectId, sessionId, excludeIds);
             return SelectionResult.failure(shortages);
         }
 
@@ -181,6 +181,33 @@ public class SelectionEngine {
                 .filter(id -> !seenIds.contains(id))
                 .distinct()
                 .count();
+    }
+
+    private List<SelectionShortage> checkDistinctContentAvailability(List<SelectionBucket> buckets, Long subjectId,
+                                                                     Long sessionId, Set<Long> excludeIds) {
+        List<SelectionShortage> shortages = new ArrayList<>();
+        for (SelectionBucket bucket : buckets) {
+            List<Question> candidates = questionRepo.findBySubjectIdAndSessionIdAndUnitAndMarksAndT(
+                    subjectId, sessionId, bucket.getUnit(), bucket.getMarks(), bucket.getT());
+            Set<String> seenContents = new HashSet<>();
+            long uniqueAvailable = 0;
+            for (Question q : candidates) {
+                if (excludeIds.contains(q.getId())) {
+                    continue;
+                }
+                String contentKey = q.getQuestionContent() != null ? q.getQuestionContent().trim().toLowerCase() : "";
+                if (seenContents.add(contentKey) || contentKey.isEmpty()) {
+                    uniqueAvailable++;
+                }
+            }
+            if (uniqueAvailable < bucket.getRequired()) {
+                shortages.add(new SelectionShortage(
+                        bucket.getUnit(), bucket.getMarks(), bucket.getT(),
+                        bucket.getRequired(), (int) uniqueAvailable,
+                        bucket.getRequired() - (int) uniqueAvailable));
+            }
+        }
+        return shortages;
     }
 
     private List<SelectedBucket> performSelection(List<SelectionBucket> buckets, Long subjectId, Long sessionId,

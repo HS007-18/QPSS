@@ -1,33 +1,47 @@
 package com.qpss.generation.renderer;
+
 import com.qpss.generation.model.GeneratedPaper;
-import com.qpss.questionbank.model.HeaderMetadata;
 import com.qpss.generation.model.PaperQuestion;
+import com.qpss.questionbank.model.HeaderMetadata;
 import com.qpss.questionbank.model.Question;
 import com.qpss.questionbank.model.SourceDocument;
-import com.qpss.subject.model.Subject;
+import com.qpss.questionbank.parser.HeaderMetadataExtractor;
 import com.qpss.questionbank.repository.QuestionRepository;
 import com.qpss.questionbank.repository.SourceDocumentRepository;
 import com.qpss.questionbank.service.SourceDocumentStorageService;
-import com.qpss.questionbank.parser.HeaderMetadataExtractor;
+import com.qpss.subject.model.Subject;
 import lombok.RequiredArgsConstructor;
-import org.apache.poi.xwpf.usermodel.*;
-import org.openxmlformats.schemas.wordprocessingml.x2006.main.*;
+import org.apache.poi.xwpf.usermodel.ParagraphAlignment;
+import org.apache.poi.xwpf.usermodel.XWPFDocument;
+import org.apache.poi.xwpf.usermodel.XWPFParagraph;
+import org.apache.poi.xwpf.usermodel.XWPFRun;
+import org.apache.poi.xwpf.usermodel.XWPFTable;
+import org.apache.poi.xwpf.usermodel.XWPFTableCell;
+import org.apache.poi.xwpf.usermodel.XWPFTableRow;
+import org.openxmlformats.schemas.wordprocessingml.x2006.main.CTTblWidth;
+import org.openxmlformats.schemas.wordprocessingml.x2006.main.CTTcPr;
+import org.openxmlformats.schemas.wordprocessingml.x2006.main.STMerge;
+import org.openxmlformats.schemas.wordprocessingml.x2006.main.STTblWidth;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
+
 import java.io.ByteArrayInputStream;
+import java.math.BigInteger;
 import java.util.List;
 import java.util.stream.Collectors;
-import java.math.BigInteger;
 
 @Component
 @RequiredArgsConstructor
 public class DocxHeaderRenderer {
+
     private static final Logger log = LoggerFactory.getLogger(DocxHeaderRenderer.class);
+
     private final QuestionRepository questionRepository;
     private final SourceDocumentRepository sourceDocumentRepository;
     private final SourceDocumentStorageService storageService;
     private final HeaderMetadataExtractor metadataExtractor = new HeaderMetadataExtractor();
+
     public void render(XWPFDocument document, GeneratedPaper paper, Subject subject, List<PaperQuestion> sectionA, List<PaperQuestion> sectionB) {
         Long sourceDocId = null;
         if (sectionA != null && !sectionA.isEmpty()) {
@@ -37,6 +51,7 @@ public class DocxHeaderRenderer {
             Question q = questionRepository.findById(sectionB.get(0).getQuestionId()).orElse(null);
             if (q != null) sourceDocId = q.getSourceDocumentId();
         }
+
         HeaderMetadata metadata = new HeaderMetadata();
         if (sourceDocId != null) {
             SourceDocument sourceDoc = sourceDocumentRepository.findById(sourceDocId).orElse(null);
@@ -53,6 +68,7 @@ public class DocxHeaderRenderer {
         }
         renderStandardizedHeader(document, paper, subject, metadata);
     }
+
     private void renderStandardizedHeader(XWPFDocument document, GeneratedPaper paper, Subject subject, HeaderMetadata metadata) {
         XWPFTable topTable = document.createTable(1, 3);
         removeTableBorders(topTable);
@@ -61,6 +77,7 @@ public class DocxHeaderRenderer {
         setCellText(topTable.getRow(0).getCell(1), "Date: _____________", ParagraphAlignment.CENTER, false, 11);
         setCellText(topTable.getRow(0).getCell(2), "Register No.: _______________", ParagraphAlignment.RIGHT, false, 11);
         document.createParagraph().createRun().setFontSize(2);
+
         XWPFTable headerTable = document.createTable(8, 1);
         headerTable.setWidth("100%");
         setCellText(headerTable.getRow(0).getCell(0), (metadata.getInstitutionName() != null ? metadata.getInstitutionName() : "KANGEYAM INSTITUTE OF TECHNOLOGY") + " " + (metadata.getTagline() != null ? metadata.getTagline() : "(An Autonomous Institution)"), ParagraphAlignment.CENTER, true, 13);
@@ -69,39 +86,41 @@ public class DocxHeaderRenderer {
         setCellText(headerTable.getRow(2).getCell(0), metadata.getSemester() != null ? metadata.getSemester() : "", ParagraphAlignment.CENTER, true, 12);
         setCellText(headerTable.getRow(3).getCell(0), metadata.getDepartment() != null ? metadata.getDepartment() : "", ParagraphAlignment.CENTER, true, 12);
         setCellText(headerTable.getRow(4).getCell(0), metadata.getSubjectCodeTitle() != null ? metadata.getSubjectCodeTitle() : subject.getName().toUpperCase(), ParagraphAlignment.CENTER, true, 12);
-        setCellText(headerTable.getRow(5).getCell(0), metadata.getCommonTo() != null ? metadata.getCommonTo() : "(Common to: All)", ParagraphAlignment.CENTER, false, 11);
+        setCellText(headerTable.getRow(5).getCell(0), metadata.getCommonTo() != null ? metadata.getCommonTo() : "", ParagraphAlignment.CENTER, false, 11);
         setCellText(headerTable.getRow(6).getCell(0), metadata.getNotes() != null ? metadata.getNotes() : "", ParagraphAlignment.CENTER, false, 11);
         setCellText(headerTable.getRow(7).getCell(0), metadata.getRegulation() != null ? metadata.getRegulation() : "(Regulations 2024)", ParagraphAlignment.CENTER, true, 11);
-        for(XWPFTableRow row : headerTable.getRows()) {
+        for (XWPFTableRow row : headerTable.getRows()) {
             row.setHeight(200);
             row.getCell(0).setVerticalAlignment(XWPFTableCell.XWPFVertAlign.CENTER);
-            if(row.getCell(0).getText().isEmpty()) {
+            if (row.getCell(0).getText().isEmpty()) {
                 row.getCell(0).getParagraphs().get(0).setSpacingAfter(0);
                 row.getCell(0).getParagraphs().get(0).setSpacingBefore(0);
                 row.setHeight(0);
             }
         }
         document.createParagraph().createRun().setFontSize(2);
+
         List<HeaderMetadata.CourseOutcome> cos = metadata.getCourseOutcomes() != null ? metadata.getCourseOutcomes() : List.of();
         if (paper.getExamType() != null) {
             if (paper.getExamType().equalsIgnoreCase("INTERNAL_1")) {
-                cos = cos.stream().filter(c -> c.getCode().toUpperCase().contains("1") || c.getCode().toUpperCase().contains("2") || c.getCode().toUpperCase().contains("3")).collect(Collectors.toList());
+                cos = cos.stream().filter(c -> coInRange(c.getCode(), 1, 3)).collect(Collectors.toList());
             } else if (paper.getExamType().equalsIgnoreCase("INTERNAL_2")) {
-                cos = cos.stream().filter(c -> c.getCode().toUpperCase().contains("3") || c.getCode().toUpperCase().contains("4") || c.getCode().toUpperCase().contains("5")).collect(Collectors.toList());
+                cos = cos.stream().filter(c -> coInRange(c.getCode(), 3, 5)).collect(Collectors.toList());
             }
         }
+
         if (!cos.isEmpty()) {
             XWPFTable coTable = document.createTable(cos.size() + 1, 2);
             coTable.setWidth("100%");
-            CTTblWidth w0 = coTable.getRow(0).getCell(0).getCTTc().addNewTcPr().addNewTcW();
+            CTTblWidth w0 = cellTcPr(coTable.getRow(0).getCell(0)).addNewTcW();
             w0.setW(BigInteger.valueOf(1000));
             w0.setType(STTblWidth.DXA);
-            CTTblWidth w1 = coTable.getRow(0).getCell(1).getCTTc().addNewTcPr().addNewTcW();
+            CTTblWidth w1 = cellTcPr(coTable.getRow(0).getCell(1)).addNewTcW();
             w1.setW(BigInteger.valueOf(9000));
             w1.setType(STTblWidth.DXA);
             XWPFTableRow hr = coTable.getRow(0);
-            hr.getCell(0).getCTTc().addNewTcPr().addNewHMerge().setVal(STMerge.RESTART);
-            hr.getCell(1).getCTTc().addNewTcPr().addNewHMerge().setVal(STMerge.CONTINUE);
+            cellTcPr(hr.getCell(0)).addNewHMerge().setVal(STMerge.RESTART);
+            cellTcPr(hr.getCell(1)).addNewHMerge().setVal(STMerge.CONTINUE);
             setCellText(hr.getCell(0), "COURSE OUTCOMES (COs): Students will be able to", ParagraphAlignment.LEFT, true, 11);
             int rIdx = 1;
             for (HeaderMetadata.CourseOutcome co : cos) {
@@ -114,8 +133,25 @@ public class DocxHeaderRenderer {
         sp.setSpacingBefore(0);
         sp.setSpacingAfter(0);
     }
+
+    static boolean coInRange(String code, int from, int to) {
+        if (code == null) {
+            return false;
+        }
+        try {
+            int num = Integer.parseInt(code.replaceAll("\\D", ""));
+            return num >= from && num <= to;
+        } catch (NumberFormatException e) {
+            return false;
+        }
+    }
+
+    private CTTcPr cellTcPr(XWPFTableCell cell) {
+        return cell.getCTTc().isSetTcPr() ? cell.getCTTc().getTcPr() : cell.getCTTc().addNewTcPr();
+    }
+
     private void setCellText(XWPFTableCell cell, String text, ParagraphAlignment align, boolean bold, int size) {
-        if(cell.getParagraphs().isEmpty()) cell.addParagraph();
+        if (cell.getParagraphs().isEmpty()) cell.addParagraph();
         XWPFParagraph p = cell.getParagraphs().get(0);
         p.setAlignment(align);
         p.setSpacingBefore(0);
@@ -126,6 +162,7 @@ public class DocxHeaderRenderer {
         r.setBold(bold);
         r.setText(text != null ? text : "");
     }
+
     private void removeTableBorders(XWPFTable table) {
         table.setLeftBorder(XWPFTable.XWPFBorderType.NONE, 0, 0, "");
         table.setRightBorder(XWPFTable.XWPFBorderType.NONE, 0, 0, "");

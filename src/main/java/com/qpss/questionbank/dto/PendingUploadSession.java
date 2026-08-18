@@ -14,6 +14,7 @@ public class PendingUploadSession {
 
     @Data
     public static class FileImportHolder {
+        private int index;
         private String originalName;
         private String checksum;
         private QuestionParseResult parseResult;

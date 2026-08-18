@@ -79,6 +79,7 @@ public class QuestionBankImportService {
             }
 
             PendingUploadSession.FileImportHolder holder = new PendingUploadSession.FileImportHolder();
+            holder.setIndex(holders.size());
             holder.setOriginalName(originalName);
             holder.setChecksum(checksum);
             holder.setParseResult(parseResult);
@@ -121,10 +122,16 @@ public class QuestionBankImportService {
             }
         }
 
-        if (!anyImportable && !allErrors.isEmpty()) {
+        if (!anyImportable) {
+            if (!allErrors.isEmpty()) {
+                return QuestionBankImportResult.builder()
+                        .successful(false)
+                        .parsingErrors(allErrors)
+                        .build();
+            }
             return QuestionBankImportResult.builder()
                     .successful(false)
-                    .parsingErrors(allErrors)
+                    .parsingErrors(List.of("All uploaded file(s) are duplicates of questions already imported in this session."))
                     .build();
         }
 

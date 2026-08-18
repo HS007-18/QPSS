@@ -78,6 +78,7 @@ public class QuestionBankUploadController {
             for (ParsedQuestion q : fileHolder.getParseResult().getValidQuestions()) {
                 if (!q.isComplete()) {
                     model.addAttribute("file", fileHolder.getOriginalName());
+                    model.addAttribute("fileIndex", fileHolder.getIndex());
                     model.addAttribute("question", q);
                     model.addAttribute("session", sessionService.findById(sessionId));
                     return "questionbank/fix-question";
@@ -107,6 +108,21 @@ public class QuestionBankUploadController {
                     }
                 }
                 break;
+            }
+        }
+
+        if (!fixed && command.getFileIndex() != null) {
+            for (PendingUploadSession.FileImportHolder fileHolder : pendingSession.getFiles()) {
+                if (fileHolder.getIndex() == command.getFileIndex()) {
+                    for (ParsedQuestion q : fileHolder.getParseResult().getValidQuestions()) {
+                        if (q.getSerialNo().equals(command.getSerialNo())) {
+                            applyFix(q, command);
+                            fixed = true;
+                            break;
+                        }
+                    }
+                    break;
+                }
             }
         }
 
@@ -151,7 +167,10 @@ public class QuestionBankUploadController {
             if (normalized.matches("CO\\d+")) {
                 q.setCo(normalized);
                 if (command.getUnit() == null && q.getUnit() == null) {
-                    q.setUnit(extractUnitFromCo(normalized));
+                    Integer fromCo = extractUnitFromCo(normalized);
+                    if (fromCo != null && fromCo >= 1 && fromCo <= 5) {
+                        q.setUnit(fromCo);
+                    }
                 }
             }
         }

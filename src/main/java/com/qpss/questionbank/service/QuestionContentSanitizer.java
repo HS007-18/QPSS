@@ -10,7 +10,7 @@ public class QuestionContentSanitizer {
 
     private static final Safelist SAFELIST = Safelist.relaxed()
             .addAttributes("img", "src", "alt", "width", "height")
-            .addAttributes(":all", "class", "style")
+            .addAttributes(":all", "class")
             .addProtocols("img", "src", "data");
 
     public String sanitize(String html) {

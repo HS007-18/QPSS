@@ -551,6 +551,53 @@ class SelectionEngineTest {
         assertEquals(5, selected.stream().map(Question::getId).distinct().count());
     }
 
+    @Test
+    void testSameHalfSelectionWithinPoolContentDedupCausesShortage() {
+
+        long subId = 1L;
+        long sessId = 1L;
+
+        List<Question> questions = new ArrayList<>();
+        questions.add(makeQuestionWithContent(subId, sessId, 1, 16, 1, "U", "Duplicate content"));
+        questions.add(makeQuestionWithContent(subId, sessId, 1, 16, 1, "U", "Duplicate content"));
+        when(questionRepository.findBySubjectIdAndSessionIdAndUnitAndMarksAndT(
+                eq(subId), eq(sessId), eq(1), eq(16), eq(1)))
+                .thenReturn(questions);
+
+        DistributionPlan plan = makePlan(List.of(
+                DistributionPlan.SectionPlan.builder().marks(16).totalRequired(2).units(List.of(
+                        makeUnitPlan(1, 2, 0)
+                )).build()
+        ));
+
+        SelectionEngine.SelectionResult result = selectionEngine.select(
+                plan, subId, sessId, java.util.Collections.emptySet(), PairingMode.SAME_HALF);
+
+        assertFalse(result.isSuccessful());
+        assertEquals(1, result.getShortages().get(0).getAvailable());
+        assertEquals(1, result.getShortages().get(0).getShortage());
+    }
+
+    @Test
+    void testCrossHalfMatchedPairsDeduplicatedBeforeFillRemaining() {
+
+        Question a1 = makeQuestionWithContent(1L, 1L, 1, 16, 1, "U", "Dup");
+        Question a2 = makeQuestionWithContent(1L, 1L, 1, 16, 1, "U", "Dup");
+        Question b1 = makeQuestionWithContent(1L, 1L, 1, 16, 1, "U", "Unique1");
+        Question x1 = makeQuestionWithContent(1L, 1L, 1, 16, 2, "U", "Other1");
+        Question x2 = makeQuestionWithContent(1L, 1L, 1, 16, 2, "U", "Other2");
+
+        RbtPairPicker.PickResult result = pairPicker.pickCrossHalf(
+                List.of(a1, a2, b1), List.of(x1, x2), 2, 2, new java.util.HashSet<>(), new java.util.HashSet<>());
+
+        assertEquals(2, result.getT1().size());
+        List<String> contents = result.getT1().stream()
+                .map(q -> q.getQuestionContent().trim().toLowerCase())
+                .distinct()
+                .collect(Collectors.toList());
+        assertEquals(2, contents.size());
+    }
+
     private void mockQuestionsWithRbt(long subjectId, long sessionId, int unit, int marks, int t, String... rbts) {
         List<Question> questions = new ArrayList<>();
         for (String rbt : rbts) {
@@ -564,6 +611,13 @@ class SelectionEngineTest {
     private Question makeQuestionWithRbt(long subjectId, long sessionId, int unit, int marks, int t, String rbt) {
         Question q = makeQuestion(subjectId, sessionId, unit, marks, t, "CO" + (questionIdCounter % 5 + 1));
         q.setRbt(rbt);
+        return q;
+    }
+
+    private Question makeQuestionWithContent(long subjectId, long sessionId, int unit, int marks, int t, String rbt, String content) {
+        Question q = makeQuestion(subjectId, sessionId, unit, marks, t, "CO" + (questionIdCounter % 5 + 1));
+        q.setRbt(rbt);
+        q.setQuestionContent(content);
         return q;
     }
 }
