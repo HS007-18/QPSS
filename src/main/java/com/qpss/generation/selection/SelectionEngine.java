@@ -14,7 +14,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
+
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -275,7 +275,7 @@ public class SelectionEngine {
 
     private void validateConsistency(DistributionPlan plan, List<SelectedBucket> selectedBuckets) {
         Set<Long> uniqueIds = new HashSet<>();
-        long totalQuestions = 0;
+
 
         for (SelectedBucket bucket : selectedBuckets) {
             if (bucket.getQuestions().size() != bucket.getQuestions().stream().map(Question::getId).distinct().count()) {
@@ -288,7 +288,6 @@ public class SelectionEngine {
                 if (q.getMarks() != bucket.getMarks() || q.getUnit() != bucket.getUnit() || q.getT() != bucket.getT()) {
                     throw new IllegalStateException("Question properties do not match bucket constraints");
                 }
-                totalQuestions++;
             }
         }
 

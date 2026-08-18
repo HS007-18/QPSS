@@ -5,8 +5,6 @@ import com.qpss.generation.model.PaperQuestion;
 import com.qpss.subject.model.Subject;
 import com.qpss.generation.repository.PaperQuestionRepository;
 import com.qpss.subject.repository.SubjectRepository;
-import com.qpss.generation.renderer.DocxHeaderRenderer;
-import com.qpss.generation.renderer.DocxPartRenderer;
 import lombok.RequiredArgsConstructor;
 import org.apache.poi.xwpf.usermodel.XWPFDocument;
 import org.springframework.stereotype.Service;
@@ -50,6 +48,16 @@ public class DocxRendererService {
             headerRenderer.render(document, paper, subject, sectionA, sectionB);
             partRenderer.renderPartA(document, sectionA);
             partRenderer.renderPartB(document, sectionB);
+
+            org.apache.poi.xwpf.usermodel.XWPFFooter footer = document.createFooter(org.apache.poi.wp.usermodel.HeaderFooterType.DEFAULT);
+            org.apache.poi.xwpf.usermodel.XWPFParagraph footerPara = footer.createParagraph();
+            footerPara.setAlignment(org.apache.poi.xwpf.usermodel.ParagraphAlignment.LEFT);
+            org.apache.poi.xwpf.usermodel.XWPFRun footerRun1 = footerPara.createRun();
+            footerRun1.setText("Page ");
+            footerPara.getCTP().addNewFldSimple().setInstr("PAGE");
+            org.apache.poi.xwpf.usermodel.XWPFRun footerRun2 = footerPara.createRun();
+            footerRun2.setText(" of ");
+            footerPara.getCTP().addNewFldSimple().setInstr("NUMPAGES");
 
             ByteArrayOutputStream out = new ByteArrayOutputStream();
             document.write(out);

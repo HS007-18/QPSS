@@ -2,7 +2,7 @@ package com.qpss.questionbank.dto;
 
 import com.qpss.questionbank.parser.QuestionParseResult;
 import lombok.Data;
-import org.springframework.web.multipart.MultipartFile;
+
 
 import java.util.List;
 

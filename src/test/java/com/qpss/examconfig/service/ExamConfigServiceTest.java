@@ -1,7 +1,6 @@
 package com.qpss.examconfig.service;
 
-import com.qpss.examconfig.model.ExamConfig;
-import com.qpss.examconfig.model.ExamSectionConfig;
+
 import com.qpss.examconfig.repository.ExamConfigRepository;
 import com.qpss.examconfig.repository.ExamSectionConfigRepository;
 import com.qpss.generation.distribution.DistributionCalculationService;

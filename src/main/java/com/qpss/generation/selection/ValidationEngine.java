@@ -1,10 +1,10 @@
 package com.qpss.generation.selection;
 
-import com.qpss.examconfig.model.ExamConfig;
+
 import com.qpss.questionbank.model.Question;
 import com.qpss.generation.distribution.DistributionPlan;
 import com.qpss.examconfig.repository.ExamCoRuleRepository;
-import com.qpss.examconfig.repository.ExamConfigRepository;
+
 import com.qpss.examconfig.service.ExamConfigService;
 import lombok.Builder;
 import lombok.Data;
@@ -132,7 +132,7 @@ public class ValidationEngine {
             }
         }
 
-        int pairIdx = 0;
+        
         int prevUnit = 0;
         for (PairingEngine.QuestionPair pair : sectionBPairs) {
             if (pair.getUnit() < prevUnit) {
