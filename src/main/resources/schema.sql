@@ -109,10 +109,6 @@ CREATE TABLE IF NOT EXISTS paper_questions (
     FOREIGN KEY (question_id) REFERENCES questions(id)
 );
 
-ALTER DATABASE qpss CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
-ALTER TABLE questions CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-
 ALTER TABLE questions ADD COLUMN IF NOT EXISTS rbt VARCHAR(10) NOT NULL DEFAULT 'R';
 ALTER TABLE questions ADD COLUMN IF NOT EXISTS marks_split VARCHAR(20);
 ALTER TABLE questions ADD COLUMN IF NOT EXISTS question_type VARCHAR(10);
-ALTER TABLE questions MODIFY COLUMN question_content LONGTEXT NOT NULL;

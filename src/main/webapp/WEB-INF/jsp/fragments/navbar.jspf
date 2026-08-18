@@ -1,0 +1,10 @@
+<%@ taglib prefix="c" uri="jakarta.tags.core" %>
+<nav class="navbar">
+    <a href="/" class="navbar-brand">
+        <svg style="width:24px;height:24px;color:var(--accent);" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9.5a2.5 2.5 0 00-2.5-2.5H15"></path></svg>
+        QPSS <span><c:out value="${pageTitle}" /></span>
+    </a>
+    <div style="margin-left:auto;">
+        ${navRight}
+    </div>
+</nav>
