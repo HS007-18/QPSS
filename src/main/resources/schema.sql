@@ -49,7 +49,6 @@ CREATE TABLE IF NOT EXISTS questions (
     question_content    TEXT NOT NULL,
     raw_ooxml           LONGTEXT,
     source_file_name    VARCHAR(255),
-    source_page_number  INT,
     t                   INT NOT NULL,
     rbt                 VARCHAR(10) NOT NULL DEFAULT 'R',
     marks_split         VARCHAR(20),
