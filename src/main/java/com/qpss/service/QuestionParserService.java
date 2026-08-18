@@ -35,6 +35,7 @@ public class QuestionParserService {
                     .questionContent(p.getQuestionContent())
                     .sourceFileName(sourceFileName)
                     .t(p.getT())
+                    .questionType(p.getQuestionType())
                     .build());
         }
         return questions;

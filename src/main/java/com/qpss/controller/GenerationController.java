@@ -93,6 +93,7 @@ public class GenerationController {
             body.put("newMarksSplit", newQuestion.getMarksSplit());
             body.put("newUnit", newQuestion.getUnit());
             body.put("newRbt", newQuestion.getRbt());
+            body.put("newQuestionType", newQuestion.getQuestionType());
             return ResponseEntity.ok(body);
         } catch (Exception e) {
             Map<String, Object> body = new HashMap<>();

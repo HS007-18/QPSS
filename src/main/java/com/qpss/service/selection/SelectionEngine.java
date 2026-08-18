@@ -188,6 +188,18 @@ public class SelectionEngine {
                                                   Set<Long> excludeIds, PairingEngine.PairingMode pairingMode) {
         List<SelectedBucket> selectedBuckets = new ArrayList<>();
         Set<Long> selectedQuestionIds = new HashSet<>(excludeIds);
+        Set<String> selectedQuestionContents = new HashSet<>();
+        
+        // Fetch contents of excluded IDs to prevent them from being duplicated
+        if (!excludeIds.isEmpty()) {
+            for (Long id : excludeIds) {
+                questionRepo.findById(id).ifPresent(q -> {
+                    if (q.getQuestionContent() != null) {
+                        selectedQuestionContents.add(q.getQuestionContent().trim().toLowerCase());
+                    }
+                });
+            }
+        }
 
         for (int bi = 0; bi < buckets.size(); bi++) {
             SelectionBucket bucket = buckets.get(bi);
@@ -204,10 +216,19 @@ public class SelectionEngine {
                     List<Question> t2Pool = questionRepo.findBySubjectIdAndSessionIdAndUnitAndMarksAndT(
                             subjectId, sessionId, t2Bucket.getUnit(), t2Bucket.getMarks(), 2);
                     RbtPairPicker.PickResult pick = pairPicker.pickCrossHalf(
-                            t1Pool, t2Pool, bucket.getRequired(), t2Bucket.getRequired(), selectedQuestionIds);
+                            t1Pool, t2Pool, bucket.getRequired(), t2Bucket.getRequired(), selectedQuestionIds, selectedQuestionContents);
                     if (pick.getT1().size() < bucket.getRequired() || pick.getT2().size() < t2Bucket.getRequired()) {
                         return null;
                     }
+                    // We assume pairPicker doesn't handle content duplication yet, but it handles IDs. 
+                    // Let's add them to the content tracker
+                    for (Question q : pick.getT1()) {
+                        if (q.getQuestionContent() != null) selectedQuestionContents.add(q.getQuestionContent().trim().toLowerCase());
+                    }
+                    for (Question q : pick.getT2()) {
+                        if (q.getQuestionContent() != null) selectedQuestionContents.add(q.getQuestionContent().trim().toLowerCase());
+                    }
+                    
                     selectedBuckets.add(new SelectedBucket(bucket.getMarks(), bucket.getUnit(), 1, pick.getT1()));
                     selectedBuckets.add(new SelectedBucket(t2Bucket.getMarks(), t2Bucket.getUnit(), 2, pick.getT2()));
                     continue;
@@ -218,9 +239,12 @@ public class SelectionEngine {
                     subjectId, sessionId, bucket.getUnit(), bucket.getMarks(), bucket.getT());
 
             if (pairingMode == PairingEngine.PairingMode.SAME_HALF && partB) {
-                List<Question> picked = pairPicker.pickSameHalf(pool, bucket.getRequired(), selectedQuestionIds);
+                List<Question> picked = pairPicker.pickSameHalf(pool, bucket.getRequired(), selectedQuestionIds, selectedQuestionContents);
                 if (picked.size() < bucket.getRequired()) {
                     return null;
+                }
+                for (Question q : picked) {
+                    if (q.getQuestionContent() != null) selectedQuestionContents.add(q.getQuestionContent().trim().toLowerCase());
                 }
                 selectedBuckets.add(new SelectedBucket(bucket.getMarks(), bucket.getUnit(), bucket.getT(), picked));
                 continue;
@@ -233,8 +257,12 @@ public class SelectionEngine {
                 if (picked.size() >= bucket.getRequired()) {
                     break;
                 }
-                if (!selectedQuestionIds.contains(q.getId())) {
+                String contentKey = q.getQuestionContent() != null ? q.getQuestionContent().trim().toLowerCase() : "";
+                if (!selectedQuestionIds.contains(q.getId()) && (!selectedQuestionContents.contains(contentKey) || contentKey.isEmpty())) {
                     selectedQuestionIds.add(q.getId());
+                    if (!contentKey.isEmpty()) {
+                        selectedQuestionContents.add(contentKey);
+                    }
                     picked.add(q);
                 }
             }

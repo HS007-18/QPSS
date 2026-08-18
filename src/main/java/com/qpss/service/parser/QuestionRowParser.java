@@ -42,6 +42,7 @@ public class QuestionRowParser {
         String rbt = normalizeRbt(cellText(cells, layout.indexOf(ColumnLayout.Role.RBT)));
         String co = cellText(cells, layout.indexOf(ColumnLayout.Role.CO));
         Integer t = parseT(cellText(cells, layout.indexOf(ColumnLayout.Role.T)));
+        String questionType = normalizeType(cellText(cells, layout.indexOf(ColumnLayout.Role.TYPE)));
 
         Integer resolvedUnit = currentUnit;
         if (resolvedUnit == null && !isBlank(co)) {
@@ -61,6 +62,7 @@ public class QuestionRowParser {
                 .co(isBlank(co) ? null : co)
                 .t(t)
                 .unit(resolvedUnit)
+                .questionType(questionType)
                 .build();
     }
 
@@ -125,5 +127,16 @@ public class QuestionRowParser {
         } catch (NumberFormatException e) {
             return null;
         }
+    }
+
+    private String normalizeType(String raw) {
+        if (isBlank(raw)) {
+            return null;
+        }
+        String type = raw.trim();
+        if (type.length() > 10) {
+            type = type.substring(0, 10);
+        }
+        return type;
     }
 }

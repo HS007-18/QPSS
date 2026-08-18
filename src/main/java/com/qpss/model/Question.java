@@ -57,6 +57,9 @@ public class Question {
     @Column(name = "marks_split", length = 20)
     private String marksSplit;
 
+    @Column(name = "question_type", length = 10)
+    private String questionType;
+
     @PrePersist
     @PreUpdate
     private void validateT() {

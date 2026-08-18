@@ -11,7 +11,7 @@ public class ColumnLayout {
 
     public static final int ABSENT = -1;
 
-    public enum Role { SNO, QUESTION, MARKS, RBT, CO, T }
+    public enum Role { SNO, QUESTION, MARKS, RBT, CO, T, TYPE }
 
     private final Map<Role, Integer> indices = new EnumMap<>(Role.class);
 
@@ -58,6 +58,9 @@ public class ColumnLayout {
         }
         if (text.equals("co")) {
             return Role.CO;
+        }
+        if (text.contains("th") || text.contains("pr") || text.contains("de")) {
+            return Role.TYPE;
         }
         if (text.equals("iii") || text.equals("iiihalf")) {
             return Role.T;

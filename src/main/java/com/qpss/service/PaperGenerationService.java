@@ -101,7 +101,8 @@ public class PaperGenerationService {
                         "Validation failed for set " + (i + 1) + ": " + validation.getFailures());
             }
 
-            Map<Long, String> sectionARbt = PartARbtAssigner.assign(selection.getTwoMarkQuestions());
+            Map<Long, String> sectionARbt = selection.getTwoMarkQuestions().stream()
+                    .collect(java.util.stream.Collectors.toMap(Question::getId, Question::getRbt));
 
             String label = String.valueOf((char) ('A' + i));
             GeneratedPaper paper = draftService.savePaper(sessionId, subjectId, examType, label);

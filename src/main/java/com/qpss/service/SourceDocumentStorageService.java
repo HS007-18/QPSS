@@ -56,6 +56,15 @@ public class SourceDocumentStorageService {
         }
     }
 
+    public byte[] loadDocument(String storedFileName) {
+        Path target = getSafePath(storedFileName);
+        try {
+            return Files.readAllBytes(target);
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to read stored file.", e);
+        }
+    }
+
     private Path getSafePath(String filename) {
         Path destinationFile = this.rootLocation.resolve(Paths.get(filename)).normalize().toAbsolutePath();
         if (!destinationFile.getParent().equals(this.rootLocation.toAbsolutePath())) {

@@ -12,9 +12,7 @@ public class QuestionTableDetector {
         if (table.getRows().isEmpty()) {
             return null;
         }
-        int maxRowsToCheck = Math.min(3, table.getRows().size());
-        for (int i = 0; i < maxRowsToCheck; i++) {
-            XWPFTableRow row = table.getRows().get(i);
+        for (XWPFTableRow row : table.getRows()) {
             if (isHeaderRow(row)) {
                 return row;
             }

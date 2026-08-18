@@ -79,6 +79,9 @@
                             <span class="tag tag-marks">${q.marksSplit != null ? q.marksSplit : q.marks}M</span>
                             <span class="tag tag-unit">U${q.unit}</span>
                             <span class="tag tag-rbt">${set.sectionARbt[q.id]}</span>
+                            <c:if test="${not empty q.questionType}">
+                                <span class="tag tag-type" style="background:var(--bg-hover); color:var(--text-main);">${q.questionType}</span>
+                            </c:if>
                             <button class="btn btn-outline btn-sm swap-btn" data-paper="${set.paper.id}" data-id="${q.id}" style="padding: 4px 8px; font-size: 11px;">Swap</button>
                         </div>
                     </div>
@@ -97,6 +100,9 @@
                             <span class="tag tag-marks">${pair.choiceA.marksSplit != null ? pair.choiceA.marksSplit : pair.choiceA.marks}M</span>
                             <span class="tag tag-unit">U${pair.unit}</span>
                             <span class="tag tag-rbt">${pair.choiceA.rbt}</span>
+                            <c:if test="${not empty pair.choiceA.questionType}">
+                                <span class="tag tag-type" style="background:var(--bg-hover); color:var(--text-main);">${pair.choiceA.questionType}</span>
+                            </c:if>
                             <button class="btn btn-outline btn-sm swap-btn" data-paper="${set.paper.id}" data-id="${pair.choiceA.id}" style="padding: 4px 8px; font-size: 11px;">Swap</button>
                         </div>
                     </div>
@@ -108,6 +114,9 @@
                             <span class="tag tag-marks">${pair.choiceB.marksSplit != null ? pair.choiceB.marksSplit : pair.choiceB.marks}M</span>
                             <span class="tag tag-unit">U${pair.unit}</span>
                             <span class="tag tag-rbt">${pair.choiceB.rbt}</span>
+                            <c:if test="${not empty pair.choiceB.questionType}">
+                                <span class="tag tag-type" style="background:var(--bg-hover); color:var(--text-main);">${pair.choiceB.questionType}</span>
+                            </c:if>
                             <button class="btn btn-outline btn-sm swap-btn" data-paper="${set.paper.id}" data-id="${pair.choiceB.id}" style="padding: 4px 8px; font-size: 11px;">Swap</button>
                         </div>
                     </div>
@@ -146,6 +155,16 @@
                         tags[1].textContent = 'U' + data.newUnit;
                         if (qDiv.closest('.pair-block')) {
                             tags[2].textContent = data.newRbt || tags[2].textContent;
+                        }
+                        const typeTag = Array.from(tags).find(t => t.classList.contains('tag-type'));
+                        if (typeTag && data.newQuestionType) {
+                            typeTag.textContent = data.newQuestionType;
+                        } else if (!typeTag && data.newQuestionType) {
+                            const newTag = document.createElement('span');
+                            newTag.className = 'tag tag-type';
+                            newTag.style = 'background:var(--bg-hover); color:var(--text-main);';
+                            newTag.textContent = data.newQuestionType;
+                            qDiv.querySelector('.meta').insertBefore(newTag, qDiv.querySelector('.swap-btn'));
                         }
                     }
                     this.setAttribute('data-id', data.newId);

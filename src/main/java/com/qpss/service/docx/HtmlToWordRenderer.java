@@ -52,6 +52,7 @@ public final class HtmlToWordRenderer {
         org.jsoup.nodes.Document doc = Jsoup.parseBodyFragment(html);
         for (Element pElement : doc.body().children()) {
             XWPFParagraph p = cell.addParagraph();
+            p.setAlignment(org.apache.poi.xwpf.usermodel.ParagraphAlignment.BOTH);
             if ("p".equalsIgnoreCase(pElement.tagName())) {
                 processHtmlNodes(pElement, p, false, false, false, false, false);
             } else {

@@ -24,20 +24,21 @@ public class RbtPairPicker {
 
     private final SecureRandom random = new SecureRandom();
 
-    public List<Question> pickSameHalf(List<Question> pool, int required, Set<Long> selectedQuestionIds) {
+    public List<Question> pickSameHalf(List<Question> pool, int required, Set<Long> selectedQuestionIds, Set<String> selectedQuestionContents) {
         List<Question> distinct = new ArrayList<>();
         Set<Long> seen = new HashSet<>();
         for (Question q : pool) {
-            if (!selectedQuestionIds.contains(q.getId()) && seen.add(q.getId())) {
+            String contentKey = q.getQuestionContent() != null ? q.getQuestionContent().trim().toLowerCase() : "";
+            if (!selectedQuestionIds.contains(q.getId()) && seen.add(q.getId()) && (!selectedQuestionContents.contains(contentKey) || contentKey.isEmpty())) {
                 distinct.add(q);
             }
         }
 
         java.util.Collections.shuffle(distinct, random);
 
-        Map<String, List<Question>> byRbt = new LinkedHashMap<>();
+        Map<String, List<Question>> byKey = new LinkedHashMap<>();
         for (Question q : distinct) {
-            byRbt.computeIfAbsent(rbtKey(q), k -> new ArrayList<>()).add(q);
+            byKey.computeIfAbsent(pairKey(q), k -> new ArrayList<>()).add(q);
         }
 
         List<Question> picked = new ArrayList<>();
@@ -45,7 +46,7 @@ public class RbtPairPicker {
         int pairs = 0;
         while (pairs < requiredPairs) {
             List<Question> takeFrom = null;
-            for (List<Question> group : byRbt.values()) {
+            for (List<Question> group : byKey.values()) {
                 if (group.size() >= 2 && (takeFrom == null || group.size() > takeFrom.size())) {
                     takeFrom = group;
                 }
@@ -56,11 +57,7 @@ public class RbtPairPicker {
                 first = takeFrom.remove(0);
                 second = takeFrom.remove(0);
             } else {
-                first = takeOne(byRbt);
-                second = takeOne(byRbt);
-                if (first == null || second == null) {
-                    break;
-                }
+                break;
             }
             picked.add(first);
             picked.add(second);
@@ -73,25 +70,27 @@ public class RbtPairPicker {
     }
 
     public PickResult pickCrossHalf(List<Question> t1Pool, List<Question> t2Pool, int requiredT1, int requiredT2,
-                                    Set<Long> selectedQuestionIds) {
+                                    Set<Long> selectedQuestionIds, Set<String> selectedQuestionContents) {
         List<Question> t1Distinct = new ArrayList<>();
         List<Question> t2Distinct = new ArrayList<>();
         Set<Long> seenT1 = new HashSet<>();
         Set<Long> seenT2 = new HashSet<>();
         for (Question q : t1Pool) {
-            if (!selectedQuestionIds.contains(q.getId()) && seenT1.add(q.getId())) t1Distinct.add(q);
+            String contentKey = q.getQuestionContent() != null ? q.getQuestionContent().trim().toLowerCase() : "";
+            if (!selectedQuestionIds.contains(q.getId()) && seenT1.add(q.getId()) && (!selectedQuestionContents.contains(contentKey) || contentKey.isEmpty())) t1Distinct.add(q);
         }
         for (Question q : t2Pool) {
-            if (!selectedQuestionIds.contains(q.getId()) && seenT2.add(q.getId())) t2Distinct.add(q);
+            String contentKey = q.getQuestionContent() != null ? q.getQuestionContent().trim().toLowerCase() : "";
+            if (!selectedQuestionIds.contains(q.getId()) && seenT2.add(q.getId()) && (!selectedQuestionContents.contains(contentKey) || contentKey.isEmpty())) t2Distinct.add(q);
         }
 
         java.util.Collections.shuffle(t1Distinct, random);
         java.util.Collections.shuffle(t2Distinct, random);
 
-        Map<String, List<Question>> t1ByRbt = new LinkedHashMap<>();
-        Map<String, List<Question>> t2ByRbt = new LinkedHashMap<>();
-        for (Question q : t1Distinct) t1ByRbt.computeIfAbsent(rbtKey(q), k -> new ArrayList<>()).add(q);
-        for (Question q : t2Distinct) t2ByRbt.computeIfAbsent(rbtKey(q), k -> new ArrayList<>()).add(q);
+        Map<String, List<Question>> t1ByKey = new LinkedHashMap<>();
+        Map<String, List<Question>> t2ByKey = new LinkedHashMap<>();
+        for (Question q : t1Distinct) t1ByKey.computeIfAbsent(pairKey(q), k -> new ArrayList<>()).add(q);
+        for (Question q : t2Distinct) t2ByKey.computeIfAbsent(pairKey(q), k -> new ArrayList<>()).add(q);
 
         List<Question> pickedT1 = new ArrayList<>();
         List<Question> pickedT2 = new ArrayList<>();
@@ -99,25 +98,21 @@ public class RbtPairPicker {
         int pairsNeeded = Math.min(requiredT1, requiredT2);
         int pairs = 0;
         while (pairs < pairsNeeded) {
-            String matchedRbt = null;
-            for (Map.Entry<String, List<Question>> entry : t1ByRbt.entrySet()) {
-                List<Question> t2Group = t2ByRbt.get(entry.getKey());
+            String matchedKey = null;
+            for (Map.Entry<String, List<Question>> entry : t1ByKey.entrySet()) {
+                List<Question> t2Group = t2ByKey.get(entry.getKey());
                 if (!entry.getValue().isEmpty() && t2Group != null && !t2Group.isEmpty()) {
-                    matchedRbt = entry.getKey();
+                    matchedKey = entry.getKey();
                     break;
                 }
             }
             Question t1Question;
             Question t2Question;
-            if (matchedRbt != null) {
-                t1Question = t1ByRbt.get(matchedRbt).remove(0);
-                t2Question = t2ByRbt.get(matchedRbt).remove(0);
+            if (matchedKey != null) {
+                t1Question = t1ByKey.get(matchedKey).remove(0);
+                t2Question = t2ByKey.get(matchedKey).remove(0);
             } else {
-                t1Question = takeOne(t1ByRbt);
-                t2Question = takeOne(t2ByRbt);
-                if (t1Question == null || t2Question == null) {
-                    break;
-                }
+                break;
             }
             pickedT1.add(t1Question);
             pickedT2.add(t2Question);
@@ -127,10 +122,10 @@ public class RbtPairPicker {
         }
 
         if (pickedT1.size() < requiredT1) {
-            fillRemaining(t1Pool, requiredT1, selectedQuestionIds, pickedT1);
+            fillRemaining(t1Pool, requiredT1, selectedQuestionIds, selectedQuestionContents, pickedT1);
         }
         if (pickedT2.size() < requiredT2) {
-            fillRemaining(t2Pool, requiredT2, selectedQuestionIds, pickedT2);
+            fillRemaining(t2Pool, requiredT2, selectedQuestionIds, selectedQuestionContents, pickedT2);
         }
 
         return new PickResult(pickedT1, pickedT2);
@@ -149,21 +144,25 @@ public class RbtPairPicker {
         return null;
     }
 
-    private void fillRemaining(List<Question> pool, int required, Set<Long> selectedQuestionIds, List<Question> picked) {
+    private void fillRemaining(List<Question> pool, int required, Set<Long> selectedQuestionIds, Set<String> selectedQuestionContents, List<Question> picked) {
         List<Question> candidates = new ArrayList<>(pool);
         java.util.Collections.shuffle(candidates, random);
         for (Question q : candidates) {
             if (picked.size() >= required) {
                 break;
             }
-            if (!selectedQuestionIds.contains(q.getId())) {
+            String contentKey = q.getQuestionContent() != null ? q.getQuestionContent().trim().toLowerCase() : "";
+            if (!selectedQuestionIds.contains(q.getId()) && (!selectedQuestionContents.contains(contentKey) || contentKey.isEmpty())) {
                 selectedQuestionIds.add(q.getId());
+                if (!contentKey.isEmpty()) selectedQuestionContents.add(contentKey);
                 picked.add(q);
             }
         }
     }
 
-    private String rbtKey(Question q) {
-        return q.getRbt() == null ? "" : q.getRbt();
+    private String pairKey(Question q) {
+        String rbt = q.getRbt() == null ? "" : q.getRbt();
+        String type = q.getQuestionType() == null ? "" : q.getQuestionType();
+        return rbt + "_" + type;
     }
 }

@@ -32,15 +32,15 @@ public class DocxPartRenderer {
         int qCountA = sectionA.size();
         partARun.setText("PART A - (" + qCountA + " x 2 = " + (qCountA * 2) + " marks)");
 
-        XWPFTable tableA = document.createTable(sectionA.size() + 1, 5);
+        XWPFTable tableA = document.createTable(sectionA.size() + 1, 4);
         tableA.setWidth("100%");
+        tableA.setCellMargins(100, 100, 100, 100);
 
         XWPFTableRow header = tableA.getRow(0);
         HtmlToWordRenderer.setCellText(header.getCell(0), "Q.No.", true);
         HtmlToWordRenderer.setCellText(header.getCell(1), "Question", true);
         HtmlToWordRenderer.setCellText(header.getCell(2), "M", true);
-        HtmlToWordRenderer.setCellText(header.getCell(3), "RBT", true);
-        HtmlToWordRenderer.setCellText(header.getCell(4), "CO", true);
+        HtmlToWordRenderer.setCellText(header.getCell(3), "CO", true);
 
         for (int i = 0; i < sectionA.size(); i++) {
             PaperQuestion pq = sectionA.get(i);
@@ -53,8 +53,7 @@ public class DocxPartRenderer {
             HtmlToWordRenderer.setCellText(row.getCell(0), String.valueOf(pq.getQuestionNumber()), false);
             HtmlToWordRenderer.setCellHtml(row.getCell(1), q.getQuestionContent());
             HtmlToWordRenderer.setCellText(row.getCell(2), marksLabel(q), false);
-            HtmlToWordRenderer.setCellText(row.getCell(3), partARbt(pq, q), false);
-            HtmlToWordRenderer.setCellText(row.getCell(4), coLabel(q), false);
+            HtmlToWordRenderer.setCellText(row.getCell(3), coLabel(q), false);
         }
 
         document.createParagraph().createRun().addBreak();
@@ -78,15 +77,15 @@ public class DocxPartRenderer {
         partBRun.setBold(true);
         partBRun.setText("PART B - (" + pairsCount + " x " + sampleMarks + " = " + (pairsCount * sampleMarks) + " marks)");
 
-        XWPFTable tableB = document.createTable(sectionB.size() + 1 + (sectionB.size() / 2), 5);
+        XWPFTable tableB = document.createTable(sectionB.size() + 1 + (sectionB.size() / 2), 4);
         tableB.setWidth("100%");
+        tableB.setCellMargins(100, 100, 100, 100);
 
         XWPFTableRow header = tableB.getRow(0);
         HtmlToWordRenderer.setCellText(header.getCell(0), "Q.No.", true);
         HtmlToWordRenderer.setCellText(header.getCell(1), "Question", true);
         HtmlToWordRenderer.setCellText(header.getCell(2), "M", true);
-        HtmlToWordRenderer.setCellText(header.getCell(3), "RBT", true);
-        HtmlToWordRenderer.setCellText(header.getCell(4), "CO", true);
+        HtmlToWordRenderer.setCellText(header.getCell(3), "CO", true);
 
         int rowIndex = 1;
         Integer currentQNum = null;
@@ -99,7 +98,7 @@ public class DocxPartRenderer {
 
             if (currentQNum != null && currentQNum.equals(pq.getQuestionNumber())) {
                 XWPFTableRow orRow = tableB.getRow(rowIndex++);
-                HtmlToWordRenderer.mergeCellsHorizontal(orRow, 0, 4);
+                HtmlToWordRenderer.mergeCellsHorizontal(orRow, 0, 3);
                 XWPFParagraph orPara = orRow.getCell(0).getParagraphs().get(0);
                 orPara.setAlignment(ParagraphAlignment.CENTER);
                 XWPFRun orRun = orPara.createRun();
@@ -114,8 +113,7 @@ public class DocxPartRenderer {
             HtmlToWordRenderer.setCellText(row.getCell(0), pq.getQuestionNumber() + " " + label, false);
             HtmlToWordRenderer.setCellHtml(row.getCell(1), q.getQuestionContent());
             HtmlToWordRenderer.setCellText(row.getCell(2), marksLabel(q), false);
-            HtmlToWordRenderer.setCellText(row.getCell(3), q.getRbt(), false);
-            HtmlToWordRenderer.setCellText(row.getCell(4), coLabel(q), false);
+            HtmlToWordRenderer.setCellText(row.getCell(3), coLabel(q), false);
         }
     }
 

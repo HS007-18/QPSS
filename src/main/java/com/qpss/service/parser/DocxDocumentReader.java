@@ -30,8 +30,13 @@ public class DocxDocumentReader {
                         continue;
                     }
                     ColumnLayout layout = new ColumnLayout(headerRow);
+                    boolean passedHeader = false;
                     for (XWPFTableRow row : table.getRows()) {
                         if (row == headerRow) {
+                            passedHeader = true;
+                            continue;
+                        }
+                        if (!passedHeader) {
                             continue;
                         }
                         ParsedQuestion q = rowParser.parseRow(row, layout, unitResolver.getCurrentUnit(), result, doc);
