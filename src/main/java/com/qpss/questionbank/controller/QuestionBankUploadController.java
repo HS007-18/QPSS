@@ -54,6 +54,9 @@ public class QuestionBankUploadController {
                 if (result.getSkippedDuplicates() > 0) {
                     message += " (" + result.getSkippedDuplicates() + " already in this session)";
                 }
+                if (!result.getParsingErrors().isEmpty()) {
+                    message += " (" + result.getParsingErrors().size() + " file(s) had unreadable rows)";
+                }
                 redirect.addFlashAttribute("message", message);
             } else {
                 redirect.addFlashAttribute("error", "Upload failed due to parsing errors:\n" + String.join("\n", result.getParsingErrors()));
@@ -127,6 +130,9 @@ public class QuestionBankUploadController {
                 String message = "Uploaded " + result.getQuestionsParsed() + " questions successfully.";
                 if (result.getSkippedDuplicates() > 0) {
                     message += " (" + result.getSkippedDuplicates() + " already in this session)";
+                }
+                if (!result.getParsingErrors().isEmpty()) {
+                    message += " (" + result.getParsingErrors().size() + " file(s) had unreadable rows)";
                 }
                 redirect.addFlashAttribute("message", message);
             } else {

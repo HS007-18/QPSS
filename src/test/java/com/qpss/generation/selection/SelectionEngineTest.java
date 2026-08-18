@@ -529,6 +529,30 @@ class SelectionEngineTest {
         assertEquals(4, selected.stream().map(Question::getId).distinct().count());
     }
 
+    @Test
+    void testSameHalfSelectionOddRequiredNoDuplicateIds() {
+
+        long subId = 1L;
+        long sessId = 1L;
+
+        mockQuestionsWithRbt(subId, sessId, 1, 16, 1, "U", "U", "U", "U", "U");
+        mockQuestionsWithRbt(subId, sessId, 1, 16, 2, "U", "U", "U", "U", "U");
+
+        DistributionPlan plan = makePlan(List.of(
+                DistributionPlan.SectionPlan.builder().marks(16).totalRequired(5).units(List.of(
+                        makeUnitPlan(1, 3, 2)
+                )).build()
+        ));
+
+        SelectionEngine.SelectionResult result = selectionEngine.select(
+                plan, subId, sessId, java.util.Collections.emptySet(), PairingMode.SAME_HALF);
+
+        assertTrue(result.isSuccessful());
+        List<Question> selected = result.getQuestionsByMarks(16);
+        assertEquals(5, selected.size());
+        assertEquals(5, selected.stream().map(Question::getId).distinct().count());
+    }
+
     private void mockQuestionsWithRbt(long subjectId, long sessionId, int unit, int marks, int t, String... rbts) {
         List<Question> questions = new ArrayList<>();
         for (String rbt : rbts) {

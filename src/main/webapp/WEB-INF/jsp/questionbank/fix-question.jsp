@@ -34,7 +34,7 @@
             <c:if test="${not empty question.questionContent}">
                 <div class="form-group">
                     <label class="form-label">Question S.No ${question.serialNo} Content:</label>
-                    <div class="original-text">${question.questionContent}</div>
+                    <div class="original-text"><c:out value="${question.questionContent}" /></div>
                     <input type="hidden" name="questionContent" value="<c:out value='${question.questionContent}' />" />
                 </div>
             </c:if>

@@ -66,6 +66,14 @@ public class GenerationController {
             return "redirect:/sessions/" + sessionId;
         }
 
+        result.getSets().forEach(set -> {
+            set.getSectionA().forEach(q -> q.setQuestionContent(contentSanitizer.sanitize(q.getQuestionContent())));
+            set.getSectionB().forEach(pair -> {
+                pair.getChoiceA().setQuestionContent(contentSanitizer.sanitize(pair.getChoiceA().getQuestionContent()));
+                pair.getChoiceB().setQuestionContent(contentSanitizer.sanitize(pair.getChoiceB().getQuestionContent()));
+            });
+        });
+
         model.addAttribute("session", session);
         model.addAttribute("subject", subjectService.findById(session.getSubjectId()));
         model.addAttribute("result", result);

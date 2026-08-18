@@ -57,6 +57,8 @@ public class RbtPairPicker {
             }
             picked.add(takeFrom.remove(0));
             picked.add(takeFrom.remove(0));
+            selectedQuestionIds.add(picked.get(picked.size() - 2).getId());
+            selectedQuestionIds.add(picked.get(picked.size() - 1).getId());
             pairs++;
         }
 

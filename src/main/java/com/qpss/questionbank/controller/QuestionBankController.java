@@ -30,9 +30,11 @@ public class QuestionBankController {
     @GetMapping
     public String session(@PathVariable Long sessionId, Model model) {
         var session = sessionService.findById(sessionId);
+        var questions = questionRepo.findBySessionIdOrderByUnitAscSerialNoAsc(sessionId);
+        questions.forEach(q -> q.setQuestionContent(contentSanitizer.sanitize(q.getQuestionContent())));
         model.addAttribute("session", session);
         model.addAttribute("subject", subjectService.findById(session.getSubjectId()));
-        model.addAttribute("questions", questionRepo.findBySessionIdOrderByUnitAscSerialNoAsc(sessionId));
+        model.addAttribute("questions", questions);
         return "session/session";
     }
 
