@@ -1,5 +1,4 @@
 package com.qpss.documentoutput.renderer;
-
 import com.qpss.backend.paper.GeneratedPaper;
 import com.qpss.backend.paper.PaperQuestion;
 import com.qpss.documentextraction.model.HeaderMetadata;
@@ -25,12 +24,10 @@ import org.openxmlformats.schemas.wordprocessingml.x2006.main.STTblWidth;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
-
 import java.io.ByteArrayInputStream;
 import java.math.BigInteger;
 import java.util.List;
 import java.util.stream.Collectors;
-
 @Component
 @RequiredArgsConstructor
 public class DocxHeaderRenderer {
@@ -79,6 +76,7 @@ public class DocxHeaderRenderer {
         document.createParagraph().createRun().setFontSize(2);
 
         XWPFTable headerTable = document.createTable(8, 1);
+        removeTableBorders(headerTable);
         headerTable.setWidth("100%");
         setCellText(headerTable.getRow(0).getCell(0), (metadata.getInstitutionName() != null ? metadata.getInstitutionName() : "KANGEYAM INSTITUTE OF TECHNOLOGY") + " " + (metadata.getTagline() != null ? metadata.getTagline() : "(An Autonomous Institution)"), ParagraphAlignment.CENTER, true, 13);
         String examText = paper.getExamType() != null ? (paper.getExamType().equalsIgnoreCase("INTERNAL_1") ? "CONTINUOUS INTERNAL ASSESSMENT EXAMINATIONS - I" : (paper.getExamType().equalsIgnoreCase("INTERNAL_2") ? "CONTINUOUS INTERNAL ASSESSMENT EXAMINATIONS - II" : "SEMESTER EXAMINATION")) : "EXAMINATION";

@@ -1,8 +1,6 @@
 package com.qpss.documentextraction.reader;
-
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
 public class UnitContextResolver {
 
     private static final Pattern UNIT_PATTERN = Pattern.compile("(?i)^\\s*UNIT\\s*(?:-|:)?\\s*(\\d+).*");

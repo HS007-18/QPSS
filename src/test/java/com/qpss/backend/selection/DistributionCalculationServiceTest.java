@@ -1,17 +1,11 @@
 package com.qpss.backend.selection;
-
-
 import com.qpss.backend.selection.DistributionCalculationService.SectionConfigInput;
 import com.qpss.backend.selection.DistributionCalculationService.UnitConfigInput;
-
 import org.junit.jupiter.api.Test;
-
 import java.math.BigDecimal;
 import java.util.List;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-
 public class DistributionCalculationServiceTest {
 
     private final DistributionCalculationService service = new DistributionCalculationService();

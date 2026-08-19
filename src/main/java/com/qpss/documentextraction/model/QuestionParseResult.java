@@ -1,10 +1,7 @@
 package com.qpss.documentextraction.model;
-
 import lombok.Getter;
-
 import java.util.ArrayList;
 import java.util.List;
-
 @Getter
 public class QuestionParseResult {
     private final List<ParsedQuestion> validQuestions = new ArrayList<>();

@@ -1,10 +1,8 @@
 package com.qpss.backend.paper;
-
 import com.qpss.backend.questionbank.QuestionRepository;
 import com.qpss.backend.selection.DistributionPlan;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-
 @Service
 @RequiredArgsConstructor
 public class DiversityAnalyzer {

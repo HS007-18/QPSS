@@ -1,9 +1,6 @@
 package com.qpss.documentextraction.reader;
-
 import org.apache.poi.xwpf.usermodel.XWPFTableCell;
-
 import java.util.List;
-
 public final class CellTextReader {
 
     private CellTextReader() {

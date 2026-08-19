@@ -1,5 +1,4 @@
 package com.qpss.documentoutput.renderer;
-
 import com.qpss.backend.paper.PaperQuestion;
 import com.qpss.backend.questionbank.Question;
 import com.qpss.backend.questionbank.QuestionRepository;
@@ -11,9 +10,7 @@ import org.apache.poi.xwpf.usermodel.XWPFRun;
 import org.apache.poi.xwpf.usermodel.XWPFTable;
 import org.apache.poi.xwpf.usermodel.XWPFTableRow;
 import org.springframework.stereotype.Component;
-
 import java.util.List;
-
 @Component
 @RequiredArgsConstructor
 public class DocxPartRenderer {

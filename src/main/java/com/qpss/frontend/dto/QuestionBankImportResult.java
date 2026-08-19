@@ -1,11 +1,8 @@
 package com.qpss.frontend.dto;
-
 import com.qpss.backend.questionbank.QuestionBankImport;
 import lombok.Builder;
 import lombok.Getter;
-
 import java.util.List;
-
 @Getter
 @Builder
 public class QuestionBankImportResult {

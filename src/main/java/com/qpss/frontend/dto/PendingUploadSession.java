@@ -1,11 +1,7 @@
 package com.qpss.frontend.dto;
-
 import com.qpss.documentextraction.model.QuestionParseResult;
 import lombok.Data;
-
-
 import java.util.List;
-
 @Data
 public class PendingUploadSession {
     private Long subjectId;

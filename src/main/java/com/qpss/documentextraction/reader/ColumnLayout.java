@@ -1,12 +1,9 @@
 package com.qpss.documentextraction.reader;
-
 import org.apache.poi.xwpf.usermodel.XWPFTableCell;
 import org.apache.poi.xwpf.usermodel.XWPFTableRow;
-
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
-
 public class ColumnLayout {
 
     public static final int ABSENT = -1;

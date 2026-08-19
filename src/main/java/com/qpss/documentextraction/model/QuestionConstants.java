@@ -1,7 +1,5 @@
 package com.qpss.documentextraction.model;
-
 import java.util.Set;
-
 public final class QuestionConstants {
 
     public static final Set<Integer> MARK_VALUES = Set.of(2, 16, 20);

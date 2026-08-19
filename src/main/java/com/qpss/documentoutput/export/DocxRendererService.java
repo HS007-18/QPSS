@@ -1,5 +1,4 @@
 package com.qpss.documentoutput.export;
-
 import com.qpss.backend.paper.GeneratedPaper;
 import com.qpss.backend.paper.PaperQuestion;
 import com.qpss.backend.paper.PaperQuestionRepository;
@@ -10,11 +9,9 @@ import com.qpss.documentoutput.renderer.DocxPartRenderer;
 import lombok.RequiredArgsConstructor;
 import org.apache.poi.xwpf.usermodel.XWPFDocument;
 import org.springframework.stereotype.Service;
-
 import java.io.ByteArrayOutputStream;
 import java.util.List;
 import java.util.stream.Collectors;
-
 @Service
 @RequiredArgsConstructor
 public class DocxRendererService {

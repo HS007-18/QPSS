@@ -1,22 +1,18 @@
 package com.qpss.backend.selection;
-
 import com.qpss.backend.questionbank.Question;
 import com.qpss.backend.questionbank.QuestionRepository;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-
 import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
-
 import java.util.Set;
 import java.util.stream.Collectors;
-
 @Service
 @RequiredArgsConstructor
 public class SelectionEngine {
@@ -250,7 +246,7 @@ public class SelectionEngine {
                     for (Question q : pick.getT2()) {
                         if (q.getQuestionContent() != null) selectedQuestionContents.add(q.getQuestionContent().trim().toLowerCase());
                     }
-                    
+
                     selectedBuckets.add(new SelectedBucket(bucket.getMarks(), bucket.getUnit(), 1, pick.getT1()));
                     selectedBuckets.add(new SelectedBucket(t2Bucket.getMarks(), t2Bucket.getUnit(), 2, pick.getT2()));
                     continue;
@@ -301,7 +297,6 @@ public class SelectionEngine {
 
     private void validateConsistency(DistributionPlan plan, List<SelectedBucket> selectedBuckets) {
         Set<Long> uniqueIds = new HashSet<>();
-
 
         for (SelectedBucket bucket : selectedBuckets) {
             if (bucket.getQuestions().size() != bucket.getQuestions().stream().map(Question::getId).distinct().count()) {

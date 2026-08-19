@@ -1,9 +1,7 @@
 package com.qpss.backend.selection;
-
 import com.qpss.backend.questionbank.Question;
 import lombok.Data;
 import org.springframework.stereotype.Component;
-
 import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -12,7 +10,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
 @Component
 public class RbtPairPicker {
 

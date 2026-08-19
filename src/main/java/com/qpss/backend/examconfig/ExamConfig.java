@@ -1,5 +1,4 @@
 package com.qpss.backend.examconfig;
-
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -11,7 +10,6 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import java.math.BigDecimal;
-
 @Entity
 @Table(name = "exam_configs")
 @Data @NoArgsConstructor @AllArgsConstructor @Builder

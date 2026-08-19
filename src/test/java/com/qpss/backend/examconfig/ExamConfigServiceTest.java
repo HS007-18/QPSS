@@ -1,6 +1,4 @@
 package com.qpss.backend.examconfig;
-
-
 import com.qpss.backend.selection.DistributionCalculationService;
 import com.qpss.backend.selection.DistributionPlan;
 import org.junit.jupiter.api.BeforeEach;
@@ -8,16 +6,13 @@ import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-
 import java.math.BigDecimal;
 import java.util.List;
-
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-
 public class ExamConfigServiceTest {
 
     @Mock

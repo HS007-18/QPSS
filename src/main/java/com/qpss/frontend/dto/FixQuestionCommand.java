@@ -1,7 +1,5 @@
 package com.qpss.frontend.dto;
-
 import lombok.Data;
-
 @Data
 public class FixQuestionCommand {
     private String file;

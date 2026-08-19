@@ -1,5 +1,4 @@
 package com.qpss.backend.subject;
-
 import com.qpss.backend.paper.GeneratedPaper;
 import com.qpss.backend.paper.GeneratedPaperRepository;
 import com.qpss.backend.paper.PaperQuestionRepository;
@@ -13,11 +12,9 @@ import com.qpss.backend.session.SessionRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.stream.Collectors;
-
 @Service
 @RequiredArgsConstructor
 public class SubjectService {

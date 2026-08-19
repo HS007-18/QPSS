@@ -1,5 +1,4 @@
 package com.qpss.backend.questionbank;
-
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -14,7 +13,6 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import java.time.LocalDateTime;
 import java.util.List;
-
 @Entity
 @Table(name = "question_bank_imports")
 @Data @NoArgsConstructor @AllArgsConstructor @Builder

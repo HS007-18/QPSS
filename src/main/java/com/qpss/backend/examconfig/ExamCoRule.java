@@ -1,5 +1,4 @@
 package com.qpss.backend.examconfig;
-
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -10,7 +9,6 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
 @Entity
 @Table(name = "exam_co_rules")
 @Data @NoArgsConstructor @AllArgsConstructor @Builder

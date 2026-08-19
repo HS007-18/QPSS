@@ -1,5 +1,4 @@
 package com.qpss.common.domain;
-
 public enum PaperSection {
 
     SECTION_A,

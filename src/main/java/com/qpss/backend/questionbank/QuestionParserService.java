@@ -1,15 +1,12 @@
 package com.qpss.backend.questionbank;
-
 import com.qpss.documentextraction.reader.DocxDocumentReader;
 import com.qpss.documentextraction.model.ParsedQuestion;
 import com.qpss.documentextraction.model.QuestionParseResult;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
-
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-
 @Service
 public class QuestionParserService {
 

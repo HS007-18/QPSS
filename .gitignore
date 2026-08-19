@@ -36,3 +36,8 @@ apache-maven-3.9.6*
 jdk-17/
 maven.zip
 storage/
+
+### Runtime ###
+*.log
+*.err
+.env

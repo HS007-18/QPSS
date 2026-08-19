@@ -1,5 +1,4 @@
 package com.qpss.frontend.controller;
-
 import com.qpss.common.domain.ExamType;
 import com.qpss.backend.questionbank.Question;
 import com.qpss.backend.questionbank.QuestionContentSanitizer;
@@ -23,10 +22,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
-
 import java.util.HashMap;
 import java.util.Map;
-
 @Controller
 @RequiredArgsConstructor
 @RequestMapping("/sessions/{sessionId}/generate")

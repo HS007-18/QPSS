@@ -1,5 +1,4 @@
 package com.qpss.backend.questionbank;
-
 import com.qpss.documentextraction.model.ParsedQuestion;
 import com.qpss.documentextraction.model.QuestionFields;
 import com.qpss.documentextraction.model.QuestionParseResult;
@@ -11,12 +10,10 @@ import org.apache.poi.xwpf.usermodel.XWPFTableRow;
 import org.junit.jupiter.api.Test;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.web.multipart.MultipartFile;
-
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
-
 import static org.junit.jupiter.api.Assertions.*;
 
 class QuestionParserServiceTest {

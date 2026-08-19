@@ -1,5 +1,4 @@
 package com.qpss.documentextraction.reader;
-
 import com.qpss.documentextraction.extractor.QuestionContentExtractor;
 import com.qpss.documentextraction.model.ParsedQuestion;
 import com.qpss.documentextraction.model.QuestionConstants;
@@ -7,13 +6,10 @@ import com.qpss.documentextraction.model.QuestionParseResult;
 import org.apache.poi.xwpf.usermodel.XWPFDocument;
 import org.apache.poi.xwpf.usermodel.XWPFTableCell;
 import org.apache.poi.xwpf.usermodel.XWPFTableRow;
-
 import java.util.List;
-
 import static com.qpss.documentextraction.reader.CellTextReader.cell;
 import static com.qpss.documentextraction.reader.CellTextReader.cellText;
 import static com.qpss.documentextraction.reader.CellTextReader.isBlank;
-
 public class QuestionRowParser {
 
     private final QuestionContentExtractor contentExtractor = new QuestionContentExtractor();

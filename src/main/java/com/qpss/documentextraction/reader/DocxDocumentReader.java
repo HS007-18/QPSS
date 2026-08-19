@@ -1,5 +1,4 @@
 package com.qpss.documentextraction.reader;
-
 import com.qpss.documentextraction.model.ParsedQuestion;
 import com.qpss.documentextraction.model.QuestionParseResult;
 import org.apache.poi.xwpf.usermodel.IBodyElement;
@@ -7,10 +6,8 @@ import org.apache.poi.xwpf.usermodel.XWPFDocument;
 import org.apache.poi.xwpf.usermodel.XWPFParagraph;
 import org.apache.poi.xwpf.usermodel.XWPFTable;
 import org.apache.poi.xwpf.usermodel.XWPFTableRow;
-
 import java.io.InputStream;
 import java.util.List;
-
 public class DocxDocumentReader {
 
     private final QuestionTableDetector tableDetector = new QuestionTableDetector();

@@ -1,5 +1,4 @@
 package com.qpss.backend.questionbank;
-
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -15,7 +14,6 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
 import java.time.LocalDateTime;
-
 @Entity
 @Table(name = "source_documents")
 @Data @NoArgsConstructor @AllArgsConstructor @Builder

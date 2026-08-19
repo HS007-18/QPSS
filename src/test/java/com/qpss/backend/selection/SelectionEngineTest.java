@@ -1,25 +1,18 @@
 package com.qpss.backend.selection;
-
 import com.qpss.backend.questionbank.Question;
 import com.qpss.backend.questionbank.QuestionRepository;
 import com.qpss.backend.selection.PairingEngine.PairingMode;
-
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.mockito.Spy;
-
-
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
-
 import java.util.stream.Collectors;
-
 import static org.junit.jupiter.api.Assertions.*;
-
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 

@@ -1,5 +1,4 @@
 package com.qpss.backend.session;
-
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -12,7 +11,6 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import java.time.LocalDateTime;
-
 @Entity
 @Table(name = "sessions")
 @Data @NoArgsConstructor @AllArgsConstructor @Builder

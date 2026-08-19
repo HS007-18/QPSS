@@ -1,5 +1,4 @@
 package com.qpss.backend.questionbank;
-
 import com.qpss.common.domain.PaperSection;
 import com.qpss.backend.paper.GeneratedPaper;
 import com.qpss.backend.paper.PaperQuestion;
@@ -8,14 +7,12 @@ import com.qpss.backend.paper.PaperQuestionRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
-
 @Service
 @RequiredArgsConstructor
 public class QuestionSwapService {

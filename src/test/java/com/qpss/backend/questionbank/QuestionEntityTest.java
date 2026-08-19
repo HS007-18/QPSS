@@ -1,5 +1,4 @@
 package com.qpss.backend.questionbank;
-
 import com.qpss.backend.session.Session;
 import com.qpss.backend.session.SessionRepository;
 import com.qpss.backend.subject.Subject;
@@ -9,9 +8,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
-
 import static org.junit.jupiter.api.Assertions.*;
-
 @DataJpaTest
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 public class QuestionEntityTest {
