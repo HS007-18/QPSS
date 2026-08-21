@@ -43,6 +43,9 @@ public class Question {
     @Column(name = "question_content", nullable = false, columnDefinition = "TEXT")
     private String questionContent;
 
+    @Column(name = "structured_content", columnDefinition = "LONGTEXT")
+    private String structuredContent;
+
     @Column(name = "source_file_name")
     private String sourceFileName;
 

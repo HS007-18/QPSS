@@ -1,4 +1,6 @@
 package com.qpss.documentextraction.extractor;
+
+import com.qpss.documentextraction.model.ast.*;
 import org.apache.poi.xwpf.usermodel.*;
 import org.openxmlformats.schemas.officeDocument.x2006.math.CTOMath;
 import org.openxmlformats.schemas.officeDocument.x2006.math.CTOMathPara;
@@ -6,46 +8,98 @@ import org.openxmlformats.schemas.wordprocessingml.x2006.main.CTP;
 import org.openxmlformats.schemas.wordprocessingml.x2006.main.CTText;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
+import java.io.StringWriter;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
+import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
+
 public class QuestionContentExtractor {
-    public String extractRichContent(XWPFTableCell cell, XWPFDocument document) {
-        if (cell == null) return "";
+
+    public ContentExtractionResult extractStructuredContent(XWPFTableCell cell, XWPFDocument document) {
+        if (cell == null) return new ContentExtractionResult(new ArrayList<>(), "");
+        List<AstNode> nodes = new ArrayList<>();
         StringBuilder html = new StringBuilder();
-        for (XWPFParagraph para : cell.getParagraphs()) {
-            html.append("<p>");
-            for (XWPFRun run : para.getRuns()) {
-                appendRunHtml(html, run);
+
+        for (IBodyElement element : cell.getBodyElements()) {
+            if (element instanceof XWPFParagraph) {
+                ParagraphNode pNode = processParagraph((XWPFParagraph) element, html);
+                if (pNode != null) nodes.add(pNode);
+            } else if (element instanceof XWPFTable) {
+                TableNode tNode = processTable((XWPFTable) element, html, document);
+                if (tNode != null) nodes.add(tNode);
             }
-            CTP ctp = para.getCTP();
-            if (ctp != null) {
-                List<CTOMathPara> mathParas = ctp.getOMathParaList();
-                if (mathParas != null) {
-                    for (CTOMathPara mp : mathParas) {
-                        if (mp.getOMathList() != null) {
-                            for (CTOMath m : mp.getOMathList()) walkMath(m.getDomNode(), html);
+        }
+        return new ContentExtractionResult(nodes, html.toString().trim());
+    }
+
+    private ParagraphNode processParagraph(XWPFParagraph para, StringBuilder html) {
+        ParagraphNode pNode = new ParagraphNode();
+        pNode.setAlignment(para.getAlignment() != null ? para.getAlignment().toString() : "LEFT");
+        
+        String numFmt = para.getNumFmt();
+        if (numFmt != null) {
+            pNode.setListItem(true);
+            pNode.setListSymbol(para.getNumLevelText());
+        }
+
+        html.append("<p>");
+        for (XWPFRun run : para.getRuns()) {
+            processRun(run, pNode.getChildren(), html);
+        }
+
+        CTP ctp = para.getCTP();
+        if (ctp != null) {
+            List<CTOMathPara> mathParas = ctp.getOMathParaList();
+            if (mathParas != null) {
+                for (CTOMathPara mp : mathParas) {
+                    if (mp.getOMathList() != null) {
+                        for (CTOMath m : mp.getOMathList()) {
+                            processMath(m, pNode.getChildren(), html);
                         }
                     }
                 }
-                List<CTOMath> maths = ctp.getOMathList();
-                if (maths != null) {
-                    for (CTOMath m : maths) walkMath(m.getDomNode(), html);
+            }
+            List<CTOMath> maths = ctp.getOMathList();
+            if (maths != null) {
+                for (CTOMath m : maths) {
+                    processMath(m, pNode.getChildren(), html);
                 }
             }
-            html.append("</p>");
         }
-        return html.toString().trim();
+        html.append("</p>");
+        
+        return pNode.getChildren().isEmpty() && !pNode.isListItem() ? null : pNode;
     }
-    private void appendRunHtml(StringBuilder html, XWPFRun run) {
+
+    private void processRun(XWPFRun run, List<AstNode> children, StringBuilder html) {
         if (run == null) return;
+        
         int brCount = (run.getCTR() != null && run.getCTR().getBrList() != null) ? run.getCTR().getBrList().size() : 0;
-        for (int b = 0; b < brCount; b++) html.append("<br/>");
+        for (int b = 0; b < brCount; b++) {
+            html.append("<br/>");
+            // Could add BrNode to AST, but ignoring for now
+        }
+
         for (XWPFPicture pic : run.getEmbeddedPictures()) {
             XWPFPictureData picData = pic.getPictureData();
             String base64 = Base64.getEncoder().encodeToString(picData.getData());
             String mimeType = picData.getPackagePart().getContentType();
+            
+            // Build ImageNode
+            ImageNode imgNode = new ImageNode();
+            imgNode.setBase64Data(base64);
+            imgNode.setMimeType(mimeType);
+            imgNode.setWidth((int) pic.getWidth());
+            imgNode.setHeight((int) pic.getDepth());
+            children.add(imgNode);
+            
             html.append("<img src=\"data:").append(mimeType).append(";base64,").append(base64).append("\" />");
         }
+
         String text = run.text();
         if (text == null || text.isEmpty()) {
             if (run.getCTR() != null && run.getCTR().getTList() != null) {
@@ -54,14 +108,27 @@ public class QuestionContentExtractor {
                 text = sb.toString();
             }
         }
+
         if (text != null && !text.isEmpty()) {
+            TextNode textNode = new TextNode();
+            textNode.setText(text);
+            textNode.setBold(run.isBold());
+            textNode.setItalic(run.isItalic());
+            textNode.setUnderline(run.getUnderline() != UnderlinePatterns.NONE);
+            
+            String vAlign = run.getVerticalAlignment() == null ? "" : run.getVerticalAlignment().toString();
+            textNode.setSubscript(vAlign.equals("subscript"));
+            textNode.setSuperscript(vAlign.equals("superscript"));
+            children.add(textNode);
+
             if (run.isBold()) html.append("<b>");
             if (run.isItalic()) html.append("<i>");
             if (run.getUnderline() != UnderlinePatterns.NONE) html.append("<u>");
-            String vAlign = run.getVerticalAlignment() == null ? "" : run.getVerticalAlignment().toString();
             if (vAlign.equals("subscript")) html.append("<sub>");
             if (vAlign.equals("superscript")) html.append("<sup>");
+            
             html.append(escapeHtml(text));
+            
             if (vAlign.equals("superscript")) html.append("</sup>");
             if (vAlign.equals("subscript")) html.append("</sub>");
             if (run.getUnderline() != UnderlinePatterns.NONE) html.append("</u>");
@@ -69,11 +136,59 @@ public class QuestionContentExtractor {
             if (run.isBold()) html.append("</b>");
         }
     }
+
+    private void processMath(CTOMath m, List<AstNode> children, StringBuilder html) {
+        try {
+            TransformerFactory tf = TransformerFactory.newInstance();
+            Transformer transformer = tf.newTransformer();
+            StringWriter writer = new StringWriter();
+            transformer.transform(new DOMSource(m.getDomNode()), new StreamResult(writer));
+            String xml = writer.getBuffer().toString();
+            
+            StringBuilder mathHtml = new StringBuilder();
+            walkMath(m.getDomNode(), mathHtml);
+            
+            FormulaNode fn = new FormulaNode();
+            fn.setRawOmml(xml);
+            fn.setHtmlFallback(mathHtml.toString());
+            children.add(fn);
+            
+            html.append(mathHtml.toString());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    private TableNode processTable(XWPFTable table, StringBuilder html, XWPFDocument document) {
+        TableNode tNode = new TableNode();
+        html.append("<table border=\"1\" style=\"border-collapse: collapse; margin-bottom: 10px;\">");
+        for (XWPFTableRow row : table.getRows()) {
+            TableNode.TableRowNode rNode = new TableNode.TableRowNode();
+            html.append("<tr>");
+            for (XWPFTableCell cell : row.getTableCells()) {
+                html.append("<td style=\"padding: 5px;\">");
+                ContentExtractionResult cellResult = extractStructuredContent(cell, document);
+                
+                TableNode.TableCellNode cNode = new TableNode.TableCellNode();
+                cNode.setContent(cellResult.getAstNodes());
+                rNode.getCells().add(cNode);
+                
+                html.append(cellResult.getHtmlFallback());
+                html.append("</td>");
+            }
+            html.append("</tr>");
+            tNode.getRows().add(rNode);
+        }
+        html.append("</table>");
+        return tNode;
+    }
+
     public static String convertOmmlNodeToHtml(Node node) {
         StringBuilder sb = new StringBuilder();
         walkMath(node, sb);
         return sb.toString();
     }
+
     private static void walkMath(Node node, StringBuilder sb) {
         if (node == null) return;
         if (node.getNodeType() == Node.ELEMENT_NODE) {
@@ -156,6 +271,7 @@ public class QuestionContentExtractor {
             walkMath(children.item(i), sb);
         }
     }
+
     private static String getTagName(Node node) {
         if (node == null) return "";
         String name = node.getLocalName();
@@ -163,6 +279,7 @@ public class QuestionContentExtractor {
         if (name != null && name.contains(":")) name = name.substring(name.indexOf(":") + 1);
         return name != null ? name : "";
     }
+
     private static Node findChild(Node parent, String targetName) {
         if (parent == null) return null;
         NodeList children = parent.getChildNodes();
@@ -174,6 +291,7 @@ public class QuestionContentExtractor {
         }
         return null;
     }
+
     private static String getXmlTextContent(Node node) {
         if (node == null) return "";
         if (node.getNodeType() == Node.TEXT_NODE) return node.getNodeValue();
@@ -184,6 +302,7 @@ public class QuestionContentExtractor {
         }
         return sb.toString();
     }
+
     private static String escapeHtml(String text) {
         return text.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;");
     }

@@ -20,6 +20,7 @@ public class QuestionParserService {
         return new DocxDocumentReader().parse(file.getInputStream(), file.getOriginalFilename());
     }
 
+
     public List<Question> toQuestions(List<ParsedQuestion> parsed, Long subjectId,
                                       Long sessionId, Long sourceDocumentId, String sourceFileName) {
         List<Question> questions = new ArrayList<>();
@@ -35,6 +36,7 @@ public class QuestionParserService {
                     .marksSplit(p.getMarksSplit())
                     .serialNo(p.getSerialNo())
                     .questionContent(contentSanitizer.sanitize(p.getQuestionContent()))
+                    .structuredContent(p.getStructuredContent())
                     .sourceFileName(sourceFileName)
                     .t(p.getT())
                     .questionType(p.getQuestionType())

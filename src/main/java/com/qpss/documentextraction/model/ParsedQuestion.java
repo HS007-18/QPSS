@@ -8,6 +8,7 @@ import java.util.List;
 public class ParsedQuestion {
     private Integer serialNo;
     private String questionContent;
+    private String structuredContent;
     private Integer marks;
     private String co;
     private Integer t;

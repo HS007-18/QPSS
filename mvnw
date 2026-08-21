@@ -1,7 +1,6 @@
 #!/bin/sh
-# ----------------------------------------------------------------------------
 # Apache Maven Wrapper startup script, version 3.3.2
-# ----------------------------------------------------------------------------
+
 
 if [ -z "$MAVEN_SKIP_RC" ]; then
 
@@ -147,11 +146,7 @@ find_maven_basedir() {
 # concatenates all lines of a file
 concat_lines() {
   if [ -f "$1" ]; then
-    # Remove \r in case we run on Windows within Git Bash
-    # and check out the repository with auto CRLF management
-    # enabled. Otherwise, we may read lines that are delimited with
-    # \r\n and produce $'-Xarg\r' rather than -Xarg due to word
-    # splitting rules.
+.
     tr -s '\r\n' ' ' <"$1"
   fi
 }
@@ -171,10 +166,6 @@ MAVEN_PROJECTBASEDIR=${MAVEN_BASEDIR:-"$BASE_DIR"}
 export MAVEN_PROJECTBASEDIR
 log "$MAVEN_PROJECTBASEDIR"
 
-##########################################################################################
-# Extension to allow automatically downloading the maven-wrapper.jar from Maven-central
-# This allows using the maven wrapper in projects that prohibit checking in binary data.
-##########################################################################################
 wrapperJarPath="$MAVEN_PROJECTBASEDIR/.mvn/wrapper/maven-wrapper.jar"
 if [ -r "$wrapperJarPath" ]; then
   log "Found $wrapperJarPath"
@@ -187,7 +178,7 @@ else
     wrapperUrl="https://repo.maven.apache.org/maven2/org/apache/maven/wrapper/maven-wrapper/3.3.2/maven-wrapper-3.3.2.jar"
   fi
   while IFS="=" read -r key value; do
-    # Remove '\r' from value to allow usage on windows as IFS does not consider '\r' as a separator ( considers space, tab, new line ('\n'), and custom '=' )
+    
     safeValue=$(echo "$value" | tr -d '\r')
     case "$key" in wrapperUrl)
       wrapperUrl="$safeValue"
@@ -238,9 +229,9 @@ else
     fi
   fi
 fi
-##########################################################################################
+
 # End of extension
-##########################################################################################
+
 
 # If specified, validate the SHA-256 sum of the Maven wrapper jar file
 wrapperSha256Sum=""

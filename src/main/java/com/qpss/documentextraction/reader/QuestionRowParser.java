@@ -34,8 +34,17 @@ public class QuestionRowParser {
             return null;
         }
 
-        String questionContent = contentExtractor.extractRichContent(
+        com.qpss.documentextraction.extractor.ContentExtractionResult contentResult = contentExtractor.extractStructuredContent(
                 cell(cells, layout.indexOf(ColumnLayout.Role.QUESTION)), document);
+        
+        String questionContent = contentResult.getHtmlFallback();
+        String structuredContent = null;
+        try {
+            com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
+            structuredContent = mapper.writeValueAsString(contentResult.getAstNodes());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
         String marksRaw = cellText(cells, layout.indexOf(ColumnLayout.Role.MARKS));
         Integer marks = parseMarks(marksRaw);
         String marksSplit = parseMarksSplit(marksRaw, marks);
@@ -59,6 +68,7 @@ public class QuestionRowParser {
         return ParsedQuestion.builder()
                 .serialNo(serialNo)
                 .questionContent(isBlank(questionContent) ? null : questionContent)
+                .structuredContent(structuredContent)
                 .marks(marks)
                 .marksSplit(marksSplit)
                 .rbt(rbt)

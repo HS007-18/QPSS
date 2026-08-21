@@ -48,7 +48,11 @@ public class DocxPartRenderer {
 
             XWPFTableRow row = tableA.getRow(i + 1);
             HtmlToWordRenderer.setCellText(row.getCell(0), String.valueOf(pq.getQuestionNumber()), false);
-            HtmlToWordRenderer.setCellHtml(row.getCell(1), q.getQuestionContent());
+            if (q.getStructuredContent() != null && !q.getStructuredContent().isEmpty()) {
+                AstToWordRenderer.setCellAst(row.getCell(1), q.getStructuredContent());
+            } else {
+                HtmlToWordRenderer.setCellHtml(row.getCell(1), q.getQuestionContent());
+            }
             HtmlToWordRenderer.setCellText(row.getCell(2), marksLabel(q), false);
             HtmlToWordRenderer.setCellText(row.getCell(3), coLabel(q), false);
         }
@@ -105,7 +109,11 @@ public class DocxPartRenderer {
             XWPFTableRow row = tableB.getRow(rowIndex++);
             String label = pq.getChoiceLabel() != null ? pq.getChoiceLabel() + ")" : "";
             HtmlToWordRenderer.setCellText(row.getCell(0), pq.getQuestionNumber() + " " + label, false);
-            HtmlToWordRenderer.setCellHtml(row.getCell(1), q != null ? q.getQuestionContent() : "");
+            if (q != null && q.getStructuredContent() != null && !q.getStructuredContent().isEmpty()) {
+                AstToWordRenderer.setCellAst(row.getCell(1), q.getStructuredContent());
+            } else {
+                HtmlToWordRenderer.setCellHtml(row.getCell(1), q != null ? q.getQuestionContent() : "");
+            }
             HtmlToWordRenderer.setCellText(row.getCell(2), q != null ? marksLabel(q) : "", false);
             HtmlToWordRenderer.setCellText(row.getCell(3), q != null ? coLabel(q) : "", false);
         }
