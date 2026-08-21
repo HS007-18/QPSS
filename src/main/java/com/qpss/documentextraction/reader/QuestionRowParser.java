@@ -41,7 +41,8 @@ public class QuestionRowParser {
         String structuredContent = null;
         try {
             com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
-            structuredContent = mapper.writeValueAsString(contentResult.getAstNodes());
+            structuredContent = mapper.writerFor(new com.fasterxml.jackson.core.type.TypeReference<List<com.qpss.documentextraction.model.ast.AstNode>>() {})
+                                      .writeValueAsString(contentResult.getAstNodes());
         } catch (Exception e) {
             e.printStackTrace();
         }

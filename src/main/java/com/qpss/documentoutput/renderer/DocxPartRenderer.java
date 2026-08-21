@@ -1,4 +1,5 @@
 package com.qpss.documentoutput.renderer;
+
 import com.qpss.backend.paper.PaperQuestion;
 import com.qpss.backend.questionbank.Question;
 import com.qpss.backend.questionbank.QuestionRepository;
@@ -11,6 +12,7 @@ import org.apache.poi.xwpf.usermodel.XWPFTable;
 import org.apache.poi.xwpf.usermodel.XWPFTableRow;
 import org.springframework.stereotype.Component;
 import java.util.List;
+
 @Component
 @RequiredArgsConstructor
 public class DocxPartRenderer {
@@ -29,7 +31,7 @@ public class DocxPartRenderer {
         int qCountA = sectionA.size();
         partARun.setText("PART A - (" + qCountA + " x 2 = " + (qCountA * 2) + " marks)");
 
-        XWPFTable tableA = document.createTable(sectionA.size() + 1, 4);
+        XWPFTable tableA = document.createTable(sectionA.size() + 1, 5);
         tableA.setWidth("100%");
         tableA.setCellMargins(100, 100, 100, 100);
 
@@ -37,7 +39,9 @@ public class DocxPartRenderer {
         HtmlToWordRenderer.setCellText(header.getCell(0), "Q.No.", true);
         HtmlToWordRenderer.setCellText(header.getCell(1), "Question", true);
         HtmlToWordRenderer.setCellText(header.getCell(2), "M", true);
-        HtmlToWordRenderer.setCellText(header.getCell(3), "CO", true);
+
+        HtmlToWordRenderer.setCellText(header.getCell(3), "RBT", true);
+        HtmlToWordRenderer.setCellText(header.getCell(4), "CO", true);
 
         for (int i = 0; i < sectionA.size(); i++) {
             PaperQuestion pq = sectionA.get(i);
@@ -54,8 +58,11 @@ public class DocxPartRenderer {
                 HtmlToWordRenderer.setCellHtml(row.getCell(1), q.getQuestionContent());
             }
             HtmlToWordRenderer.setCellText(row.getCell(2), marksLabel(q), false);
-            HtmlToWordRenderer.setCellText(row.getCell(3), coLabel(q), false);
+            HtmlToWordRenderer.setCellText(row.getCell(3), rbtLabel(q), false);
+            HtmlToWordRenderer.setCellText(row.getCell(4), coLabel(q), false);
         }
+
+        applyTableStyling(tableA);
 
         document.createParagraph().createRun().addBreak();
     }
@@ -76,9 +83,10 @@ public class DocxPartRenderer {
         partBPara.setAlignment(ParagraphAlignment.CENTER);
         XWPFRun partBRun = partBPara.createRun();
         partBRun.setBold(true);
-        partBRun.setText("PART B - (" + pairsCount + " x " + sampleMarks + " = " + (pairsCount * sampleMarks) + " marks)");
+        partBRun.setText(
+                "PART B - (" + pairsCount + " x " + sampleMarks + " = " + (pairsCount * sampleMarks) + " marks)");
 
-        XWPFTable tableB = document.createTable(sectionB.size() + 1 + (sectionB.size() / 2), 4);
+        XWPFTable tableB = document.createTable(sectionB.size() + 1 + (sectionB.size() / 2), 5);
         tableB.setWidth("100%");
         tableB.setCellMargins(100, 100, 100, 100);
 
@@ -86,7 +94,8 @@ public class DocxPartRenderer {
         HtmlToWordRenderer.setCellText(header.getCell(0), "Q.No.", true);
         HtmlToWordRenderer.setCellText(header.getCell(1), "Question", true);
         HtmlToWordRenderer.setCellText(header.getCell(2), "M", true);
-        HtmlToWordRenderer.setCellText(header.getCell(3), "CO", true);
+        HtmlToWordRenderer.setCellText(header.getCell(3), "RBT", true);
+        HtmlToWordRenderer.setCellText(header.getCell(4), "CO", true);
 
         int rowIndex = 1;
         Integer currentQNum = null;
@@ -96,7 +105,7 @@ public class DocxPartRenderer {
 
             if (currentQNum != null && currentQNum.equals(pq.getQuestionNumber())) {
                 XWPFTableRow orRow = tableB.getRow(rowIndex++);
-                HtmlToWordRenderer.mergeCellsHorizontal(orRow, 0, 3);
+                HtmlToWordRenderer.mergeCellsHorizontal(orRow, 0, 4);
                 XWPFParagraph orPara = orRow.getCell(0).getParagraphs().get(0);
                 orPara.setAlignment(ParagraphAlignment.CENTER);
                 XWPFRun orRun = orPara.createRun();
@@ -115,8 +124,11 @@ public class DocxPartRenderer {
                 HtmlToWordRenderer.setCellHtml(row.getCell(1), q != null ? q.getQuestionContent() : "");
             }
             HtmlToWordRenderer.setCellText(row.getCell(2), q != null ? marksLabel(q) : "", false);
-            HtmlToWordRenderer.setCellText(row.getCell(3), q != null ? coLabel(q) : "", false);
+            HtmlToWordRenderer.setCellText(row.getCell(3), q != null ? rbtLabel(q) : "", false);
+            HtmlToWordRenderer.setCellText(row.getCell(4), q != null ? coLabel(q) : "", false);
         }
+
+        applyTableStyling(tableB);
     }
 
     private String marksLabel(Question q) {
@@ -132,5 +144,29 @@ public class DocxPartRenderer {
         }
         String co = q.getCo().trim();
         return co.toUpperCase().startsWith("CO") ? co : "CO" + co;
+    }
+
+    private String rbtLabel(Question q) {
+        if (q.getRbt() == null || q.getRbt().isBlank()) {
+            return "";
+        }
+        return q.getRbt().trim().toUpperCase();
+    }
+
+    private void applyTableStyling(XWPFTable table) {
+        table.setTopBorder(XWPFTable.XWPFBorderType.SINGLE, 4, 0, "000000");
+        table.setBottomBorder(XWPFTable.XWPFBorderType.SINGLE, 4, 0, "000000");
+        table.setLeftBorder(XWPFTable.XWPFBorderType.SINGLE, 4, 0, "000000");
+        table.setRightBorder(XWPFTable.XWPFBorderType.SINGLE, 4, 0, "000000");
+        table.setInsideHBorder(XWPFTable.XWPFBorderType.SINGLE, 4, 0, "000000");
+        table.setInsideVBorder(XWPFTable.XWPFBorderType.SINGLE, 4, 0, "000000");
+
+        for (XWPFTableRow row : table.getRows()) {
+            for (org.apache.poi.xwpf.usermodel.XWPFTableCell cell : row.getTableCells()) {
+                for (XWPFParagraph p : cell.getParagraphs()) {
+                    p.setAlignment(ParagraphAlignment.BOTH);
+                }
+            }
+        }
     }
 }

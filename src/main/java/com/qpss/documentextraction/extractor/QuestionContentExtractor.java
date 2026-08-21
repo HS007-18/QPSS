@@ -3,7 +3,6 @@ package com.qpss.documentextraction.extractor;
 import com.qpss.documentextraction.model.ast.*;
 import org.apache.poi.xwpf.usermodel.*;
 import org.openxmlformats.schemas.officeDocument.x2006.math.CTOMath;
-import org.openxmlformats.schemas.officeDocument.x2006.math.CTOMathPara;
 import org.openxmlformats.schemas.wordprocessingml.x2006.main.CTP;
 import org.openxmlformats.schemas.wordprocessingml.x2006.main.CTText;
 import org.w3c.dom.Node;
@@ -47,28 +46,27 @@ public class QuestionContentExtractor {
         }
 
         html.append("<p>");
-        for (XWPFRun run : para.getRuns()) {
-            processRun(run, pNode.getChildren(), html);
-        }
-
         CTP ctp = para.getCTP();
         if (ctp != null) {
-            List<CTOMathPara> mathParas = ctp.getOMathParaList();
-            if (mathParas != null) {
-                for (CTOMathPara mp : mathParas) {
-                    if (mp.getOMathList() != null) {
-                        for (CTOMath m : mp.getOMathList()) {
+            org.apache.xmlbeans.XmlCursor cursor = ctp.newCursor();
+            cursor.selectPath("./*");
+            while (cursor.toNextSelection()) {
+                org.apache.xmlbeans.XmlObject obj = cursor.getObject();
+                if (obj instanceof org.openxmlformats.schemas.wordprocessingml.x2006.main.CTR) {
+                    XWPFRun run = para.getRun((org.openxmlformats.schemas.wordprocessingml.x2006.main.CTR) obj);
+                    if (run != null) processRun(run, pNode.getChildren(), html);
+                } else if (obj instanceof org.openxmlformats.schemas.officeDocument.x2006.math.CTOMath) {
+                    processMath((org.openxmlformats.schemas.officeDocument.x2006.math.CTOMath) obj, pNode.getChildren(), html);
+                } else if (obj instanceof org.openxmlformats.schemas.officeDocument.x2006.math.CTOMathPara) {
+                    org.openxmlformats.schemas.officeDocument.x2006.math.CTOMathPara mathPara = (org.openxmlformats.schemas.officeDocument.x2006.math.CTOMathPara) obj;
+                    if (mathPara.getOMathList() != null) {
+                        for (org.openxmlformats.schemas.officeDocument.x2006.math.CTOMath m : mathPara.getOMathList()) {
                             processMath(m, pNode.getChildren(), html);
                         }
                     }
                 }
             }
-            List<CTOMath> maths = ctp.getOMathList();
-            if (maths != null) {
-                for (CTOMath m : maths) {
-                    processMath(m, pNode.getChildren(), html);
-                }
-            }
+            cursor.close();
         }
         html.append("</p>");
         
@@ -144,6 +142,10 @@ public class QuestionContentExtractor {
             StringWriter writer = new StringWriter();
             transformer.transform(new DOMSource(m.getDomNode()), new StreamResult(writer));
             String xml = writer.getBuffer().toString();
+            
+            if (!xml.contains("xmlns:m=")) {
+                xml = xml.replace("<m:oMath", "<m:oMath xmlns:m=\"http://schemas.openxmlformats.org/officeDocument/2006/math\"");
+            }
             
             StringBuilder mathHtml = new StringBuilder();
             walkMath(m.getDomNode(), mathHtml);

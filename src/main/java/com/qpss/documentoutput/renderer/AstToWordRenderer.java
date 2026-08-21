@@ -8,8 +8,7 @@ import org.apache.poi.xwpf.usermodel.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.imageio.ImageIO;
-import java.awt.image.BufferedImage;
+
 import java.io.ByteArrayInputStream;
 import java.util.Base64;
 import java.util.List;
@@ -35,6 +34,9 @@ public class AstToWordRenderer {
             List<AstNode> nodes = mapper.readValue(structuredContent, new TypeReference<List<AstNode>>() {});
             for (AstNode node : nodes) {
                 renderNode(node, cell);
+            }
+            if (cell.getParagraphs().isEmpty() || (!nodes.isEmpty() && nodes.get(nodes.size() - 1) instanceof TableNode)) {
+                cell.addParagraph();
             }
         } catch (Exception e) {
             log.error("Failed to parse or render structured content", e);
@@ -71,8 +73,37 @@ public class AstToWordRenderer {
             int rows = tNode.getRows().size();
             int cols = tNode.getRows().get(0).getCells().size();
             
-            XWPFTable table = cell.insertNewTbl(cell.getParagraphs().get(cell.getParagraphs().size() - 1).getCTP().newCursor());
+            org.apache.xmlbeans.XmlCursor cursor = cell.getCTTc().newCursor();
+            cursor.toEndToken();
+            XWPFTable table = cell.insertNewTbl(cursor);
+            cursor.close();
+            
             if (table == null) return;
+            
+            org.openxmlformats.schemas.wordprocessingml.x2006.main.CTTbl ctTbl = table.getCTTbl();
+            if (ctTbl.getTblPr() == null) {
+                org.openxmlformats.schemas.wordprocessingml.x2006.main.CTTblPr pr = ctTbl.addNewTblPr();
+                pr.addNewTblW().setType(org.openxmlformats.schemas.wordprocessingml.x2006.main.STTblWidth.AUTO);
+                pr.getTblW().setW(java.math.BigInteger.valueOf(0));
+            }
+            if (ctTbl.getTblGrid() == null) {
+                ctTbl.addNewTblGrid();
+                for (int c = 0; c < cols; c++) {
+                    ctTbl.getTblGrid().addNewGridCol();
+                }
+            }
+
+            table.setCellMargins(120, 200, 120, 200);
+            String tableWidth = (cols <= 2) ? "40%" : (cols <= 4 ? "70%" : "100%");
+            table.setWidth(tableWidth);
+            table.setTableAlignment(org.apache.poi.xwpf.usermodel.TableRowAlign.CENTER);
+
+            table.setTopBorder(org.apache.poi.xwpf.usermodel.XWPFTable.XWPFBorderType.SINGLE, 4, 0, "000000");
+            table.setBottomBorder(org.apache.poi.xwpf.usermodel.XWPFTable.XWPFBorderType.SINGLE, 4, 0, "000000");
+            table.setLeftBorder(org.apache.poi.xwpf.usermodel.XWPFTable.XWPFBorderType.SINGLE, 4, 0, "000000");
+            table.setRightBorder(org.apache.poi.xwpf.usermodel.XWPFTable.XWPFBorderType.SINGLE, 4, 0, "000000");
+            table.setInsideHBorder(org.apache.poi.xwpf.usermodel.XWPFTable.XWPFBorderType.SINGLE, 4, 0, "000000");
+            table.setInsideVBorder(org.apache.poi.xwpf.usermodel.XWPFTable.XWPFBorderType.SINGLE, 4, 0, "000000");
             
             for (int r = 0; r < rows; r++) {
                 XWPFTableRow row = table.getRow(r) != null ? table.getRow(r) : table.createRow();
@@ -80,12 +111,27 @@ public class AstToWordRenderer {
                     XWPFTableCell tCell = row.getCell(c) != null ? row.getCell(c) : row.createCell();
                     if (c < tNode.getRows().get(r).getCells().size()) {
                         TableNode.TableCellNode cellNode = tNode.getRows().get(r).getCells().get(c);
-                        while (!tCell.getParagraphs().isEmpty()) {
-                            tCell.removeParagraph(0);
+                        XWPFParagraph p = tCell.getParagraphs().isEmpty() ? tCell.addParagraph() : tCell.getParagraphs().get(0);
+                        while (tCell.getParagraphs().size() > 1) {
+                            tCell.removeParagraph(1);
                         }
+                        while (!p.getRuns().isEmpty()) {
+                            p.removeRun(0);
+                        }
+                        
                         for (AstNode child : cellNode.getContent()) {
-                            renderNode(child, tCell);
+                            if (child instanceof ParagraphNode) {
+                                ParagraphNode pn = (ParagraphNode) child;
+                                for (AstNode pChild : pn.getChildren()) {
+                                    renderInlineNode(pChild, p);
+                                }
+                            } else if (child instanceof TextNode || child instanceof ImageNode || child instanceof FormulaNode) {
+                                renderInlineNode(child, p);
+                            } else {
+                                renderNode(child, tCell);
+                            }
                         }
+                        p.setAlignment(org.apache.poi.xwpf.usermodel.ParagraphAlignment.CENTER);
                     }
                 }
             }
