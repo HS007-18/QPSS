@@ -1,6 +1,7 @@
 package com.qpss.backend.selection;
 import com.qpss.backend.questionbank.Question;
 import com.qpss.backend.questionbank.QuestionRepository;
+import com.qpss.common.domain.DistributionPlan;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
@@ -145,8 +146,8 @@ public class SelectionEngine {
         Set<Long> seenIds = new HashSet<>(excludeIds);
 
         for (SelectionBucket bucket : buckets) {
-            List<Question> candidates = questionRepo.findBySubjectIdAndSessionIdAndUnitAndMarksAndT(
-                    subjectId, sessionId, bucket.getUnit(), bucket.getMarks(), bucket.getT());
+            List<Question> candidates = questionRepo.findBySubjectIdAndUnitAndMarksAndT(
+                    subjectId, bucket.getUnit(), bucket.getMarks(), bucket.getT());
 
             long uniqueAvailable = distinctAvailableCount(candidates, seenIds);
 
@@ -182,8 +183,8 @@ public class SelectionEngine {
                                                                      Long sessionId, Set<Long> excludeIds) {
         List<SelectionShortage> shortages = new ArrayList<>();
         for (SelectionBucket bucket : buckets) {
-            List<Question> candidates = questionRepo.findBySubjectIdAndSessionIdAndUnitAndMarksAndT(
-                    subjectId, sessionId, bucket.getUnit(), bucket.getMarks(), bucket.getT());
+            List<Question> candidates = questionRepo.findBySubjectIdAndUnitAndMarksAndT(
+                    subjectId, bucket.getUnit(), bucket.getMarks(), bucket.getT());
             Set<String> seenContents = new HashSet<>();
             long uniqueAvailable = 0;
             for (Question q : candidates) {
@@ -221,20 +222,29 @@ public class SelectionEngine {
             }
         }
 
+        Set<Integer> processedBucketIndices = new HashSet<>();
         for (int bi = 0; bi < buckets.size(); bi++) {
+            if (processedBucketIndices.contains(bi)) {
+                continue;
+            }
             SelectionBucket bucket = buckets.get(bi);
             boolean partB = bucket.getMarks() == 16 || bucket.getMarks() == 20;
 
-            if (pairingMode == PairingEngine.PairingMode.CROSS_HALF && partB && bucket.getT() == 1
-                    && bi + 1 < buckets.size()) {
-                SelectionBucket t2Bucket = buckets.get(bi + 1);
-                if (t2Bucket.getMarks() == bucket.getMarks() && t2Bucket.getUnit() == bucket.getUnit()
-                        && t2Bucket.getT() == 2) {
-                    bi++;
-                    List<Question> t1Pool = questionRepo.findBySubjectIdAndSessionIdAndUnitAndMarksAndT(
-                            subjectId, sessionId, bucket.getUnit(), bucket.getMarks(), 1);
-                    List<Question> t2Pool = questionRepo.findBySubjectIdAndSessionIdAndUnitAndMarksAndT(
-                            subjectId, sessionId, t2Bucket.getUnit(), t2Bucket.getMarks(), 2);
+            if (pairingMode == PairingEngine.PairingMode.CROSS_HALF && partB && bucket.getT() == 1) {
+                int t2Index = -1;
+                for (int j = 0; j < buckets.size(); j++) {
+                    SelectionBucket b = buckets.get(j);
+                    if (b.getMarks() == bucket.getMarks() && b.getUnit() == bucket.getUnit() && b.getT() == 2) {
+                        t2Index = j;
+                        break;
+                    }
+                }
+                if (t2Index != -1) {
+                    SelectionBucket t2Bucket = buckets.get(t2Index);
+                    List<Question> t1Pool = questionRepo.findBySubjectIdAndUnitAndMarksAndT(
+                            subjectId, bucket.getUnit(), bucket.getMarks(), 1);
+                    List<Question> t2Pool = questionRepo.findBySubjectIdAndUnitAndMarksAndT(
+                            subjectId, t2Bucket.getUnit(), t2Bucket.getMarks(), 2);
                     RbtPairPicker.PickResult pick = pairPicker.pickCrossHalf(
                             t1Pool, t2Pool, bucket.getRequired(), t2Bucket.getRequired(), selectedQuestionIds, selectedQuestionContents);
                     if (pick.getT1().size() < bucket.getRequired() || pick.getT2().size() < t2Bucket.getRequired()) {
@@ -249,12 +259,14 @@ public class SelectionEngine {
 
                     selectedBuckets.add(new SelectedBucket(bucket.getMarks(), bucket.getUnit(), 1, pick.getT1()));
                     selectedBuckets.add(new SelectedBucket(t2Bucket.getMarks(), t2Bucket.getUnit(), 2, pick.getT2()));
+                    processedBucketIndices.add(bi);
+                    processedBucketIndices.add(t2Index);
                     continue;
                 }
             }
 
-            List<Question> pool = questionRepo.findBySubjectIdAndSessionIdAndUnitAndMarksAndT(
-                    subjectId, sessionId, bucket.getUnit(), bucket.getMarks(), bucket.getT());
+            List<Question> pool = questionRepo.findBySubjectIdAndUnitAndMarksAndT(
+                    subjectId, bucket.getUnit(), bucket.getMarks(), bucket.getT());
 
             if (pairingMode == PairingEngine.PairingMode.SAME_HALF && partB) {
                 List<Question> picked = pairPicker.pickSameHalf(pool, bucket.getRequired(), selectedQuestionIds, selectedQuestionContents);

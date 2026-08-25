@@ -1,4 +1,4 @@
-package com.qpss.frontend.dto;
+package com.qpss.backend.questionbank.dto;
 import com.qpss.documentextraction.model.QuestionParseResult;
 import lombok.Data;
 import java.io.Serial;

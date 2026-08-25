@@ -27,9 +27,9 @@ import org.springframework.stereotype.Component;
 import java.io.ByteArrayInputStream;
 import java.math.BigInteger;
 import java.util.List;
-import java.util.stream.Collectors;
 @Component
 @RequiredArgsConstructor
+@Deprecated // Use DocxMasterTableRenderer instead — this class is retained for backward compatibility
 public class DocxHeaderRenderer {
 
     private static final Logger log = LoggerFactory.getLogger(DocxHeaderRenderer.class);
@@ -39,6 +39,7 @@ public class DocxHeaderRenderer {
     private final SourceDocumentStorageService storageService;
     private final HeaderMetadataExtractor metadataExtractor = new HeaderMetadataExtractor();
 
+    @Deprecated
     public void render(XWPFDocument document, GeneratedPaper paper, Subject subject, List<PaperQuestion> sectionA, List<PaperQuestion> sectionB) {
         Long sourceDocId = null;
         if (sectionA != null && !sectionA.isEmpty()) {
@@ -86,7 +87,7 @@ public class DocxHeaderRenderer {
         setCellText(headerTable.getRow(4).getCell(0), metadata.getSubjectCodeTitle() != null ? metadata.getSubjectCodeTitle() : subject.getName().toUpperCase(), ParagraphAlignment.CENTER, true, 12);
         setCellText(headerTable.getRow(5).getCell(0), metadata.getCommonTo() != null ? metadata.getCommonTo() : "", ParagraphAlignment.CENTER, false, 11);
         setCellText(headerTable.getRow(6).getCell(0), metadata.getNotes() != null ? metadata.getNotes() : "", ParagraphAlignment.CENTER, false, 11);
-        setCellText(headerTable.getRow(7).getCell(0), metadata.getRegulation() != null ? metadata.getRegulation() : "(Regulations 2024)", ParagraphAlignment.CENTER, true, 11);
+        setCellText(headerTable.getRow(7).getCell(0), metadata.getRegulation() != null ? metadata.getRegulation() : "", ParagraphAlignment.CENTER, true, 11);
         for (XWPFTableRow row : headerTable.getRows()) {
             row.setHeight(200);
             row.getCell(0).setVerticalAlignment(XWPFTableCell.XWPFVertAlign.CENTER);
@@ -98,14 +99,8 @@ public class DocxHeaderRenderer {
         }
         document.createParagraph().createRun().setFontSize(2);
 
+        // Render ALL COs from source without hardcoded filtering
         List<HeaderMetadata.CourseOutcome> cos = metadata.getCourseOutcomes() != null ? metadata.getCourseOutcomes() : List.of();
-        if (paper.getExamType() != null) {
-            if (paper.getExamType().equalsIgnoreCase("INTERNAL_1")) {
-                cos = cos.stream().filter(c -> coInRange(c.getCode(), 1, 3)).collect(Collectors.toList());
-            } else if (paper.getExamType().equalsIgnoreCase("INTERNAL_2")) {
-                cos = cos.stream().filter(c -> coInRange(c.getCode(), 3, 5)).collect(Collectors.toList());
-            }
-        }
 
         if (!cos.isEmpty()) {
             XWPFTable coTable = document.createTable(cos.size() + 1, 2);
@@ -132,6 +127,7 @@ public class DocxHeaderRenderer {
         sp.setSpacingAfter(0);
     }
 
+    @Deprecated
     static boolean coInRange(String code, int from, int to) {
         if (code == null) {
             return false;

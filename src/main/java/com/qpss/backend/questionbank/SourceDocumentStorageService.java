@@ -1,4 +1,5 @@
 package com.qpss.backend.questionbank;
+import com.qpss.backend.questionbank.port.SourceDocumentStoragePort;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
@@ -11,7 +12,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.UUID;
 @Service
-public class SourceDocumentStorageService {
+public class SourceDocumentStorageService implements SourceDocumentStoragePort {
 
     private static final Logger log = LoggerFactory.getLogger(SourceDocumentStorageService.class);
 
@@ -49,6 +50,22 @@ public class SourceDocumentStorageService {
         }
     }
 
+    public String storeDocument(String tempFilePath, String extension) {
+        if (tempFilePath == null || tempFilePath.isBlank()) {
+            throw new IllegalArgumentException("Failed to store empty file path.");
+        }
+
+        String storedFileName = UUID.randomUUID().toString() + (extension.startsWith(".") ? extension : "." + extension);
+        Path destinationFile = getSafePath(storedFileName);
+
+        try {
+            Files.copy(Path.of(tempFilePath), destinationFile);
+            return storedFileName;
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to store file.", e);
+        }
+    }
+
     public void deleteDocument(String storedFileName) {
         Path target = getSafePath(storedFileName);
         try {
@@ -69,7 +86,8 @@ public class SourceDocumentStorageService {
 
     private Path getSafePath(String filename) {
         Path destinationFile = this.rootLocation.resolve(Paths.get(filename)).normalize().toAbsolutePath();
-        if (!destinationFile.getParent().equals(this.rootLocation.toAbsolutePath())) {
+        Path absoluteRoot = this.rootLocation.toAbsolutePath();
+        if (!destinationFile.startsWith(absoluteRoot)) {
             throw new SecurityException("Cannot store file outside current directory.");
         }
         return destinationFile;

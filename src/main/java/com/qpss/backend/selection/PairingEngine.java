@@ -42,14 +42,17 @@ public class PairingEngine {
                         Collectors.toList()));
 
         List<QuestionPair> pairs = new ArrayList<>();
-        List<Question> spillover = new ArrayList<>();
         int pairIndex = 1;
 
         for (Map.Entry<String, List<Question>> entry : byUnitAndT.entrySet()) {
             List<Question> halfQuestions = entry.getValue();
             int unit = Integer.parseInt(entry.getKey().split(":")[0]);
 
-            for (int i = 0; i + 1 < halfQuestions.size(); i += 2) {
+            if (halfQuestions.size() % 2 != 0) {
+                throw new IllegalStateException("Unit " + unit + " has odd Part B question count for T group: "
+                        + halfQuestions.size() + ". Cannot create pairs without mixing units.");
+            }
+            for (int i = 0; i < halfQuestions.size(); i += 2) {
                 pairs.add(new QuestionPair(
                         halfQuestions.get(i),
                         halfQuestions.get(i + 1),
@@ -57,21 +60,6 @@ public class PairingEngine {
                         pairIndex++
                 ));
             }
-            if (halfQuestions.size() % 2 != 0) {
-                spillover.add(halfQuestions.get(halfQuestions.size() - 1));
-            }
-        }
-
-        if (spillover.size() % 2 != 0) {
-            throw new IllegalStateException("Part B has odd leftover count across halves: " + spillover.size());
-        }
-        for (int i = 0; i < spillover.size(); i += 2) {
-            pairs.add(new QuestionPair(
-                    spillover.get(i),
-                    spillover.get(i + 1),
-                    spillover.get(i).getUnit(),
-                    pairIndex++
-            ));
         }
 
         return pairs;

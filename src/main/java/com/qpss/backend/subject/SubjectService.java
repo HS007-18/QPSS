@@ -14,6 +14,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.Optional;
 import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
@@ -39,6 +40,39 @@ public class SubjectService {
 
     public Subject create(String name) {
         return repo.save(Subject.builder().name(name).build());
+    }
+
+    /**
+     * Find an existing subject by code, or create a new one with the given code and name.
+     * Used during bulk upload to auto-group files by subject.
+     */
+    @Transactional
+    public Subject findOrCreate(String code, String name) {
+        if (code != null && !code.isBlank()) {
+            Optional<Subject> existing = repo.findByCodeIgnoreCase(code.trim());
+            if (existing.isPresent()) {
+                return existing.get();
+            }
+        }
+        return repo.save(Subject.builder()
+                .code(code != null ? code.trim().toUpperCase() : null)
+                .name(name != null ? name.trim() : "Unknown Subject")
+                .build());
+    }
+
+    public List<Subject> search(String query) {
+        if (query == null || query.isBlank()) {
+            return repo.findAll();
+        }
+        return repo.searchByCodeOrName(query.trim());
+    }
+
+    public long getQuestionCount(Long subjectId) {
+        return questionRepo.countBySubjectId(subjectId);
+    }
+
+    public long getImportCount(Long subjectId) {
+        return importRepo.countBySubjectId(subjectId);
     }
 
     @Transactional

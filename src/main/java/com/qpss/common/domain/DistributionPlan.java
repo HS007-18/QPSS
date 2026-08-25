@@ -1,4 +1,4 @@
-package com.qpss.backend.selection;
+package com.qpss.common.domain;
 import lombok.Builder;
 import lombok.Value;
 import java.math.BigDecimal;

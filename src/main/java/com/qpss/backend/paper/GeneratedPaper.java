@@ -38,6 +38,15 @@ public class GeneratedPaper {
     @Builder.Default
     private Boolean isFinal = false;
 
+    @Column(name = "exam_session")
+    private String examSession;
+
+    @Column(name = "exam_title")
+    private String examTitle;
+
+    @Column(name = "duration")
+    private String duration;
+
     @PrePersist
     void onCreate() {
         this.generationDate = LocalDateTime.now();

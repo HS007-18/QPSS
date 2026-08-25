@@ -1,6 +1,6 @@
 package com.qpss.backend.examconfig;
 import com.qpss.backend.selection.DistributionCalculationService;
-import com.qpss.backend.selection.DistributionPlan;
+import com.qpss.common.domain.DistributionPlan;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

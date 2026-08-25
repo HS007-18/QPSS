@@ -4,8 +4,10 @@ import com.qpss.backend.selection.PairingEngine;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
@@ -16,8 +18,14 @@ public class PaperDraftPersistenceService {
 
     @Transactional
     public void deleteDrafts(Long sessionId) {
+        deleteDraftsExcluding(sessionId, Collections.emptySet());
+    }
+
+    @Transactional
+    public void deleteDraftsExcluding(Long sessionId, Set<Long> excludePaperIds) {
         List<GeneratedPaper> drafts = paperRepo.findBySessionId(sessionId).stream()
                 .filter(p -> !Boolean.TRUE.equals(p.getIsFinal()))
+                .filter(p -> !excludePaperIds.contains(p.getId()))
                 .collect(Collectors.toList());
         if (drafts.isEmpty()) {
             return;

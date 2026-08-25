@@ -1,6 +1,7 @@
 package com.qpss.backend.selection;
 import com.qpss.backend.selection.DistributionCalculationService.SectionConfigInput;
 import com.qpss.backend.selection.DistributionCalculationService.UnitConfigInput;
+import com.qpss.common.domain.DistributionPlan;
 import org.junit.jupiter.api.Test;
 import java.math.BigDecimal;
 import java.util.List;

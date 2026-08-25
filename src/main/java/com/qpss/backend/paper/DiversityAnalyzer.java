@@ -1,6 +1,6 @@
 package com.qpss.backend.paper;
 import com.qpss.backend.questionbank.QuestionRepository;
-import com.qpss.backend.selection.DistributionPlan;
+import com.qpss.common.domain.DistributionPlan;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 @Service
@@ -9,7 +9,7 @@ public class DiversityAnalyzer {
 
     private final QuestionRepository questionRepo;
 
-    public String check(DistributionPlan plan, Long sessionId, int numSets) {
+    public String check(DistributionPlan plan, Long subjectId, int numSets) {
         if (numSets <= 1) return null;
 
         int minUniqueSets = numSets;
@@ -17,8 +17,8 @@ public class DiversityAnalyzer {
         for (DistributionPlan.SectionPlan section : plan.getSections()) {
             for (DistributionPlan.UnitPlan rule : section.getUnits()) {
                 if (rule.getRequiredCount() == 0) continue;
-                int poolSize = questionRepo.countBySessionIdAndUnitAndMarks(
-                        sessionId, rule.getUnit(), section.getMarks());
+                int poolSize = questionRepo.countBySubjectIdAndUnitAndMarks(
+                        subjectId, rule.getUnit(), section.getMarks());
                 int maxSets = poolSize / rule.getRequiredCount();
                 minUniqueSets = Math.min(minUniqueSets, maxSets);
             }

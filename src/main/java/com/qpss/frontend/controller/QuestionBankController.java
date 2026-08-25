@@ -28,7 +28,7 @@ public class QuestionBankController {
     @GetMapping
     public String session(@PathVariable Long sessionId, Model model) {
         var session = sessionService.findById(sessionId);
-        var questions = questionRepo.findBySessionIdOrderByUnitAscSerialNoAsc(sessionId);
+        var questions = questionRepo.findBySubjectIdOrderByUnitAscSerialNoAsc(session.getSubjectId());
         questions.forEach(q -> q.setQuestionContent(contentSanitizer.sanitize(q.getQuestionContent())));
         model.addAttribute("session", session);
         model.addAttribute("subject", subjectService.findById(session.getSubjectId()));

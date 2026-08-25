@@ -11,13 +11,15 @@ import java.util.List;
 public class QuestionParserService {
 
     private final QuestionContentSanitizer contentSanitizer;
+    private final DocxDocumentReader docxDocumentReader;
 
-    public QuestionParserService(QuestionContentSanitizer contentSanitizer) {
+    public QuestionParserService(QuestionContentSanitizer contentSanitizer, DocxDocumentReader docxDocumentReader) {
         this.contentSanitizer = contentSanitizer;
+        this.docxDocumentReader = docxDocumentReader;
     }
 
     public QuestionParseResult parseDocx(MultipartFile file) throws IOException {
-        return new DocxDocumentReader().parse(file.getInputStream(), file.getOriginalFilename());
+        return docxDocumentReader.parse(file.getInputStream(), file.getOriginalFilename());
     }
 
 

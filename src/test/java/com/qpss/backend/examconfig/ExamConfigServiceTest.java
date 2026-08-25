@@ -1,6 +1,6 @@
 package com.qpss.backend.examconfig;
 import com.qpss.backend.selection.DistributionCalculationService;
-import com.qpss.backend.selection.DistributionPlan;
+import com.qpss.common.domain.DistributionPlan;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;

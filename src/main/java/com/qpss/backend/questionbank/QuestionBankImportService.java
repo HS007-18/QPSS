@@ -1,12 +1,14 @@
 package com.qpss.backend.questionbank;
-import com.qpss.frontend.dto.PendingUploadSession;
-import com.qpss.frontend.dto.QuestionBankImportResult;
+import com.qpss.backend.questionbank.dto.PendingUploadSession;
+import com.qpss.backend.questionbank.dto.QuestionBankImportResult;
 import com.qpss.documentextraction.model.QuestionParseResult;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
@@ -39,6 +41,13 @@ public class QuestionBankImportService {
         if (files == null || files.isEmpty()) {
             throw new IllegalArgumentException("No files provided for import.");
         }
+        if (files.size() > 20) {
+            throw new IllegalArgumentException("Maximum 20 files allowed per upload.");
+        }
+        long totalSize = files.stream().mapToLong(MultipartFile::getSize).sum();
+        if (totalSize > 50 * 1024 * 1024) {
+            throw new IllegalArgumentException("Total upload size exceeds 50MB limit.");
+        }
 
         PendingUploadSession session = new PendingUploadSession();
         session.setSubjectId(subjectId);
@@ -69,18 +78,22 @@ public class QuestionBankImportService {
                 throw new RuntimeException("Failed to read DOCX file: " + e.getMessage());
             }
 
+            Path tempFile;
+            try {
+                tempFile = Files.createTempFile("qpss_upload_", ".docx");
+                file.transferTo(tempFile.toFile());
+            } catch (IOException e) {
+                throw new RuntimeException("Failed to write temporary file.", e);
+            }
+
             PendingUploadSession.FileImportHolder holder = new PendingUploadSession.FileImportHolder();
             holder.setIndex(holders.size());
             holder.setOriginalName(originalName);
             holder.setChecksum(checksum);
             holder.setParseResult(parseResult);
+            holder.setTempFilePath(tempFile.toString());
             holder.setContentType(file.getContentType());
             holder.setSize(file.getSize());
-            try {
-                holder.setFileBytes(file.getBytes());
-            } catch (IOException e) {
-                throw new RuntimeException("Failed to read file content.", e);
-            }
             holders.add(holder);
         }
 
@@ -114,6 +127,7 @@ public class QuestionBankImportService {
         }
 
         if (!anyImportable) {
+            cleanupTempFiles(pendingSession);
             if (!allErrors.isEmpty()) {
                 return QuestionBankImportResult.builder()
                         .successful(false)
@@ -137,6 +151,12 @@ public class QuestionBankImportService {
         List<String> storedFileNames = new ArrayList<>();
         List<Question> allQuestions = new ArrayList<>();
 
+        List<Question> existingQuestions = questionRepository.findBySubjectIdOrderByUnitAscSerialNoAsc(pendingSession.getSubjectId());
+        java.util.Set<String> seenContents = new java.util.HashSet<>();
+        for (Question eq : existingQuestions) {
+            seenContents.add(normalizeForDuplicateCheck(eq.getQuestionContent()));
+        }
+
         try {
             for (PendingUploadSession.FileImportHolder holder : pendingSession.getFiles()) {
                 if (holder.getParseResult().getValidQuestions().isEmpty()) {
@@ -148,7 +168,7 @@ public class QuestionBankImportService {
                 }
 
                 String extension = ".docx";
-                String storedFileName = storageService.storeDocument(holder.getFileBytes(), extension);
+                String storedFileName = storageService.storeDocument(holder.getTempFilePath(), extension);
                 storedFileNames.add(storedFileName);
 
                 SourceDocument doc = SourceDocument.builder()
@@ -171,13 +191,23 @@ public class QuestionBankImportService {
                         doc.getId(),
                         holder.getOriginalName()
                 );
-                allQuestions.addAll(questions);
+                
+                for (Question q : questions) {
+                    String norm = normalizeForDuplicateCheck(q.getQuestionContent());
+                    if (seenContents.add(norm)) {
+                        allQuestions.add(q);
+                    } else {
+                        skippedDuplicates++;
+                    }
+                }
             }
 
             if (!allQuestions.isEmpty()) {
                 importBatch.setSourceDocuments(savedDocuments);
                 questionRepository.saveAll(allQuestions);
             }
+
+            cleanupTempFiles(pendingSession);
 
             return QuestionBankImportResult.builder()
                     .importBatch(importBatch)
@@ -191,7 +221,21 @@ public class QuestionBankImportService {
             for (String storedFileName : storedFileNames) {
                 storageService.deleteDocument(storedFileName);
             }
+            cleanupTempFiles(pendingSession);
             throw new RuntimeException("Failed to process import batch. Rolled back stored files.", e);
+        }
+    }
+
+    private void cleanupTempFiles(PendingUploadSession pendingSession) {
+        if (pendingSession.getFiles() != null) {
+            for (PendingUploadSession.FileImportHolder holder : pendingSession.getFiles()) {
+                if (holder.getTempFilePath() != null) {
+                    try {
+                        Files.deleteIfExists(Path.of(holder.getTempFilePath()));
+                    } catch (IOException ignored) {
+                    }
+                }
+            }
         }
     }
 
@@ -218,5 +262,12 @@ public class QuestionBankImportService {
         } catch (NoSuchAlgorithmException | IOException e) {
             throw new RuntimeException("Failed to calculate checksum", e);
         }
+    }
+
+    private String normalizeForDuplicateCheck(String content) {
+        if (content == null) return "";
+        String stripped = content.replaceAll("<[^>]*>", " ");
+        stripped = stripped.replaceAll("[^a-zA-Z0-9]", "");
+        return stripped.toLowerCase();
     }
 }

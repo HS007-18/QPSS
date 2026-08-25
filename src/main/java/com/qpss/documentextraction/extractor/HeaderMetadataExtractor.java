@@ -4,8 +4,10 @@ import org.apache.poi.xwpf.usermodel.XWPFDocument;
 import org.apache.poi.xwpf.usermodel.XWPFTable;
 import org.apache.poi.xwpf.usermodel.XWPFTableCell;
 import org.apache.poi.xwpf.usermodel.XWPFTableRow;
+import org.springframework.stereotype.Component;
 import java.util.ArrayList;
 import java.util.List;
+@Component
 public class HeaderMetadataExtractor {
     public HeaderMetadata extract(XWPFDocument document) {
         HeaderMetadata metadata = HeaderMetadata.builder().courseOutcomes(new ArrayList<>()).build();
@@ -27,6 +29,30 @@ public class HeaderMetadataExtractor {
                         metadata.setInstitutionName(rowText);
                     }
                 } else if (lowerRow.contains("examination") || lowerRow.contains("assessment")) {
+                    String examTitle = rowText;
+                    metadata.setExamTitle(examTitle);
+                    java.util.regex.Pattern sessionPattern = java.util.regex.Pattern.compile(
+                            "(?i)(APRIL|MAY|NOVEMBER|DECEMBER|JANUARY|FEBRUARY|MARCH|JUNE|JULY|AUGUST|SEPTEMBER|OCTOBER|NOV|DEC|JAN|FEB|MAR|APR|JUN|JUL|AUG|SEP|OCT)\\s*/?\\s*(APRIL|MAY|JUN|JUL|AUG|SEP|OCT|NOV|DEC)?\\s*(\\d{4})");
+                    java.util.regex.Matcher m = sessionPattern.matcher(rowText);
+                    if (m.find()) {
+                        String session = m.group(0);
+                        if (session.contains("/")) {
+                            metadata.setExamSession(session.trim());
+                        }
+                    } else {
+                        java.util.regex.Pattern simplePattern = java.util.regex.Pattern.compile("(?i)(APRIL|MAY|NOVEMBER|DECEMBER|JANUARY|FEBRUARY|MARCH|JUNE|JULY|AUGUST|SEPTEMBER|OCTOBER|NOV|DEC|JAN|FEB|MAR|APR|JUN|JUL|AUG|SEP|OCT)\\s+(\\d{4})");
+                        java.util.regex.Matcher m2 = simplePattern.matcher(rowText);
+                        if (m2.find()) {
+                            metadata.setExamSession(m2.group(0).trim());
+                        }
+                    }
+                    if (lowerRow.contains("continuous internal") || lowerRow.contains("cia")) {
+                        if (lowerRow.contains("- i") || lowerRow.contains("- 1") || lowerRow.contains(" - i")) {
+                            metadata.setExamSession(" - I");
+                        } else if (lowerRow.contains("- ii") || lowerRow.contains("- 2") || lowerRow.contains(" - ii")) {
+                            metadata.setExamSession(" - II");
+                        }
+                    }
                 } else if (lowerRow.contains("semester")) {
                     metadata.setSemester(rowText);
                 } else if (lowerRow.contains("common to")) {
@@ -35,6 +61,20 @@ public class HeaderMetadataExtractor {
                     metadata.setNotes(rowText);
                 } else if (lowerRow.contains("regulation")) {
                     metadata.setRegulation(rowText);
+                } else if (lowerRow.contains("duration")) {
+                    // Extract duration value, e.g. "Duration: Three Hours" or "Duration : 3 Hours"
+                    int colonIdx = rowText.indexOf(":");
+                    if (colonIdx > 0) {
+                        String durationVal = rowText.substring(colonIdx + 1).trim();
+                        // If the same row also contains "Maximum", split at "Maximum"
+                        int maxIdx = durationVal.toLowerCase().indexOf("maximum");
+                        if (maxIdx > 0) {
+                            durationVal = durationVal.substring(0, maxIdx).trim();
+                        }
+                        metadata.setDuration(durationVal);
+                    } else {
+                        metadata.setDuration(rowText);
+                    }
                 } else if (rowText.matches(".*\\d{2}[A-Z]{3}\\d{3}.*") || (rowText.contains(" - ") && !lowerRow.contains("examination"))) {
                     metadata.setSubjectCodeTitle(rowText);
                 } else if (!isCoRow(rowText) && !rowText.isEmpty() && metadata.getSemester() != null && metadata.getDepartment() == null && metadata.getSubjectCodeTitle() == null) {

@@ -48,62 +48,7 @@
     </c:if>
 
     <div class="grid-2">
-
-        <div>
-            <h2 class="card-title" style="margin-bottom:16px; margin-top:0;">Question Bank Input</h2>
-
-            <div class="card">
-                <form action="/sessions/${session.id}/upload" method="post" enctype="multipart/form-data">
-                    <label class="form-label">Upload DOCX File(s)</label>
-                    <div class="upload-zone" onclick="this.querySelector('input').click()">
-                        <div class="upload-icon">
-                            <svg style="width:48px;height:48px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path></svg>
-                        </div>
-                        <input type="file" name="files" accept=".docx" multiple required style="display:none"
-                               onchange="this.closest('.upload-zone').querySelector('span').textContent = this.files.length + ' file(s) selected'">
-                        <span style="color:var(--text-muted); font-weight:500;">Click to select DOCX question bank files</span>
-                    </div>
-                    <button type="submit" class="btn btn-primary btn-block" style="margin-top:16px;">Upload & Parse</button>
-                </form>
-            </div>
-
-            <div class="card">
-                <form action="/sessions/${session.id}/questions" method="post">
-                    <label class="form-label">Add Question Manually</label>
-                    <div class="grid-4" style="margin-bottom:12px;">
-                        <select name="unit" required>
-                            <option value="">Unit</option>
-                            <c:forEach var="u" begin="1" end="5"><option value="${u}">U${u}</option></c:forEach>
-                        </select>
-                        <select name="rbt" required>
-                            <option value="">RBT</option>
-                            <option value="R">R</option>
-                            <option value="U">U</option>
-                            <option value="AP">AP</option>
-                            <option value="AZ">AZ</option>
-                        </select>
-                        <select name="co" required>
-                            <option value="">CO</option>
-                            <c:forEach var="c" begin="1" end="5"><option value="CO${c}">CO${c}</option></c:forEach>
-                        </select>
-                        <select name="marks" required>
-                            <option value="">Marks</option>
-                            <option value="2">2</option>
-                            <option value="16">16</option>
-                            <option value="20">20</option>
-                        </select>
-                        <select name="t" required>
-                            <option value="">I / II Half</option>
-                            <option value="1">I</option>
-                            <option value="2">II</option>
-                        </select>
-                    </div>
-                    <textarea name="content" placeholder="Type question content here..." required style="margin-bottom:12px;"></textarea>
-                    <button type="submit" class="btn btn-outline btn-block">Add Question</button>
-                </form>
-            </div>
-        </div>
-
+        <!-- Left Column: Generate Paper -->
         <div>
             <h2 class="card-title" style="margin-bottom:16px; margin-top:0;">Generate Question Paper</h2>
             <div class="card">
@@ -115,6 +60,13 @@
                             <option value="INTERNAL_1">Internal 1</option>
                             <option value="INTERNAL_2">Internal 2</option>
                             <option value="SEMESTER">Semester</option>
+                        </select>
+                    </div>
+                    <div class="form-group" style="margin-bottom: 16px;">
+                        <label class="form-label">Exam Duration</label>
+                        <select name="duration" id="examDuration">
+                            <option value="Three Hours" selected>Three Hours</option>
+                            <option value="One and a Half Hours">One and a Half Hours</option>
                         </select>
                     </div>
 
@@ -137,6 +89,51 @@
 
                     <button type="submit" class="btn btn-accent btn-block" style="font-size: 16px; padding: 14px; margin-top:8px;">Generate Paper</button>
                 </form>
+            </div>
+        </div>
+
+        <!-- Right Column: Manual Question Input (Collapsible/Secondary) -->
+        <div>
+            <h2 class="card-title" style="margin-bottom:16px; margin-top:0;">Manual Adjustments</h2>
+            <div class="card">
+                <div style="margin-bottom: 16px; font-size: 14px; color: var(--text-muted);">
+                    All questions from your bulk upload are ready below. You can manually add a specific question if something is missing.
+                </div>
+                <details style="background: var(--bg-hover); border: 1px solid var(--border); border-radius: 8px; padding: 16px;">
+                    <summary style="font-weight: 600; cursor: pointer; color: var(--primary);">+ Add Question Manually</summary>
+                    <form action="/sessions/${session.id}/questions" method="post" style="margin-top: 16px;">
+                        <div class="grid-4" style="margin-bottom:12px;">
+                            <select name="unit" required>
+                                <option value="">Unit</option>
+                                <c:forEach var="u" begin="1" end="5"><option value="${u}">U${u}</option></c:forEach>
+                            </select>
+                            <select name="rbt" required>
+                                <option value="">RBT</option>
+                                <option value="R">R</option>
+                                <option value="U">U</option>
+                                <option value="AP">AP</option>
+                                <option value="AZ">AZ</option>
+                            </select>
+                            <select name="co" required>
+                                <option value="">CO</option>
+                                <c:forEach var="c" begin="1" end="5"><option value="CO${c}">CO${c}</option></c:forEach>
+                            </select>
+                            <select name="marks" required>
+                                <option value="">Marks</option>
+                                <option value="2">2</option>
+                                <option value="16">16</option>
+                                <option value="20">20</option>
+                            </select>
+                            <select name="t" required style="grid-column: span 4;">
+                                <option value="">I / II Half</option>
+                                <option value="1">I</option>
+                                <option value="2">II</option>
+                            </select>
+                        </div>
+                        <textarea name="content" placeholder="Type question content here..." required style="margin-bottom:12px;"></textarea>
+                        <button type="submit" class="btn btn-outline btn-block">Add Question</button>
+                    </form>
+                </details>
             </div>
         </div>
     </div>

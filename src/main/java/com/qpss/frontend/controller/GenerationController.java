@@ -2,7 +2,7 @@ package com.qpss.frontend.controller;
 import com.qpss.common.domain.ExamType;
 import com.qpss.backend.questionbank.Question;
 import com.qpss.backend.questionbank.QuestionContentSanitizer;
-import com.qpss.backend.selection.DistributionPlan;
+import com.qpss.common.domain.DistributionPlan;
 import com.qpss.documentoutput.export.DocxRendererService;
 import com.qpss.backend.examconfig.ExamConfigService;
 import com.qpss.backend.paper.PaperGenerationService;
@@ -48,6 +48,7 @@ public class GenerationController {
                             @RequestParam String examType,
                             @RequestParam(defaultValue = "1") int numSets,
                             @RequestParam(defaultValue = "FORMAT_1") String format,
+                            @RequestParam(defaultValue = "Three Hours") String duration,
                             Model model,
                             RedirectAttributes redirect) {
         if (numSets < 1 || numSets > 10) {
@@ -56,7 +57,7 @@ public class GenerationController {
         ExamType.from(examType);
         var session = sessionService.findById(sessionId);
         var result = generationService.generate(
-                examType, session.getSubjectId(), sessionId, numSets, format);
+                examType, session.getSubjectId(), sessionId, numSets, format, duration);
 
         if (!result.isSuccessful()) {
             redirect.addFlashAttribute("shortages", result.getShortages());
@@ -81,7 +82,7 @@ public class GenerationController {
 
     @PostMapping("/{paperId}/finalize")
     public String finalize(@PathVariable Long sessionId, @PathVariable Long paperId, Model model) {
-        generationService.finalizePaper(paperId);
+        generationService.finalizePaper(paperId, sessionId);
         model.addAttribute("session", sessionService.findById(sessionId));
         model.addAttribute("paperId", paperId);
         return "generation/finalized";
@@ -93,7 +94,7 @@ public class GenerationController {
                                                             @PathVariable Long paperId,
                                                             @RequestParam Long oldQuestionId) {
         try {
-            Question newQuestion = generationService.swapQuestion(paperId, oldQuestionId);
+            Question newQuestion = generationService.swapQuestion(paperId, oldQuestionId, sessionId);
             Map<String, Object> body = new HashMap<>();
             body.put("status", "success");
             body.put("newId", newQuestion.getId());
@@ -112,9 +113,9 @@ public class GenerationController {
     }
 
     @GetMapping("/export/{paperId}")
-    public ResponseEntity<byte[]> exportDocx(@PathVariable Long paperId) {
-        var paper = generationService.getPaperById(paperId)
-                .orElseThrow(() -> new IllegalArgumentException("Invalid paper id"));
+    public ResponseEntity<byte[]> exportDocx(@PathVariable Long sessionId, @PathVariable Long paperId) {
+        var paper = generationService.getPaperByIdAndSessionId(paperId, sessionId)
+                .orElseThrow(() -> new IllegalArgumentException("Invalid paper id or session mismatch"));
 
         byte[] docxBytes = docxRendererService.exportPaperToDocx(paper);
 

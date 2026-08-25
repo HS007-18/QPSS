@@ -15,10 +15,12 @@ import java.util.List;
 
 @Component
 @RequiredArgsConstructor
+@Deprecated // Use DocxMasterTableRenderer instead
 public class DocxPartRenderer {
 
     private final QuestionRepository questionRepository;
 
+    @Deprecated
     public void renderPartA(XWPFDocument document, List<PaperQuestion> sectionA) {
         if (sectionA.isEmpty()) {
             return;
@@ -29,7 +31,12 @@ public class DocxPartRenderer {
         XWPFRun partARun = partAPara.createRun();
         partARun.setBold(true);
         int qCountA = sectionA.size();
-        partARun.setText("PART A - (" + qCountA + " x 2 = " + (qCountA * 2) + " marks)");
+        int perQuestionMarks = 2;
+        Question firstQ = questionRepository.findById(sectionA.get(0).getQuestionId()).orElse(null);
+        if (firstQ != null && firstQ.getMarks() != null) {
+            perQuestionMarks = firstQ.getMarks();
+        }
+        partARun.setText("PART A - (" + qCountA + " x " + perQuestionMarks + " = " + (qCountA * perQuestionMarks) + " marks)");
 
         XWPFTable tableA = document.createTable(sectionA.size() + 1, 5);
         tableA.setWidth("100%");
@@ -67,6 +74,7 @@ public class DocxPartRenderer {
         document.createParagraph().createRun().addBreak();
     }
 
+    @Deprecated
     public void renderPartB(XWPFDocument document, List<PaperQuestion> sectionB) {
         if (sectionB.isEmpty()) {
             return;

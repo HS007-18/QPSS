@@ -11,14 +11,16 @@
         .set-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; border-bottom: 1px solid var(--border); padding-bottom: 16px; }
         .set-label { font-size: 20px; font-weight: 700; color: var(--primary); }
         .section-title { font-size: 14px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; margin: 24px 0 12px; padding-bottom: 8px; border-bottom: 2px solid var(--bg-hover); }
-        .question { padding: 12px 0; font-size: 14px; border-bottom: 1px solid var(--bg-hover); display: flex; align-items: flex-start; gap: 12px; }
-        .question .num { color: var(--primary); font-weight: 600; min-width: 36px; padding-top: 2px; }
-        .question .content { flex: 1; line-height: 1.6; }
+        .question { padding: 12px 0; font-size: 14px; border-bottom: 1px solid var(--bg-hover); display: flex; align-items: flex-start; gap: 12px; min-width: 0; }
+        .question .num { color: var(--primary); font-weight: 600; min-width: 36px; flex-shrink: 0; padding-top: 2px; }
+        .question .content { flex: 1; min-width: 0; line-height: 1.6; word-break: break-word; overflow-wrap: break-word; overflow: hidden; }
+        .question .content table { max-width: 100%; table-layout: fixed; border-collapse: collapse; font-size: 13px; margin: 8px 0; word-break: break-all; }
+        .question .content table td, .question .content table th { padding: 4px 8px; border: 1px solid var(--border); overflow: hidden; text-overflow: ellipsis; }
         .question .meta { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
         .or-divider { text-align: center; color: var(--text-muted); font-size: 12px; padding: 12px 0; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; }
-        .pair-block { background: #fafafa; border-radius: 8px; padding: 0 16px; margin-bottom: 16px; border: 1px solid var(--border); }
+        .pair-block { background: #fafafa; border-radius: 8px; padding: 0 16px; margin-bottom: 16px; border: 1px solid var(--border); overflow: hidden; }
         .pair-block .question:last-child { border-bottom: none; }
-        img { max-width: 400px !important; height: auto !important; max-height: 250px !important; object-fit: contain; display: block; margin: 10px 0; border-radius: 8px; border: 1px solid var(--border); }
+        img { max-width: 100% !important; width: auto; height: auto !important; max-height: 250px !important; object-fit: contain; display: block; margin: 10px 0; border-radius: 8px; border: 1px solid var(--border); }
     </style>
 </head>
 <body>
@@ -67,17 +69,19 @@
             <div class="section-title">Part A — 2 Marks (${set.sectionA.size()} × 2 = ${set.sectionA.size() * 2} Marks)</div>
             <div style="background:#ffffff; border:1px solid var(--border); border-radius:8px; padding:0 16px; margin-bottom:24px;">
                 <c:forEach var="q" items="${set.sectionA}" varStatus="i">
-                    <div class="question" id="q-${q.id}" style="${i.last ? 'border-bottom:none;' : ''}">
+                    <div class="question" id="q-${q.id}" ${i.last ? 'style="border-bottom:none;"' : ''}>
                         <div class="num">${i.count}.</div>
-                        <div class="content">${q.questionContent}</div>
-                        <div class="meta">
-                            <span class="tag tag-marks"><c:out value="${q.marksSplit != null ? q.marksSplit : q.marks}" />M</span>
-                            <span class="tag tag-unit">U${q.unit}</span>
-                            <span class="tag tag-rbt"><c:out value="${set.sectionARbt[q.id]}" /></span>
-                            <c:if test="${not empty q.questionType}">
-                                <span class="tag tag-type" style="background:var(--bg-hover); color:var(--text-main);"><c:out value="${q.questionType}" /></span>
-                            </c:if>
-                            <button class="btn btn-outline btn-sm swap-btn" data-paper="${set.paper.id}" data-id="${q.id}" style="padding: 4px 8px; font-size: 11px;">Swap</button>
+                        <div class="question-main" style="flex: 1; min-width: 0; display: flex; flex-direction: column;">
+                            <div class="content">${q.questionContent}</div>
+                            <div class="meta" style="margin-top: 12px; flex-wrap: wrap;">
+                                <span class="tag tag-marks"><c:out value="${q.marksSplit != null ? q.marksSplit : q.marks}" />M</span>
+                                <span class="tag tag-unit">U${q.unit}</span>
+                                <span class="tag tag-rbt"><c:out value="${set.sectionARbt[q.id]}" /></span>
+                                <c:if test="${not empty q.questionType}">
+                                    <span class="tag tag-type" style="background:var(--bg-hover); color:var(--text-main);"><c:out value="${q.questionType}" /></span>
+                                </c:if>
+                                <button class="btn btn-outline btn-sm swap-btn" data-paper="${set.paper.id}" data-id="${q.id}" style="padding: 4px 8px; font-size: 11px;">Swap</button>
+                            </div>
                         </div>
                     </div>
                 </c:forEach>
@@ -90,29 +94,33 @@
                 <div class="pair-block">
                     <div class="question" id="q-${pair.choiceA.id}">
                         <div class="num">${10 + pair.pairIndex}.(a)</div>
-                        <div class="content">${pair.choiceA.questionContent}</div>
-                        <div class="meta">
-                            <span class="tag tag-marks"><c:out value="${pair.choiceA.marksSplit != null ? pair.choiceA.marksSplit : pair.choiceA.marks}" />M</span>
-                            <span class="tag tag-unit">U${pair.unit}</span>
-                            <span class="tag tag-rbt"><c:out value="${pair.choiceA.rbt}" /></span>
-                            <c:if test="${not empty pair.choiceA.questionType}">
-                                <span class="tag tag-type" style="background:var(--bg-hover); color:var(--text-main);"><c:out value="${pair.choiceA.questionType}" /></span>
-                            </c:if>
-                            <button class="btn btn-outline btn-sm swap-btn" data-paper="${set.paper.id}" data-id="${pair.choiceA.id}" style="padding: 4px 8px; font-size: 11px;">Swap</button>
+                        <div class="question-main" style="flex: 1; min-width: 0; display: flex; flex-direction: column;">
+                            <div class="content">${pair.choiceA.questionContent}</div>
+                            <div class="meta" style="margin-top: 12px; flex-wrap: wrap;">
+                                <span class="tag tag-marks"><c:out value="${pair.choiceA.marksSplit != null ? pair.choiceA.marksSplit : pair.choiceA.marks}" />M</span>
+                                <span class="tag tag-unit">U${pair.unit}</span>
+                                <span class="tag tag-rbt"><c:out value="${pair.choiceA.rbt}" /></span>
+                                <c:if test="${not empty pair.choiceA.questionType}">
+                                    <span class="tag tag-type" style="background:var(--bg-hover); color:var(--text-main);"><c:out value="${pair.choiceA.questionType}" /></span>
+                                </c:if>
+                                <button class="btn btn-outline btn-sm swap-btn" data-paper="${set.paper.id}" data-id="${pair.choiceA.id}" style="padding: 4px 8px; font-size: 11px;">Swap</button>
+                            </div>
                         </div>
                     </div>
                     <div class="or-divider">OR</div>
                     <div class="question" id="q-${pair.choiceB.id}">
                         <div class="num">${10 + pair.pairIndex}.(b)</div>
-                        <div class="content">${pair.choiceB.questionContent}</div>
-                        <div class="meta">
-                            <span class="tag tag-marks"><c:out value="${pair.choiceB.marksSplit != null ? pair.choiceB.marksSplit : pair.choiceB.marks}" />M</span>
-                            <span class="tag tag-unit">U${pair.unit}</span>
-                            <span class="tag tag-rbt"><c:out value="${pair.choiceB.rbt}" /></span>
-                            <c:if test="${not empty pair.choiceB.questionType}">
-                                <span class="tag tag-type" style="background:var(--bg-hover); color:var(--text-main);"><c:out value="${pair.choiceB.questionType}" /></span>
-                            </c:if>
-                            <button class="btn btn-outline btn-sm swap-btn" data-paper="${set.paper.id}" data-id="${pair.choiceB.id}" style="padding: 4px 8px; font-size: 11px;">Swap</button>
+                        <div class="question-main" style="flex: 1; min-width: 0; display: flex; flex-direction: column;">
+                            <div class="content">${pair.choiceB.questionContent}</div>
+                            <div class="meta" style="margin-top: 12px; flex-wrap: wrap;">
+                                <span class="tag tag-marks"><c:out value="${pair.choiceB.marksSplit != null ? pair.choiceB.marksSplit : pair.choiceB.marks}" />M</span>
+                                <span class="tag tag-unit">U${pair.unit}</span>
+                                <span class="tag tag-rbt"><c:out value="${pair.choiceB.rbt}" /></span>
+                                <c:if test="${not empty pair.choiceB.questionType}">
+                                    <span class="tag tag-type" style="background:var(--bg-hover); color:var(--text-main);"><c:out value="${pair.choiceB.questionType}" /></span>
+                                </c:if>
+                                <button class="btn btn-outline btn-sm swap-btn" data-paper="${set.paper.id}" data-id="${pair.choiceB.id}" style="padding: 4px 8px; font-size: 11px;">Swap</button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -125,11 +133,17 @@
     </div>
 </div>
 <script>
+    // Prevent back-button navigation to this review page after leaving
+    history.replaceState(null, '', location.href);
+    window.addEventListener('popstate', function() {
+        history.replaceState(null, '', location.href);
+    });
+
     document.querySelectorAll('.swap-btn').forEach(btn => {
         btn.addEventListener('click', function(e) {
             const paperId = this.getAttribute('data-paper');
             const oldId = this.getAttribute('data-id');
-            const sessionId = ${session.id};
+            const sessionId = '${session.id}';
 
             const originalText = this.innerText;
             this.innerText = '...';

@@ -1,6 +1,6 @@
 package com.qpss.frontend.controller;
 import com.qpss.frontend.dto.FixQuestionCommand;
-import com.qpss.frontend.dto.PendingUploadSession;
+import com.qpss.backend.questionbank.dto.PendingUploadSession;
 import com.qpss.documentextraction.model.ParsedQuestion;
 import com.qpss.documentextraction.model.QuestionConstants;
 import com.qpss.backend.questionbank.QuestionBankImportService;
@@ -67,7 +67,7 @@ public class QuestionBankUploadController {
     @GetMapping("/fix")
     public String showFixForm(@PathVariable Long sessionId, HttpSession httpSession, Model model) {
         PendingUploadSession pendingSession = (PendingUploadSession) httpSession.getAttribute("pendingUpload");
-        if (pendingSession == null) {
+        if (pendingSession == null || !sessionId.equals(pendingSession.getSessionId())) {
             return "redirect:/sessions/" + sessionId;
         }
 
@@ -90,7 +90,7 @@ public class QuestionBankUploadController {
     public String submitFix(@PathVariable Long sessionId, FixQuestionCommand command,
                             HttpSession httpSession, RedirectAttributes redirect) {
         PendingUploadSession pendingSession = (PendingUploadSession) httpSession.getAttribute("pendingUpload");
-        if (pendingSession == null) {
+        if (pendingSession == null || !sessionId.equals(pendingSession.getSessionId())) {
             return "redirect:/sessions/" + sessionId;
         }
 

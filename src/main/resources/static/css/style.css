@@ -168,6 +168,7 @@ tr:hover td { background: var(--bg-hover); }
 .tag-unit { background: var(--primary-light); color: var(--primary); }
 .tag-co { background: var(--accent-light); color: var(--accent-hover); }
 .tag-marks { background: var(--bg-hover); color: var(--text-muted); border: 1px solid var(--border); }
+.tag-rbt { background: #fef3c7; color: #92400e; }
 
 .upload-zone {
     border: 2px dashed var(--border);

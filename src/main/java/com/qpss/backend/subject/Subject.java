@@ -19,6 +19,9 @@ public class Subject {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(length = 20)
+    private String code;
+
     @Column(nullable = false)
     private String name;
 

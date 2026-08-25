@@ -6,18 +6,21 @@ import org.apache.poi.xwpf.usermodel.XWPFDocument;
 import org.apache.poi.xwpf.usermodel.XWPFParagraph;
 import org.apache.poi.xwpf.usermodel.XWPFTable;
 import org.apache.poi.xwpf.usermodel.XWPFTableRow;
+import org.springframework.stereotype.Component;
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
+@Component
 public class DocxDocumentReader {
 
     private final QuestionTableDetector tableDetector = new QuestionTableDetector();
     private final QuestionRowParser rowParser = new QuestionRowParser();
 
-    public QuestionParseResult parse(InputStream inputStream, String filename) {
+    public QuestionParseResult parse(InputStream inputStream, String filename) throws IOException {
         QuestionParseResult result = new QuestionParseResult();
         UnitContextResolver unitResolver = new UnitContextResolver(filename);
 
-        try (XWPFDocument doc = new XWPFDocument(inputStream)) {
+        try (InputStream is = inputStream; XWPFDocument doc = new XWPFDocument(is)) {
             List<IBodyElement> bodyElements = doc.getBodyElements();
             for (IBodyElement element : bodyElements) {
                 if (element instanceof XWPFParagraph) {

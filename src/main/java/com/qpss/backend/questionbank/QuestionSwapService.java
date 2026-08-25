@@ -57,7 +57,7 @@ public class QuestionSwapService {
         Set<Long> excludedIds = new HashSet<>(usedQuestionIds);
         excludedIds.remove(oldQuestionId);
 
-        List<Question> alternatives = questionRepo.findBySessionIdOrderByUnitAscSerialNoAsc(paper.getSessionId())
+        List<Question> alternatives = questionRepo.findBySubjectIdOrderByUnitAscSerialNoAsc(paper.getSubjectId())
                 .stream()
                 .filter(q -> q.getUnit() == oldQuestion.getUnit()
                         && q.getMarks() == oldQuestion.getMarks()

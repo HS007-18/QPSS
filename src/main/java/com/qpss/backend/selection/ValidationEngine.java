@@ -2,6 +2,7 @@ package com.qpss.backend.selection;
 import com.qpss.backend.questionbank.Question;
 import com.qpss.backend.examconfig.ExamCoRuleRepository;
 import com.qpss.backend.examconfig.ExamConfigService;
+import com.qpss.common.domain.DistributionPlan;
 import lombok.Builder;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
@@ -71,7 +72,6 @@ public class ValidationEngine {
                 failures.add("Section A Q" + q.getId() + " has marks=" + q.getMarks());
             }
             if (!q.getSubjectId().equals(subjectId)) failures.add("Q" + q.getId() + " wrong subject");
-            if (!q.getSessionId().equals(sessionId)) failures.add("Q" + q.getId() + " wrong session");
             if (!allIds.add(q.getId())) failures.add("Duplicate question ID: " + q.getId());
         }
 
@@ -87,7 +87,6 @@ public class ValidationEngine {
 
             for (Question q : List.of(a, b)) {
                 if (!q.getSubjectId().equals(subjectId)) failures.add("Q" + q.getId() + " wrong subject");
-                if (!q.getSessionId().equals(sessionId)) failures.add("Q" + q.getId() + " wrong session");
                 if (!allIds.add(q.getId())) failures.add("Duplicate question ID: " + q.getId());
                 allQuestions.add(q);
             }

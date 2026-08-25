@@ -1,5 +1,7 @@
 package com.qpss.backend.questionbank;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 public interface SourceDocumentRepository extends JpaRepository<SourceDocument, Long> {
 
@@ -7,5 +9,7 @@ public interface SourceDocumentRepository extends JpaRepository<SourceDocument, 
 
     List<SourceDocument> findByImportBatch_SessionIdIn(List<Long> sessionIds);
 
+    @Modifying
+    @Transactional
     void deleteByImportBatch_SessionIdIn(List<Long> sessionIds);
 }

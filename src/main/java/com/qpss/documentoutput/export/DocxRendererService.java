@@ -4,8 +4,6 @@ import com.qpss.backend.paper.PaperQuestion;
 import com.qpss.backend.paper.PaperQuestionRepository;
 import com.qpss.backend.subject.Subject;
 import com.qpss.backend.subject.SubjectRepository;
-import com.qpss.documentoutput.renderer.DocxHeaderRenderer;
-import com.qpss.documentoutput.renderer.DocxPartRenderer;
 import lombok.RequiredArgsConstructor;
 import org.apache.poi.xwpf.usermodel.XWPFDocument;
 import org.springframework.stereotype.Service;
@@ -18,8 +16,7 @@ public class DocxRendererService {
 
     private final PaperQuestionRepository paperQuestionRepository;
     private final SubjectRepository subjectRepository;
-    private final DocxHeaderRenderer headerRenderer;
-    private final DocxPartRenderer partRenderer;
+    private final com.qpss.documentoutput.renderer.DocxMasterTableRenderer masterTableRenderer;
 
     public byte[] exportPaperToDocx(GeneratedPaper paper) {
         Subject subject = subjectRepository.findById(paper.getSubjectId())
@@ -44,9 +41,7 @@ public class DocxRendererService {
                 .collect(Collectors.toList());
 
         try (XWPFDocument document = new XWPFDocument()) {
-            headerRenderer.render(document, paper, subject, sectionA, sectionB);
-            partRenderer.renderPartA(document, sectionA);
-            partRenderer.renderPartB(document, sectionB);
+            masterTableRenderer.renderMasterTable(document, paper, subject, sectionA, sectionB);
 
             org.apache.poi.xwpf.usermodel.XWPFFooter footer = document.createFooter(org.apache.poi.wp.usermodel.HeaderFooterType.DEFAULT);
             org.apache.poi.xwpf.usermodel.XWPFParagraph footerPara = footer.createParagraph();

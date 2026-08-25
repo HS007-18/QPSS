@@ -5,12 +5,17 @@ import org.jsoup.safety.Safelist;
 import org.springframework.stereotype.Component;
 @Component
 public class QuestionContentSanitizer {
+    private static final int MAX_INPUT_LENGTH = 100_000;
+    private static final int MAX_OUTPUT_LENGTH = 200_000;
     private static final Safelist SAFELIST = Safelist.relaxed()
             .addAttributes("img", "src", "alt", "width", "height")
             .addAttributes(":all", "class")
             .addProtocols("img", "src", "data");
     public String sanitize(String html) {
         if (html == null || html.isBlank()) return html;
+        if (html.length() > MAX_INPUT_LENGTH) {
+            throw new IllegalArgumentException("Input content exceeds maximum allowed length of " + MAX_INPUT_LENGTH);
+        }
         Document doc = Jsoup.parseBodyFragment(html);
         doc.select("*").forEach(el -> {
             el.attributes().asList().stream()
@@ -19,6 +24,10 @@ public class QuestionContentSanitizer {
             String src = el.attr("src");
             if (!src.isEmpty() && !src.startsWith("data:image/")) el.removeAttr("src");
         });
-        return Jsoup.clean(doc.body().html(), SAFELIST);
+        String cleaned = Jsoup.clean(doc.body().html(), SAFELIST);
+        if (cleaned.length() > MAX_OUTPUT_LENGTH) {
+            throw new IllegalArgumentException("Sanitized content exceeds maximum allowed length of " + MAX_OUTPUT_LENGTH);
+        }
+        return cleaned;
     }
 }

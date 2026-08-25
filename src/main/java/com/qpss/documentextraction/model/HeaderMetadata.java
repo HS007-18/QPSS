@@ -19,6 +19,9 @@ public class HeaderMetadata {
     private String commonTo;
     private String notes;
     private String regulation;
+    private String examSession;
+    private String examTitle;
+    private String duration;
 
     @Builder.Default
     private List<CourseOutcome> courseOutcomes = new ArrayList<>();
