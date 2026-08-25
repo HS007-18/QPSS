@@ -20,7 +20,7 @@ QPSS generates formatted question papers (.docx) from uploaded question-bank doc
 | Backend    | Java 17, Spring Boot 3.2.5, Spring Data JPA |
 | Frontend   | JSP (Jakarta), JSTL, HTML/CSS             |
 | Documents  | Apache POI 5.2.5, jsoup 1.17.2             |
-| Database   | MariaDB 10.11 (H2 in tests)               |
+| Database   | MariaDB 10.11                             |
 | Build      | Maven (wrapper included), packaged as WAR |
 | Deploy     | Docker, Docker Compose                    |
 
