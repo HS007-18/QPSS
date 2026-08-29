@@ -3,7 +3,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>QPSS - Dashboard</title>
+    <title>KIT QGen - Dashboard</title>
     <link rel="stylesheet" href="/css/style.css">
     <style>
         .dashboard-hero {

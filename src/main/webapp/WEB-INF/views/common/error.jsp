@@ -3,7 +3,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>QPSS - Error</title>
+    <title>KIT QGen - Error</title>
     <link rel="stylesheet" href="/css/style.css">
     <style>
         body { display: flex; align-items: center; justify-content: center; min-height: 100vh; background: var(--bg-hover); }

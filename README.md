@@ -1,6 +1,6 @@
-# QPSS - Question Paper Setting System
+# KIT QGen (formerly QPSS)
 
-QPSS generates formatted question papers (.docx) from uploaded question-bank documents. It extracts questions and header metadata from Word files, stores them in a searchable question bank, and builds exam papers following configurable rules (marks, sections, CO units) with content-duplicate-free selection.
+KIT QGen generates formatted question papers (.docx) from uploaded question-bank documents. It extracts questions and header metadata from Word files, stores them in a searchable question bank, and builds exam papers following configurable rules (marks, sections, CO units) with content-duplicate-free selection.
 
 ## Features
 
@@ -26,19 +26,17 @@ QPSS generates formatted question papers (.docx) from uploaded question-bank doc
 
 ## Project Structure
 
-```
+```text
 src/main/java/com/qpss/
-├── frontend/            web layer: controllers, DTOs, error handling
-├── backend/             business logic and persistence
-│   ├── subject/         subjects
-│   ├── session/         exam sessions
-│   ├── questionbank/    question storage, uploads, parsing, swap
-│   ├── examconfig/      exam rules (marks, units, COs, sections)
-│   ├── selection/       question selection and validation engine
-│   └── paper/           generated papers and drafts
-├── documentextraction/  reads question-bank .docx files
-├── documentoutput/      builds the final paper .docx
-└── common/domain/       shared enums and domain types
+├── controller/          web layer endpoints
+├── document/            DOCX extraction and rendering (Apache POI)
+├── domain/              enums and core business types
+├── dto/                 data transfer objects
+├── entity/              JPA entities
+├── exception/           custom domain exceptions
+├── repository/          Spring Data JPA interfaces
+├── service/             business logic, selection engine, imports
+└── util/                constants and shared helpers
 src/main/webapp/WEB-INF/views/   JSP pages
 src/main/resources/              config, DB schema and seed data
 ```
@@ -57,7 +55,7 @@ mvnw clean package
 java -jar target/qpss-1.0.0.war
 ```
 
-Open http://localhost:8080. The database schema and seed rules are applied automatically on first start (user `root`, password `root` by default; override with `DB_USERNAME` / `DB_PASSWORD` env vars).
+Open http://localhost:8080. The database schema and seed rules are applied automatically on first start. You must provide `DB_USERNAME` and `DB_PASSWORD` environment variables (e.g. via a `.env` file) for the application to connect to MariaDB.
 
 ### Run tests
 
@@ -118,16 +116,3 @@ Restore:
 docker compose exec -T db sh -c 'exec mariadb -uroot -p"$MYSQL_ROOT_PASSWORD" qpss' < qpss_backup.sql
 ```
 
-## Configuration
-
-| Environment variable | Default     | Description                          |
-|----------------------|-------------|--------------------------------------|
-| `DB_HOST`            | `localhost` | Database host                        |
-| `DB_PORT`            | `3306`      | Database port                        |
-| `DB_USERNAME`        | `root`      | Database user                        |
-| `DB_PASSWORD`        | `root`      | Database password                    |
-| `qpss.storage.question-banks` | `storage/question-banks` | Upload storage directory |
-
-## License
-
-Internal college project.

@@ -118,3 +118,4 @@ CREATE INDEX IF NOT EXISTS idx_subjects_code ON subjects(code);
 
 ALTER TABLE generated_papers ADD COLUMN IF NOT EXISTS exam_session VARCHAR(100);
 ALTER TABLE generated_papers ADD COLUMN IF NOT EXISTS exam_title VARCHAR(255);
+ALTER TABLE generated_papers ADD COLUMN IF NOT EXISTS duration VARCHAR(50);

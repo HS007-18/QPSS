@@ -3,7 +3,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>QPSS - Fix Upload Issue</title>
+    <title>KIT QGen - Fix Upload Issue</title>
     <link rel="stylesheet" href="/css/style.css">
     <style>
         .original-text { background: var(--bg-hover); padding: 12px; border-radius: 8px; font-size: 14px; color: var(--text-muted); margin-bottom: 20px; word-break: break-word; border: 1px solid var(--border); }

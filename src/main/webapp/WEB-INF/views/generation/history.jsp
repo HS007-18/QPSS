@@ -3,7 +3,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>QPSS - Paper History</title>
+    <title>KIT QGen - Paper History</title>
     <link rel="stylesheet" href="/css/style.css">
 </head>
 <body>

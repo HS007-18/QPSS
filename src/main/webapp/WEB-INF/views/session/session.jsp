@@ -4,7 +4,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>QPSS - Session #${session.id}</title>
+    <title>KIT QGen - Session #${session.id}</title>
     <link rel="stylesheet" href="/css/style.css">
 </head>
 <body>

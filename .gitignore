@@ -41,3 +41,9 @@ storage/
 *.log
 *.err
 .env
+
+### Custom Build Outputs ###
+target2/
+KIT_QGen_DesktopApp/
+electron-app/
+jpackage_input/

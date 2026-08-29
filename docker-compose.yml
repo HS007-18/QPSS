@@ -3,7 +3,7 @@ services:
     image: mariadb:10.11
     container_name: qpss_db
     environment:
-      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD:-root}
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
       MYSQL_DATABASE: qpss
     volumes:
       - db_data:/var/lib/mysql
@@ -23,8 +23,8 @@ services:
     environment:
       DB_HOST: db
       DB_PORT: 3306
-      DB_USERNAME: root
-      DB_PASSWORD: ${DB_PASSWORD:-root}
+      DB_USERNAME: ${DB_USERNAME}
+      DB_PASSWORD: ${DB_PASSWORD}
     volumes:
       - ./storage:/app/storage
     depends_on:

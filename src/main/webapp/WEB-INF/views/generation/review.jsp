@@ -3,7 +3,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>QPSS - Review Generated Papers</title>
+    <title>KIT QGen - Review Generated Papers</title>
     <link rel="stylesheet" href="/css/style.css">
     <style>
         .warning { background: var(--danger-light); color: var(--danger); padding: 12px 16px; border-radius: 8px; margin-bottom: 20px; font-size: 14px; border: 1px solid var(--danger); }
