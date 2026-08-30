@@ -194,6 +194,8 @@ public class AstToWordRenderer {
                 XWPFRun fallback = p.createRun();
                 fallback.setText(fNode.getHtmlFallback()); // Basic fallback
             }
+        } else if (node instanceof BrNode) {
+            p.createRun().addBreak();
         }
     }
 }

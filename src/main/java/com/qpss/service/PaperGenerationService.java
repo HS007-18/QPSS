@@ -4,12 +4,10 @@ import com.qpss.entity.GeneratedPaper;
 import com.qpss.domain.generation.DiversityAnalyzer;
 import com.qpss.domain.ExamType;
 import com.qpss.entity.Question;
-import com.qpss.service.ExamConfigService;
 import com.qpss.domain.distribution.DistributionPlan;
 import com.qpss.domain.selection.PairingEngine;
 import com.qpss.domain.selection.SelectionEngine;
 import com.qpss.domain.validation.ValidationEngine;
-import com.qpss.service.QuestionSwapService;
 import com.qpss.document.model.HeaderMetadata;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -138,7 +136,49 @@ public class PaperGenerationService {
         return new GenerationResult(sets, Collections.emptyList(), diversityWarning, true);
     }
 
+    @Transactional
+    public GenerationResult generatePartAOnly(String examTypeStr, Long subjectId, Long sessionId, 
+                                              int numSets, String duration, Map<String, Integer> topicCounts,
+                                              PartAOnlyGenerationService partAOnlyGenService) {
+        ExamType examType = ExamType.from(examTypeStr);
+        List<GeneratedSet> sets = new ArrayList<>();
+        List<SelectionEngine.SelectionShortage> allShortages = new ArrayList<>();
 
+        for (int i = 0; i < numSets; i++) {
+            List<Question> selectedQuestions;
+            try {
+                selectedQuestions = partAOnlyGenService.generatePartASet(subjectId, topicCounts);
+            } catch (Exception e) {
+                log.error("Failed to generate FORMAT_3 Part A set", e);
+                SelectionEngine.SelectionShortage shortage = new SelectionEngine.SelectionShortage(0, 2, 0, 50, 0, 50);
+                allShortages.add(shortage);
+                return new GenerationResult(Collections.emptyList(), allShortages, null, false);
+            }
+
+            Map<Long, String> sectionARbt = selectedQuestions.stream()
+                    .collect(Collectors.toMap(Question::getId, Question::getRbt, (a, b) -> a));
+
+            String label = String.valueOf((char) ('A' + i));
+            GeneratedPaper paper = draftService.savePaper(sessionId, subjectId, examType.name(), label);
+            paper.setDuration(duration);
+            draftService.savePaperQuestionsPartAOnly(paper.getId(), selectedQuestions);
+
+            if (i == 0 && !selectedQuestions.isEmpty()) {
+                Question firstQ = selectedQuestions.get(0);
+                if (firstQ.getSourceDocumentId() != null) {
+                    HeaderMetadata metadata = documentMetadataService.extractMetadata(firstQ.getSourceDocumentId());
+                    paper.setExamSession(metadata.getExamSession());
+                    paper.setExamTitle(metadata.getExamTitle());
+                }
+            }
+
+            sets.add(new GeneratedSet(paper, selectedQuestions, Collections.emptyList(), sectionARbt));
+        }
+
+        draftService.deleteDraftsExcluding(sessionId, sets.stream().map(s -> s.getPaper().getId()).collect(Collectors.toSet()));
+
+        return new GenerationResult(sets, Collections.emptyList(), null, true);
+    }
 
     @Transactional
     public void finalizePaper(Long paperId, Long sessionId) {

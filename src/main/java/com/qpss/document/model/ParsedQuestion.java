@@ -16,6 +16,7 @@ public class ParsedQuestion {
     private String rbt;
     private String marksSplit;
     private String questionType;
+    private Integer topic;
 
     public List<QuestionFields> missingFields() {
         List<QuestionFields> missing = new ArrayList<>();

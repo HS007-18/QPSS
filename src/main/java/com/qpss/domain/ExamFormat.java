@@ -2,7 +2,8 @@ package com.qpss.domain;
 
 public enum ExamFormat {
     FORMAT_1,
-    FORMAT_2;
+    FORMAT_2,
+    FORMAT_3;
 
     public static ExamFormat from(String value) {
         if (value == null || value.trim().isEmpty()) {

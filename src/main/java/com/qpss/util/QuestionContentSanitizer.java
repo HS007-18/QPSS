@@ -5,8 +5,8 @@ import org.jsoup.safety.Safelist;
 import org.springframework.stereotype.Component;
 @Component
 public class QuestionContentSanitizer {
-    private static final int MAX_INPUT_LENGTH = 100_000;
-    private static final int MAX_OUTPUT_LENGTH = 200_000;
+    private static final int MAX_INPUT_LENGTH = 5_000_000;
+    private static final int MAX_OUTPUT_LENGTH = 5_500_000;
     private static final Safelist SAFELIST = Safelist.relaxed()
             .addAttributes("img", "src", "alt", "width", "height")
             .addAttributes(":all", "class")

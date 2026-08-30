@@ -87,44 +87,46 @@
                 </c:forEach>
             </div>
 
-            <c:set var="partBQuestion" value="${not empty set.sectionB ? set.sectionB[0].choiceA : null}" />
-            <c:set var="partBMarks" value="${partBQuestion != null ? partBQuestion.marks : 16}" />
-            <div class="section-title">Part B — ${partBMarks} Marks (${set.sectionB.size()} × ${partBMarks} = ${set.sectionB.size() * partBMarks} Marks)</div>
-            <c:forEach var="pair" items="${set.sectionB}">
-                <div class="pair-block">
-                    <div class="question" id="q-${pair.choiceA.id}">
-                        <div class="num">${10 + pair.pairIndex}.(a)</div>
-                        <div class="question-main" style="flex: 1; min-width: 0; display: flex; flex-direction: column;">
-                            <div class="content">${pair.choiceA.questionContent}</div>
-                            <div class="meta" style="margin-top: 12px; flex-wrap: wrap;">
-                                <span class="tag tag-marks"><c:out value="${pair.choiceA.marksSplit != null ? pair.choiceA.marksSplit : pair.choiceA.marks}" />M</span>
-                                <span class="tag tag-unit">U${pair.unit}</span>
-                                <span class="tag tag-rbt"><c:out value="${pair.choiceA.rbt}" /></span>
-                                <c:if test="${not empty pair.choiceA.questionType}">
-                                    <span class="tag tag-type" style="background:var(--bg-hover); color:var(--text-main);"><c:out value="${pair.choiceA.questionType}" /></span>
-                                </c:if>
-                                <button class="btn btn-outline btn-sm swap-btn" data-paper="${set.paper.id}" data-id="${pair.choiceA.id}" style="padding: 4px 8px; font-size: 11px;">Swap</button>
+            <c:if test="${not empty set.sectionB}">
+                <c:set var="partBQuestion" value="${set.sectionB[0].choiceA}" />
+                <c:set var="partBMarks" value="${partBQuestion != null ? partBQuestion.marks : 16}" />
+                <div class="section-title">Part B — ${partBMarks} Marks (${set.sectionB.size()} × ${partBMarks} = ${set.sectionB.size() * partBMarks} Marks)</div>
+                <c:forEach var="pair" items="${set.sectionB}">
+                    <div class="pair-block">
+                        <div class="question" id="q-${pair.choiceA.id}">
+                            <div class="num">${10 + pair.pairIndex}.(a)</div>
+                            <div class="question-main" style="flex: 1; min-width: 0; display: flex; flex-direction: column;">
+                                <div class="content">${pair.choiceA.questionContent}</div>
+                                <div class="meta" style="margin-top: 12px; flex-wrap: wrap;">
+                                    <span class="tag tag-marks"><c:out value="${pair.choiceA.marksSplit != null ? pair.choiceA.marksSplit : pair.choiceA.marks}" />M</span>
+                                    <span class="tag tag-unit">U${pair.unit}</span>
+                                    <span class="tag tag-rbt"><c:out value="${pair.choiceA.rbt}" /></span>
+                                    <c:if test="${not empty pair.choiceA.questionType}">
+                                        <span class="tag tag-type" style="background:var(--bg-hover); color:var(--text-main);"><c:out value="${pair.choiceA.questionType}" /></span>
+                                    </c:if>
+                                    <button class="btn btn-outline btn-sm swap-btn" data-paper="${set.paper.id}" data-id="${pair.choiceA.id}" style="padding: 4px 8px; font-size: 11px;">Swap</button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="or-divider">OR</div>
+                        <div class="question" id="q-${pair.choiceB.id}">
+                            <div class="num">${10 + pair.pairIndex}.(b)</div>
+                            <div class="question-main" style="flex: 1; min-width: 0; display: flex; flex-direction: column;">
+                                <div class="content">${pair.choiceB.questionContent}</div>
+                                <div class="meta" style="margin-top: 12px; flex-wrap: wrap;">
+                                    <span class="tag tag-marks"><c:out value="${pair.choiceB.marksSplit != null ? pair.choiceB.marksSplit : pair.choiceB.marks}" />M</span>
+                                    <span class="tag tag-unit">U${pair.unit}</span>
+                                    <span class="tag tag-rbt"><c:out value="${pair.choiceB.rbt}" /></span>
+                                    <c:if test="${not empty pair.choiceB.questionType}">
+                                        <span class="tag tag-type" style="background:var(--bg-hover); color:var(--text-main);"><c:out value="${pair.choiceB.questionType}" /></span>
+                                    </c:if>
+                                    <button class="btn btn-outline btn-sm swap-btn" data-paper="${set.paper.id}" data-id="${pair.choiceB.id}" style="padding: 4px 8px; font-size: 11px;">Swap</button>
+                                </div>
                             </div>
                         </div>
                     </div>
-                    <div class="or-divider">OR</div>
-                    <div class="question" id="q-${pair.choiceB.id}">
-                        <div class="num">${10 + pair.pairIndex}.(b)</div>
-                        <div class="question-main" style="flex: 1; min-width: 0; display: flex; flex-direction: column;">
-                            <div class="content">${pair.choiceB.questionContent}</div>
-                            <div class="meta" style="margin-top: 12px; flex-wrap: wrap;">
-                                <span class="tag tag-marks"><c:out value="${pair.choiceB.marksSplit != null ? pair.choiceB.marksSplit : pair.choiceB.marks}" />M</span>
-                                <span class="tag tag-unit">U${pair.unit}</span>
-                                <span class="tag tag-rbt"><c:out value="${pair.choiceB.rbt}" /></span>
-                                <c:if test="${not empty pair.choiceB.questionType}">
-                                    <span class="tag tag-type" style="background:var(--bg-hover); color:var(--text-main);"><c:out value="${pair.choiceB.questionType}" /></span>
-                                </c:if>
-                                <button class="btn btn-outline btn-sm swap-btn" data-paper="${set.paper.id}" data-id="${pair.choiceB.id}" style="padding: 4px 8px; font-size: 11px;">Swap</button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </c:forEach>
+                </c:forEach>
+            </c:if>
         </div>
     </c:forEach>
 

@@ -1,4 +1,4 @@
-﻿<%@ page contentType="text/html;charset=UTF-8" pageEncoding="UTF-8" %>
+<%@ page contentType="text/html;charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <!DOCTYPE html>
 <html>
@@ -106,13 +106,15 @@
 
             <c:if test="${empty question.rbt}">
                 <div class="form-group">
-                    <label class="form-label">RBT Level (R, U, AP, AZ):</label>
+                    <label class="form-label">RBT Level (R, U, AP, AZ, E, C):</label>
                     <select name="rbt" style="border-color: var(--danger); box-shadow: 0 0 0 3px var(--danger-light);" required>
                         <option value="" disabled selected>Select missing RBT level...</option>
                         <option value="R">R - Remember</option>
                         <option value="U">U - Understand</option>
                         <option value="AP">AP - Apply</option>
                         <option value="AZ">AZ - Analyse</option>
+                        <option value="E">E - Evaluate</option>
+                        <option value="C">C - Create</option>
                     </select>
                 </div>
             </c:if>

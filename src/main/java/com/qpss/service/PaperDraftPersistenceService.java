@@ -92,4 +92,17 @@ public class PaperDraftPersistenceService {
                     .build());
         }
     }
+
+    @Transactional
+    public void savePaperQuestionsPartAOnly(Long paperId, List<Question> partAQuestions) {
+        for (int i = 0; i < partAQuestions.size(); i++) {
+            paperQuestionRepo.save(PaperQuestion.builder()
+                    .paperId(paperId)
+                    .questionId(partAQuestions.get(i).getId())
+                    .section("SECTION_A")
+                    .questionNumber(i + 1)
+                    .displayRbt(partAQuestions.get(i).getRbt())
+                    .build());
+        }
+    }
 }

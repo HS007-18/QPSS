@@ -1,7 +1,5 @@
 package com.qpss.document.renderer;
 
-import com.qpss.entity.Session;
-import com.qpss.document.renderer.DocxMasterTableRenderer;
 
 import com.qpss.entity.GeneratedPaper;
 

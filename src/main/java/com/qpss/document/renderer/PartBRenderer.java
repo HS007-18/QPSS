@@ -49,7 +49,7 @@ public class PartBRenderer {
             XWPFTableRow r = getOrCreateRow(table, rIdx++);
             setCellText(r.getCell(0),
                     pq.getQuestionNumber() + ".\u00A0(" + (pq.getChoiceLabel() != null ? pq.getChoiceLabel() : "a") + ")",
-                    ParagraphAlignment.CENTER, false, 10);
+                    ParagraphAlignment.LEFT, false, 10);
             // Left alignment for questions
             renderQuestionCell(r.getCell(1), q, ParagraphAlignment.LEFT);
             setCellText(r.getCell(2), q != null ? marksLabel(q) : "", ParagraphAlignment.CENTER, false, 10);

@@ -50,7 +50,7 @@ public class PartARenderer {
                 continue;
 
             XWPFTableRow r = getOrCreateRow(table, rIdx++);
-            setCellText(r.getCell(0), String.valueOf(pq.getQuestionNumber()), ParagraphAlignment.CENTER, false, 10);
+            setCellText(r.getCell(0), pq.getQuestionNumber() + ".", ParagraphAlignment.LEFT, false, 10);
             // Left alignment for questions
             renderQuestionCell(r.getCell(1), q, ParagraphAlignment.LEFT);
             setCellText(r.getCell(2), marksLabel(q), ParagraphAlignment.CENTER, false, 10);

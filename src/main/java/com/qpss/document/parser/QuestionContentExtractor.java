@@ -18,14 +18,22 @@ import java.util.List;
 
 public class QuestionContentExtractor {
 
+    private static class ListCounters {
+        int lowerLetter = 0;
+        int decimal = 0;
+        int upperLetter = 0;
+    }
+
     public ContentExtractionResult extractStructuredContent(XWPFTableCell cell, XWPFDocument document) {
         if (cell == null) return new ContentExtractionResult(new ArrayList<>(), "");
         List<AstNode> nodes = new ArrayList<>();
         StringBuilder html = new StringBuilder();
+        
+        ListCounters counters = new ListCounters();
 
         for (IBodyElement element : cell.getBodyElements()) {
             if (element instanceof XWPFParagraph) {
-                ParagraphNode pNode = processParagraph((XWPFParagraph) element, html);
+                ParagraphNode pNode = processParagraph((XWPFParagraph) element, html, counters);
                 if (pNode != null) nodes.add(pNode);
             } else if (element instanceof XWPFTable) {
                 TableNode tNode = processTable((XWPFTable) element, html, document);
@@ -35,14 +43,46 @@ public class QuestionContentExtractor {
         return new ContentExtractionResult(nodes, html.toString().trim());
     }
 
-    private ParagraphNode processParagraph(XWPFParagraph para, StringBuilder html) {
+    private ParagraphNode processParagraph(XWPFParagraph para, StringBuilder html, ListCounters counters) {
         ParagraphNode pNode = new ParagraphNode();
         pNode.setAlignment(para.getAlignment() != null ? para.getAlignment().toString() : "LEFT");
         
         String numFmt = para.getNumFmt();
         if (numFmt != null) {
             pNode.setListItem(true);
-            pNode.setListSymbol(para.getNumLevelText());
+            String symbol = para.getNumLevelText();
+            if (symbol != null) {
+                symbol = symbol.replace('\uF0B7', '•')
+                               .replace('\uF0A8', '▪')
+                               .replace('\uF0D8', '➢')
+                               .replace('\uF0FC', '✓')
+                               .replace('\uF0A7', '▪')
+                               .replace('\uF02D', '-')
+                               .replace('\uF076', '✓')
+                               .replace('\u2022', '•');
+                
+                if (symbol.matches(".*%\\d.*")) {
+                    if ("lowerLetter".equals(numFmt)) {
+                        symbol = symbol.replaceAll("%\\d", String.valueOf((char)('a' + counters.lowerLetter)));
+                        counters.lowerLetter++;
+                    } else if ("decimal".equals(numFmt)) {
+                        counters.decimal++;
+                        symbol = symbol.replaceAll("%\\d", String.valueOf(counters.decimal));
+                    } else if ("upperLetter".equals(numFmt)) {
+                        symbol = symbol.replaceAll("%\\d", String.valueOf((char)('A' + counters.upperLetter)));
+                        counters.upperLetter++;
+                    } else {
+                        symbol = "•";
+                    }
+                }
+            } else {
+                symbol = "•";
+            }
+            pNode.setListSymbol(symbol);
+        } else {
+            counters.lowerLetter = 0;
+            counters.decimal = 0;
+            counters.upperLetter = 0;
         }
 
         html.append("<p>");
@@ -79,7 +119,7 @@ public class QuestionContentExtractor {
         int brCount = (run.getCTR() != null && run.getCTR().getBrList() != null) ? run.getCTR().getBrList().size() : 0;
         for (int b = 0; b < brCount; b++) {
             html.append("<br/>");
-            // Could add BrNode to AST, but ignoring for now
+            children.add(new BrNode());
         }
 
         for (XWPFPicture pic : run.getEmbeddedPictures()) {
@@ -108,6 +148,15 @@ public class QuestionContentExtractor {
         }
 
         if (text != null && !text.isEmpty()) {
+            // Replace common MS Word PUA symbol characters with standard Unicode equivalents
+            text = text.replace('\uF0B7', '•')   // Symbol bullet
+                       .replace('\uF0A8', '▪')   // Wingdings square bullet
+                       .replace('\uF0D8', '➢')   // Wingdings right arrow
+                       .replace('\uF0FC', '✓')   // Wingdings checkmark
+                       .replace('\uF0A7', '▪')   // Wingdings square
+                       .replace('\uF02D', '-')   // Symbol dash
+                       .replace('\uF076', '✓')
+                       .replace('\u2022', '•');  // Ensure standard bullet is intact
             TextNode textNode = new TextNode();
             textNode.setText(text);
             textNode.setBold(run.isBold());

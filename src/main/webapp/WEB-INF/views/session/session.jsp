@@ -70,13 +70,44 @@
                         </select>
                     </div>
 
-                    <div id="dynamic-counts" style="display:none; gap: 16px; margin-bottom: 16px;">
+                    <div id="dynamic-counts" style="display:flex; gap: 16px; margin-bottom: 16px;">
                         <div class="form-group" style="flex:1; margin-bottom:0;">
                             <label class="form-label">Paper Format</label>
                             <select name="format" id="paperFormat">
                                 <option value="FORMAT_1">Format 1 (10x2M, 5x16M)</option>
                                 <option value="FORMAT_2">Format 2 (5x20M)</option>
+                                <option value="FORMAT_3">Format 3 (50x2M - Part A Only)</option>
                             </select>
+                        </div>
+                    </div>
+
+                    <div id="topic-picker" style="display:none; background: var(--bg-hover); padding: 16px; border-radius: 8px; margin-bottom: 24px; border: 1px solid var(--border);">
+                        <h4 style="margin-top:0; margin-bottom: 12px;">Select Topic Distribution</h4>
+                        <table class="table" style="background: var(--bg); margin-bottom: 12px;">
+                            <thead>
+                                <tr>
+                                    <th>Unit</th>
+                                    <th>Topic / Half</th>
+                                    <th>Available</th>
+                                    <th>Required Count</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <c:forEach var="stat" items="${topicStats}">
+                                    <tr>
+                                        <td>${stat.unit}</td>
+                                        <td>${stat.topic}</td>
+                                        <td>${stat.count}</td>
+                                        <td>
+                                            <input type="number" name="topic_${stat.unit}_${stat.topic}" class="topic-input" value="0" min="0" max="${stat.count}" style="width: 80px; padding: 4px;">
+                                        </td>
+                                    </tr>
+                                </c:forEach>
+                            </tbody>
+                        </table>
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <strong>Total Selected: <span id="topic-total">0</span> / 50</strong>
+                            <span id="topic-error" style="color: red; display: none; font-size: 13px;">Total must be exactly 50</span>
                         </div>
                     </div>
 
@@ -113,6 +144,8 @@
                                 <option value="U">U</option>
                                 <option value="AP">AP</option>
                                 <option value="AZ">AZ</option>
+                                <option value="E">E</option>
+                                <option value="C">C</option>
                             </select>
                             <select name="co" required>
                                 <option value="">CO</option>
@@ -181,12 +214,55 @@
 <script>
     let isFetchingDefaults = false;
 
+    function validateTopicTotal() {
+        let total = 0;
+        document.querySelectorAll('.topic-input').forEach(input => {
+            total += parseInt(input.value) || 0;
+        });
+        document.getElementById('topic-total').textContent = total;
+        
+        const submitBtn = document.querySelector('form[action="/sessions/${session.id}/generate"] button[type="submit"]');
+        const errorSpan = document.getElementById('topic-error');
+        const format = document.getElementById('paperFormat')?.value;
+        
+        if (format === 'FORMAT_3') {
+            if (total !== 50) {
+                submitBtn.disabled = true;
+                errorSpan.style.display = 'inline';
+                document.getElementById('topic-total').style.color = 'red';
+            } else {
+                submitBtn.disabled = false;
+                errorSpan.style.display = 'none';
+                document.getElementById('topic-total').style.color = 'green';
+            }
+        } else {
+            if (submitBtn) submitBtn.disabled = false;
+            if (errorSpan) errorSpan.style.display = 'none';
+        }
+    }
+
+    document.querySelectorAll('.topic-input').forEach(input => {
+        input.addEventListener('input', validateTopicTotal);
+    });
+
     function fetchPreview() {
         const type = document.getElementById('examType').value;
         const format = document.getElementById('paperFormat').value;
         const previewBox = document.getElementById('preview-box');
+        const topicPicker = document.getElementById('topic-picker');
 
         if (!type) return;
+
+        if (format === 'FORMAT_3') {
+            topicPicker.style.display = 'block';
+            previewBox.style.display = 'none';
+            document.getElementById('dynamic-counts').style.display = 'flex';
+            validateTopicTotal();
+            return;
+        } else {
+            topicPicker.style.display = 'none';
+            validateTopicTotal(); // re-enable submit button
+        }
 
         let url = '/sessions/${session.id}/generate/preview?examType=' + encodeURIComponent(type) + '&format=' + encodeURIComponent(format);
 

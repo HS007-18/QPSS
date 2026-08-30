@@ -1,9 +1,7 @@
 package com.qpss.service;
 
-import com.qpss.service.ExamConfigService;
 import com.qpss.repository.ExamConfigRepository;
 import com.qpss.repository.ExamSectionConfigRepository;
-import com.qpss.service.DistributionCalculationService;
 import com.qpss.domain.distribution.DistributionPlan;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

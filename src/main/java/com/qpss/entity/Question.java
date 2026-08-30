@@ -61,6 +61,9 @@ public class Question {
     @Column(name = "question_type", length = 10)
     private String questionType;
 
+    @Column(name = "topic")
+    private Integer topic;
+
     @PrePersist
     @PreUpdate
     private void validateT() {

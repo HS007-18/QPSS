@@ -2,7 +2,6 @@ package com.qpss.document.renderer;
 
 import com.qpss.entity.GeneratedPaper;
 import org.apache.poi.xwpf.usermodel.*;
-import org.openxmlformats.schemas.wordprocessingml.x2006.main.STMerge;
 
 public class SignaturesRenderer {
 
@@ -29,7 +28,7 @@ public class SignaturesRenderer {
             setCellText(r2.getCell(2), "\u2026\u2026\u2026\u2026\u2026\u2026\u2026\u2026\u2026\u2026\u2026\u2026\u2026\u2026\u2026\u2026\nScrutiny Member", ParagraphAlignment.CENTER, false, 11);
         } else {
             XWPFTableRow r1 = getOrCreateRowSignatures(table, rIdx++);
-            setCellText(r1.getCell(0), "Verified by", ParagraphAlignment.CENTER, false, 11);
+            setCellText(r1.getCell(0), "Prepared by", ParagraphAlignment.CENTER, false, 11);
             setCellText(r1.getCell(1), "Approved by", ParagraphAlignment.CENTER, false, 11);
             setCellText(r1.getCell(2), "Audited by", ParagraphAlignment.CENTER, false, 11);
 

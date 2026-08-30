@@ -1,7 +1,5 @@
 package com.qpss.document.renderer;
 
-import com.qpss.entity.Session;
-import com.qpss.domain.ExamType;
 
 import com.qpss.entity.GeneratedPaper;
 import com.qpss.entity.Subject;

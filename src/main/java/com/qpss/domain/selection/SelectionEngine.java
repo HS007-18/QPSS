@@ -1,7 +1,5 @@
 package com.qpss.domain.selection;
 
-import com.qpss.entity.Session;
-import com.qpss.entity.Subject;
 import com.qpss.entity.Question;
 import com.qpss.repository.QuestionRepository;
 import com.qpss.domain.distribution.DistributionPlan;

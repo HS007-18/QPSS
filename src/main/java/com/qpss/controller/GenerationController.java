@@ -35,6 +35,7 @@ public class GenerationController {
     private final DocxRendererService docxRendererService;
     private final ExamConfigService examConfigService;
     private final QuestionContentSanitizer contentSanitizer;
+    private final com.qpss.service.PartAOnlyGenerationService partAOnlyGenService;
 
     @GetMapping("/preview")
     @ResponseBody
@@ -49,6 +50,7 @@ public class GenerationController {
                             @RequestParam(defaultValue = "1") int numSets,
                             @RequestParam(defaultValue = "FORMAT_1") String format,
                             @RequestParam(defaultValue = "Three Hours") String duration,
+                            @RequestParam Map<String, String> allParams,
                             Model model,
                             RedirectAttributes redirect) {
         if (numSets < 1 || numSets > 10) {
@@ -56,8 +58,23 @@ public class GenerationController {
         }
         ExamType.from(examType);
         var session = sessionService.findById(sessionId);
-        var result = generationService.generate(
-                examType, session.getSubjectId(), sessionId, numSets, format, duration);
+        PaperGenerationService.GenerationResult result;
+        
+        if ("FORMAT_3".equals(format)) {
+            Map<String, Integer> topicCounts = new HashMap<>();
+            allParams.forEach((k, v) -> {
+                if (k.startsWith("topic_")) {
+                    String key = k.substring("topic_".length());
+                    try {
+                        int count = Integer.parseInt(v);
+                        if (count > 0) topicCounts.put(key, count);
+                    } catch (NumberFormatException ignored) {}
+                }
+            });
+            result = generationService.generatePartAOnly(examType, session.getSubjectId(), sessionId, numSets, duration, topicCounts, partAOnlyGenService);
+        } else {
+            result = generationService.generate(examType, session.getSubjectId(), sessionId, numSets, format, duration);
+        }
 
         if (!result.isSuccessful()) {
             redirect.addFlashAttribute("shortages", result.getShortages());

@@ -1,7 +1,5 @@
 package com.qpss.document.parser;
 
-import com.qpss.document.model.ast.AstNode;
-import com.qpss.document.parser.QuestionContentExtractor;
 import com.qpss.document.model.ParsedQuestion;
 import com.qpss.document.model.QuestionConstants;
 import com.qpss.document.model.QuestionParseResult;
@@ -25,15 +23,13 @@ public class QuestionRowParser {
         List<XWPFTableCell> cells = row.getTableCells();
 
         String snoStr = cellText(cells, layout.indexOf(ColumnLayout.Role.SNO));
-        if (isBlank(snoStr)) {
-            return null;
-        }
-
-        Integer serialNo;
-        try {
-            serialNo = Integer.parseInt(snoStr.replaceAll("[^0-9]", ""));
-        } catch (NumberFormatException e) {
-            return null;
+        Integer serialNo = 0;
+        if (!isBlank(snoStr)) {
+            try {
+                serialNo = Integer.parseInt(snoStr.replaceAll("[^0-9]", ""));
+            } catch (NumberFormatException e) {
+                serialNo = 0;
+            }
         }
 
         com.qpss.document.parser.ContentExtractionResult contentResult = contentExtractor.extractStructuredContent(
@@ -53,7 +49,9 @@ public class QuestionRowParser {
         String marksSplit = parseMarksSplit(marksRaw, marks);
         String rbt = normalizeRbt(cellText(cells, layout.indexOf(ColumnLayout.Role.RBT)));
         String co = cellText(cells, layout.indexOf(ColumnLayout.Role.CO));
-        Integer t = parseT(cellText(cells, layout.indexOf(ColumnLayout.Role.T)));
+        Integer[] tAndTopic = parseTAndTopic(cellText(cells, layout.indexOf(ColumnLayout.Role.T)));
+        Integer t = tAndTopic[0];
+        Integer topic = tAndTopic[1];
         String questionType = normalizeType(cellText(cells, layout.indexOf(ColumnLayout.Role.TYPE)));
 
         Integer resolvedUnit = currentUnit;
@@ -68,7 +66,7 @@ public class QuestionRowParser {
             }
         }
 
-        return ParsedQuestion.builder()
+        ParsedQuestion pq = ParsedQuestion.builder()
                 .serialNo(serialNo)
                 .questionContent(isBlank(questionContent) ? null : questionContent)
                 .structuredContent(structuredContent)
@@ -77,9 +75,17 @@ public class QuestionRowParser {
                 .rbt(rbt)
                 .co(isBlank(co) ? null : co)
                 .t(t)
+                .topic(topic)
                 .unit(resolvedUnit)
                 .questionType(questionType)
                 .build();
+
+        if (!pq.isComplete()) {
+            result.addError("Question S.No " + serialNo + " is incomplete, missing fields: " + pq.missingFields());
+            return null;
+        }
+
+        return pq;
     }
 
     private String parseMarksSplit(String raw, Integer marks) {
@@ -126,22 +132,41 @@ public class QuestionRowParser {
         return QuestionConstants.RBT_VALUES.contains(rbt) ? rbt : null;
     }
 
-    private Integer parseT(String raw) {
+    private Integer[] parseTAndTopic(String raw) {
         if (isBlank(raw)) {
-            return null;
+            return new Integer[]{null, null};
         }
-        String value = raw.trim();
-        if (value.equalsIgnoreCase("I")) {
-            return 1;
-        }
-        if (value.equalsIgnoreCase("II")) {
-            return 2;
-        }
+        String value = raw.trim().toUpperCase();
+        if (value.equals("I")) return new Integer[]{1, 1};
+        if (value.equals("II")) return new Integer[]{2, 2};
+        if (value.equals("III")) return new Integer[]{1, 3};
+        if (value.equals("IV")) return new Integer[]{1, 4};
+        if (value.equals("V")) return new Integer[]{1, 5};
+        if (value.equals("VI")) return new Integer[]{1, 6};
+        if (value.equals("VII")) return new Integer[]{1, 7};
+        if (value.equals("VIII")) return new Integer[]{1, 8};
+        if (value.equals("IX")) return new Integer[]{1, 9};
+        if (value.equals("X")) return new Integer[]{1, 10};
+        if (value.equals("XI")) return new Integer[]{1, 11};
+        if (value.equals("XII")) return new Integer[]{1, 12};
+        if (value.equals("XIII")) return new Integer[]{1, 13};
+        if (value.equals("XIV")) return new Integer[]{1, 14};
+        if (value.equals("XV")) return new Integer[]{1, 15};
+        if (value.equals("XVI")) return new Integer[]{1, 16};
+        if (value.equals("XVII")) return new Integer[]{1, 17};
+        if (value.equals("XVIII")) return new Integer[]{1, 18};
+        if (value.equals("XIX")) return new Integer[]{1, 19};
+        if (value.equals("XX")) return new Integer[]{1, 20};
+
         try {
-            Integer t = Integer.parseInt(value.replaceAll("[^0-9]", ""));
-            return QuestionConstants.T_VALUES.contains(t) ? t : null;
+            Integer numericVal = Integer.parseInt(value.replaceAll("[^0-9]", ""));
+            if (QuestionConstants.T_VALUES.contains(numericVal)) {
+                return new Integer[]{numericVal, numericVal};
+            } else {
+                return new Integer[]{1, numericVal};
+            }
         } catch (NumberFormatException e) {
-            return null;
+            return new Integer[]{null, null};
         }
     }
 

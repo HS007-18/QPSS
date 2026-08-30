@@ -1,7 +1,5 @@
 package com.qpss.document.renderer;
 
-import com.qpss.entity.Question;
-
 import com.qpss.entity.GeneratedPaper;
 import com.qpss.entity.PaperQuestion;
 import com.qpss.repository.QuestionRepository;
@@ -9,20 +7,15 @@ import com.qpss.entity.Subject;
 import com.qpss.document.model.HeaderMetadata;
 import com.qpss.util.LayoutConstants;
 import com.qpss.service.DocumentMetadataService;
-import lombok.RequiredArgsConstructor;
 import org.apache.poi.xwpf.usermodel.XWPFDocument;
 import org.apache.poi.xwpf.usermodel.XWPFTable;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
-import java.io.ByteArrayInputStream;
 import java.util.List;
 
 @Component
 public class DocxMasterTableRenderer {
 
-    private static final Logger log = LoggerFactory.getLogger(DocxMasterTableRenderer.class);
 
     private final QuestionRepository questionRepository;
     private final DocumentMetadataService documentMetadataService;
@@ -77,7 +70,9 @@ public class DocxMasterTableRenderer {
         rowIndex = partARenderer.renderPartA(table, rowIndex, sectionA);
 
         // --- 5. PART B SECTION ---
-        rowIndex = partBRenderer.renderPartB(table, rowIndex, sectionB);
+        if (sectionB != null && !sectionB.isEmpty()) {
+            rowIndex = partBRenderer.renderPartB(table, rowIndex, sectionB);
+        }
 
         // Remove borders from the master table (only ToS will have borders)
         table.removeBorders();

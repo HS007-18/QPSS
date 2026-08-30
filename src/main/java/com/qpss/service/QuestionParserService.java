@@ -44,6 +44,7 @@ public class QuestionParserService {
                     .structuredContent(p.getStructuredContent())
                     .sourceFileName(sourceFileName)
                     .t(p.getT())
+                    .topic(p.getTopic())
                     .questionType(p.getQuestionType())
                     .build());
         }

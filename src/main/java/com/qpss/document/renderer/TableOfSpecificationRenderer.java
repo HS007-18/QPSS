@@ -5,7 +5,6 @@ import com.qpss.entity.Question;
 import com.qpss.repository.QuestionRepository;
 import org.apache.poi.xwpf.usermodel.*;
 import org.openxmlformats.schemas.wordprocessingml.x2006.main.STMerge;
-import org.openxmlformats.schemas.wordprocessingml.x2006.main.STTblWidth;
 
 import java.math.BigInteger;
 import java.util.HashMap;
@@ -23,10 +22,17 @@ public class TableOfSpecificationRenderer {
     public void renderTableOfSpecification(XWPFDocument document, List<PaperQuestion> sectionA, List<PaperQuestion> sectionB) {
         document.createParagraph().createRun().addBreak();
 
-        XWPFTable table = document.createTable(1, 5);
+        boolean hasPartB = sectionB != null && !sectionB.isEmpty();
+        int cols = hasPartB ? 5 : 4;
+        XWPFTable table = document.createTable(1, cols);
         table.setWidth("100%");
         table.setCellMargins(40, 80, 40, 80);
-        setColumnWidths(table, new int[] { 3000, 1500, 1500, 1500, 2300 });
+        
+        if (hasPartB) {
+            setColumnWidths(table, new int[] { 3000, 1500, 1500, 1500, 2300 });
+        } else {
+            setColumnWidths(table, new int[] { 3000, 1500, 2000, 2300 });
+        }
 
         org.openxmlformats.schemas.wordprocessingml.x2006.main.CTTblPr tblPr = table.getCTTbl().getTblPr();
         if (tblPr == null) tblPr = table.getCTTbl().addNewTblPr();
@@ -34,26 +40,44 @@ public class TableOfSpecificationRenderer {
         styleStr.setVal("TableGrid");
 
         int rIdx = 0;
-        XWPFTableRow rTitle = getOrCreateRow(table, rIdx++);
-        mergeCells(rTitle, 0, 4);
+        XWPFTableRow rTitle = getOrCreateRow(table, rIdx++, cols);
+        mergeCells(rTitle, 0, cols - 1);
         setCellText(rTitle.getCell(0), "TABLE OF SPECIFICATION", ParagraphAlignment.CENTER, true, 10);
 
-        XWPFTableRow rH1 = getOrCreateRow(table, rIdx++);
+        XWPFTableRow rH1 = getOrCreateRow(table, rIdx++, cols);
         mergeCells(rH1, 0, 1);
-        setCellText(rH1.getCell(0), "Revised Bloom\u2019s Taxonomy (RBT)", ParagraphAlignment.CENTER, false, 10);
-        mergeCells(rH1, 2, 3);
-        setCellText(rH1.getCell(2), "Marks Distribution", ParagraphAlignment.CENTER, false, 10);
-        setCellText(rH1.getCell(4), "Total Marks", ParagraphAlignment.CENTER, false, 10);
+        setCellText(rH1.getCell(0), "Revised Bloom\u2019s Taxonomy (RBT)\nCognitive Levels", ParagraphAlignment.CENTER, false, 10);
+        
+        if (hasPartB) {
+            mergeCells(rH1, 2, 3);
+            setCellText(rH1.getCell(2), "Marks Distribution", ParagraphAlignment.CENTER, false, 10);
+            setCellText(rH1.getCell(4), "Total Marks", ParagraphAlignment.CENTER, false, 10);
+        } else {
+            setCellText(rH1.getCell(2), "Marks Distribution", ParagraphAlignment.CENTER, false, 10);
+            setCellText(rH1.getCell(3), "Total Marks", ParagraphAlignment.CENTER, false, 10);
+        }
 
-        XWPFTableRow rH2 = getOrCreateRow(table, rIdx++);
+        XWPFTableRow rH2 = getOrCreateRow(table, rIdx++, cols);
         mergeCells(rH2, 0, 1);
-        setCellText(rH2.getCell(0), "Cognitive Levels", ParagraphAlignment.CENTER, false, 10);
-        setCellText(rH2.getCell(2), "Part - A", ParagraphAlignment.CENTER, false, 10);
-        setCellText(rH2.getCell(3), "Part - B", ParagraphAlignment.CENTER, false, 10);
-        setCellText(rH2.getCell(4), "", ParagraphAlignment.CENTER, false, 10);
+        setCellText(rH2.getCell(0), "", ParagraphAlignment.CENTER, false, 10);
+        
+        if (hasPartB) {
+            setCellText(rH2.getCell(2), "Part - A", ParagraphAlignment.CENTER, false, 10);
+            setCellText(rH2.getCell(3), "Part - B", ParagraphAlignment.CENTER, false, 10);
+            setCellText(rH2.getCell(4), "", ParagraphAlignment.CENTER, false, 10);
+            mergeCellsVertically(table, 0, 1, 2);
+            mergeCellsVertically(table, 1, 1, 2);
+            mergeCellsVertically(table, 4, 1, 2);
+        } else {
+            setCellText(rH2.getCell(2), "Part - A", ParagraphAlignment.CENTER, false, 10);
+            setCellText(rH2.getCell(3), "", ParagraphAlignment.CENTER, false, 10);
+            mergeCellsVertically(table, 0, 1, 2);
+            mergeCellsVertically(table, 1, 1, 2);
+            mergeCellsVertically(table, 3, 1, 2);
+        }
 
         Map<String, Integer> marksA = calculateRbtMarks(sectionA);
-        Map<String, Integer> marksB = calculateRbtMarks(sectionB);
+        Map<String, Integer> marksB = hasPartB ? calculateRbtMarks(sectionB) : new HashMap<>();
 
         String[][] rbtLevels = {
                 { "Remember", "R" },
@@ -68,27 +92,37 @@ public class TableOfSpecificationRenderer {
 
         for (String[] level : rbtLevels) {
             String name = level[0];
-            String code = level[1];
+            String code = level[1].toUpperCase();
             int mA = marksA.getOrDefault(code, 0);
             int mB = marksB.getOrDefault(code, 0);
             int total = mA + mB;
             totalA += mA;
             totalB += mB;
 
-            XWPFTableRow rLevel = getOrCreateRow(table, rIdx++);
+            XWPFTableRow rLevel = getOrCreateRow(table, rIdx++, cols);
             setCellText(rLevel.getCell(0), name, ParagraphAlignment.CENTER, false, 10);
             setCellText(rLevel.getCell(1), code, ParagraphAlignment.CENTER, false, 10);
             setCellText(rLevel.getCell(2), mA > 0 ? String.valueOf(mA) : "", ParagraphAlignment.CENTER, false, 10);
-            setCellText(rLevel.getCell(3), mB > 0 ? String.valueOf(mB) : "", ParagraphAlignment.CENTER, false, 10);
-            setCellText(rLevel.getCell(4), total > 0 ? String.valueOf(total) : "", ParagraphAlignment.CENTER, false, 10);
+            
+            if (hasPartB) {
+                setCellText(rLevel.getCell(3), mB > 0 ? String.valueOf(mB) : "", ParagraphAlignment.CENTER, false, 10);
+                setCellText(rLevel.getCell(4), total > 0 ? String.valueOf(total) : "", ParagraphAlignment.CENTER, false, 10);
+            } else {
+                setCellText(rLevel.getCell(3), total > 0 ? String.valueOf(total) : "", ParagraphAlignment.CENTER, false, 10);
+            }
         }
 
-        XWPFTableRow rTot = getOrCreateRow(table, rIdx++);
+        XWPFTableRow rTot = getOrCreateRow(table, rIdx++, cols);
         mergeCells(rTot, 0, 1);
         setCellText(rTot.getCell(0), "Total Marks", ParagraphAlignment.CENTER, false, 10);
         setCellText(rTot.getCell(2), String.valueOf(totalA), ParagraphAlignment.CENTER, false, 10);
-        setCellText(rTot.getCell(3), String.valueOf(totalB), ParagraphAlignment.CENTER, false, 10);
-        setCellText(rTot.getCell(4), String.valueOf(totalA + totalB), ParagraphAlignment.CENTER, false, 10);
+        
+        if (hasPartB) {
+            setCellText(rTot.getCell(3), String.valueOf(totalB), ParagraphAlignment.CENTER, false, 10);
+            setCellText(rTot.getCell(4), String.valueOf(totalA + totalB), ParagraphAlignment.CENTER, false, 10);
+        } else {
+            setCellText(rTot.getCell(3), String.valueOf(totalA), ParagraphAlignment.CENTER, false, 10);
+        }
 
         for (XWPFTableRow row : table.getRows()) {
             for (XWPFTableCell cell : row.getTableCells()) {
@@ -100,7 +134,14 @@ public class TableOfSpecificationRenderer {
 
     private Map<String, Integer> calculateRbtMarks(List<PaperQuestion> pqs) {
         Map<String, Integer> res = new HashMap<>();
+        java.util.Set<Integer> processedQuestionNumbers = new java.util.HashSet<>();
+        
         for (PaperQuestion pq : pqs) {
+            // Only count one choice per question number (e.g., process 11a, ignore 11b)
+            if (!processedQuestionNumbers.add(pq.getQuestionNumber())) {
+                continue;
+            }
+            
             Question q = questionRepository.findById(pq.getQuestionId()).orElse(null);
             if (q != null && q.getRbt() != null && q.getMarks() != null) {
                 String code = q.getRbt().trim().toUpperCase();
@@ -111,12 +152,12 @@ public class TableOfSpecificationRenderer {
     }
 
     // Helper methods
-    private XWPFTableRow getOrCreateRow(XWPFTable table, int index) {
+    private XWPFTableRow getOrCreateRow(XWPFTable table, int index, int cols) {
         while (table.getRows().size() <= index) {
             table.createRow();
         }
         XWPFTableRow row = table.getRow(index);
-        while (row.getTableCells().size() < 5) {
+        while (row.getTableCells().size() < cols) {
             row.createCell();
         }
         return row;
@@ -132,6 +173,20 @@ public class TableOfSpecificationRenderer {
                 tcPr.getHMerge().setVal(cellIndex == fromCol ? STMerge.RESTART : STMerge.CONTINUE);
             } else {
                 tcPr.addNewHMerge().setVal(cellIndex == fromCol ? STMerge.RESTART : STMerge.CONTINUE);
+            }
+        }
+    }
+
+    private void mergeCellsVertically(XWPFTable table, int col, int fromRow, int toRow) {
+        for (int rowIndex = fromRow; rowIndex <= toRow; rowIndex++) {
+            XWPFTableCell cell = table.getRow(rowIndex).getCell(col);
+            org.openxmlformats.schemas.wordprocessingml.x2006.main.CTTcPr tcPr = cell.getCTTc().isSetTcPr()
+                    ? cell.getCTTc().getTcPr()
+                    : cell.getCTTc().addNewTcPr();
+            if (tcPr.isSetVMerge()) {
+                tcPr.getVMerge().setVal(rowIndex == fromRow ? STMerge.RESTART : STMerge.CONTINUE);
+            } else {
+                tcPr.addNewVMerge().setVal(rowIndex == fromRow ? STMerge.RESTART : STMerge.CONTINUE);
             }
         }
     }

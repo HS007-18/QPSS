@@ -13,7 +13,8 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
     @JsonSubTypes.Type(value = TableNode.class, name = "table"),
     @JsonSubTypes.Type(value = TextNode.class, name = "text"),
     @JsonSubTypes.Type(value = FormulaNode.class, name = "formula"),
-    @JsonSubTypes.Type(value = ImageNode.class, name = "image")
+    @JsonSubTypes.Type(value = ImageNode.class, name = "image"),
+    @JsonSubTypes.Type(value = BrNode.class, name = "br")
 })
 public interface AstNode {
 }

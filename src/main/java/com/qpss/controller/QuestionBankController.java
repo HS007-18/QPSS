@@ -26,14 +26,44 @@ public class QuestionBankController {
     private final SubjectService subjectService;
     private final QuestionContentSanitizer contentSanitizer;
 
+    private final com.qpss.repository.QuestionRepository questionRepository;
+
     @GetMapping
     public String session(@PathVariable Long sessionId, Model model) {
         var session = sessionService.findById(sessionId);
         var questions = bankService.getQuestionsBySubjectId(session.getSubjectId());
         questions.forEach(q -> q.setQuestionContent(contentSanitizer.sanitize(q.getQuestionContent())));
+        
+        // Fetch dynamic unit/topic stats for FORMAT_3 UI
+        java.util.Map<String, Integer> statsMap = new java.util.HashMap<>();
+        for (com.qpss.entity.Question q : questions) {
+            if (q.getMarks() != null && q.getMarks() == 2) {
+                Integer identifier = q.getTopic() != null ? q.getTopic() : q.getT();
+                if (identifier != null) {
+                    String key = q.getUnit() + "_" + identifier;
+                    statsMap.put(key, statsMap.getOrDefault(key, 0) + 1);
+                }
+            }
+        }
+        java.util.List<java.util.Map<String, Object>> topicStats = new java.util.ArrayList<>();
+        for (java.util.Map.Entry<String, Integer> entry : statsMap.entrySet()) {
+            String[] parts = entry.getKey().split("_");
+            java.util.Map<String, Object> stat = new java.util.HashMap<>();
+            stat.put("unit", Integer.parseInt(parts[0]));
+            stat.put("topic", Integer.parseInt(parts[1]));
+            stat.put("count", entry.getValue());
+            topicStats.add(stat);
+        }
+        topicStats.sort((a, b) -> {
+            int unitCmp = Integer.compare((Integer) a.get("unit"), (Integer) b.get("unit"));
+            if (unitCmp != 0) return unitCmp;
+            return Integer.compare((Integer) a.get("topic"), (Integer) b.get("topic"));
+        });
+        
         model.addAttribute("session", session);
         model.addAttribute("subject", subjectService.findById(session.getSubjectId()));
         model.addAttribute("questions", questions);
+        model.addAttribute("topicStats", topicStats);
         return "session/session";
     }
 

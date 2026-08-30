@@ -4,7 +4,6 @@ import com.qpss.repository.ExamConfigRepository;
 import com.qpss.entity.ExamConfig;
 import com.qpss.repository.ExamSectionConfigRepository;
 import com.qpss.entity.ExamSectionConfig;
-import com.qpss.service.DistributionCalculationService;
 import com.qpss.domain.distribution.DistributionPlan;
 import com.qpss.document.model.QuestionConstants;
 import com.qpss.domain.ExamType;

@@ -3,8 +3,6 @@ package com.qpss.controller;
 import com.qpss.dto.BulkUploadResult;
 import com.qpss.service.BulkImportOrchestrator;
 import lombok.RequiredArgsConstructor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -15,7 +13,6 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 @RequiredArgsConstructor
 public class BulkUploadController {
 
-    private static final Logger log = LoggerFactory.getLogger(BulkUploadController.class);
 
     private final BulkImportOrchestrator bulkImportOrchestrator;
 
