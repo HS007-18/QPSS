@@ -1,6 +1,5 @@
 package com.qpss.document.renderer;
 
-
 import com.qpss.entity.GeneratedPaper;
 import com.qpss.entity.Subject;
 import com.qpss.document.model.HeaderMetadata;
@@ -13,7 +12,7 @@ import org.openxmlformats.schemas.wordprocessingml.x2006.main.STMerge;
 public class HeaderRenderer {
 
     private static final String INSTITUTION_NAME = "KANGEYAM INSTITUTE OF TECHNOLOGY";
-    private static final String INSTITUTION_TAGLINE = "(An Autonomous Institution)";
+    private static final String INSTITUTION_TAGLINE = "(Autonomous Institution)";
 
     public int renderHeaderBlock(XWPFTable table, int rIdx, GeneratedPaper paper, Subject subject,
             HeaderMetadata metadata) {
@@ -34,16 +33,22 @@ public class HeaderRenderer {
 
         XWPFTableRow nr0 = nested0.getRow(0);
         setCellText(nr0.getCell(0), "QUESTION PAPER CODE:", ParagraphAlignment.LEFT, true, 11);
-        setCellText(nr0.getCell(1), "REG. NO.: ...................................", ParagraphAlignment.RIGHT, true, 11);
+        setCellText(nr0.getCell(1), "REG. NO.: ...................................", ParagraphAlignment.RIGHT, true,
+                11);
         setCellText(nr0.getCell(2), " ", ParagraphAlignment.CENTER, false, 11);
 
-        // Row 1: Institution name (constant) + tagline (constant)
+        // Row 1: Institution name (constant)
         XWPFTableRow r1 = getOrCreateRow(table, rIdx++);
         mergeCells(r1, 0, 4);
         String institution = metadata.getInstitutionName() != null ? metadata.getInstitutionName()
                 : INSTITUTION_NAME;
-        String tagline = metadata.getTagline() != null ? metadata.getTagline() : INSTITUTION_TAGLINE;
-        setCellText(r1.getCell(0), institution + tagline, ParagraphAlignment.CENTER, true, 11);
+        setCellText(r1.getCell(0), institution, ParagraphAlignment.CENTER, true, 14);
+
+        // Row 1a: tagline (constant)
+        XWPFTableRow r1a = getOrCreateRow(table, rIdx++);
+        mergeCells(r1a, 0, 4);
+        String tagline = INSTITUTION_TAGLINE;
+        setCellText(r1a.getCell(0), tagline, ParagraphAlignment.CENTER, true, 11);
 
         // Row 2: Exam title (from metadata or mapped from ExamType)
         XWPFTableRow r2 = getOrCreateRow(table, rIdx++);
@@ -55,7 +60,7 @@ public class HeaderRenderer {
         // Row 3: Academic Year
         XWPFTableRow r3 = getOrCreateRow(table, rIdx++);
         mergeCells(r3, 0, 4);
-        setCellText(r3.getCell(0), "Academic Year: ____________", ParagraphAlignment.CENTER, false, 11);
+        setCellText(r3.getCell(0), "Academic Year: 2025-26", ParagraphAlignment.CENTER, false, 11);
 
         // Row 4: Date / Session
         XWPFTableRow r4 = getOrCreateRow(table, rIdx++);
