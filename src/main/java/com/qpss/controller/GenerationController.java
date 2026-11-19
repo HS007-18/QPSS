@@ -134,11 +134,18 @@ public class GenerationController {
         var paper = generationService.getPaperByIdAndSessionId(paperId, sessionId)
                 .orElseThrow(() -> new IllegalArgumentException("Invalid paper id or session mismatch"));
 
+        generationService.finalizePaper(paperId, sessionId);
+
         byte[] docxBytes = docxRendererService.exportPaperToDocx(paper);
+
+        String setLabel = (paper.getSetLabel() != null && !paper.getSetLabel().isBlank())
+                ? "Set_" + paper.getSetLabel()
+                : String.valueOf(paperId);
+        String filename = "QuestionPaper_" + setLabel + ".docx";
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.valueOf("application/vnd.openxmlformats-officedocument.wordprocessingml.document"));
-        headers.setContentDispositionFormData("attachment", "QuestionPaper_" + paperId + ".docx");
+        headers.setContentDispositionFormData("attachment", filename);
 
         return new ResponseEntity<>(docxBytes, headers, HttpStatus.OK);
     }
