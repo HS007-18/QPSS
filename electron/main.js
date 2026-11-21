@@ -1,6 +1,7 @@
 const { app, BrowserWindow, dialog } = require('electron');
 const { spawn } = require('child_process');
 const path = require('path');
+const fs = require('fs');
 const waitOn = require('wait-on');
 
 let mainWindow;
@@ -80,14 +81,17 @@ app.on('ready', () => {
 
   const isDev = !app.isPackaged;
   const basePath = isDev ? __dirname : process.resourcesPath;
+  const PORT = 8081;
 
-  const javaExe = path.join(basePath, 'jre', 'bin', 'java.exe');
+  const javaBinaryName = process.platform === 'win32' ? 'java.exe' : 'java';
+  const bundledJava = path.join(basePath, 'jre', 'bin', javaBinaryName);
+  const javaExe = fs.existsSync(bundledJava) ? bundledJava : javaBinaryName;
   const warFile = path.join(basePath, 'qpss.war');
 
-  console.log(`Starting Java: ${javaExe} -jar ${warFile}`);
+  console.log(`Starting Java: ${javaExe} -jar ${warFile} --server.port=${PORT}`);
   updateSplashStatus('Starting server...');
 
-  javaProcess = spawn(javaExe, ['-jar', warFile], { cwd: basePath });
+  javaProcess = spawn(javaExe, ['-jar', warFile, `--server.port=${PORT}`], { cwd: basePath });
 
   javaProcess.stdout.on('data', (data) => {
     const line = data.toString();
@@ -114,7 +118,7 @@ app.on('ready', () => {
 
   // Wait for Spring Boot with generous timeout and progress updates
   const opts = {
-    resources: ['http://127.0.0.1:8080'],
+    resources: [`http://127.0.0.1:${PORT}`],
     delay: 500,
     interval: 800,
     timeout: 120000,
@@ -134,7 +138,7 @@ app.on('ready', () => {
       updateSplashStatus('Loading interface...');
       console.log('Server is up, opening window...');
       createWindow();
-      mainWindow.loadURL('http://127.0.0.1:8080');
+      mainWindow.loadURL(`http://127.0.0.1:${PORT}`);
     })
     .catch((err) => {
       clearInterval(progressInterval);
