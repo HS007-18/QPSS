@@ -16,7 +16,6 @@ import java.util.List;
 @Component
 public class DocxMasterTableRenderer {
 
-
     private final QuestionRepository questionRepository;
     private final DocumentMetadataService documentMetadataService;
 
@@ -30,7 +29,7 @@ public class DocxMasterTableRenderer {
     private final SignaturesRenderer signaturesRenderer = new SignaturesRenderer();
 
     public DocxMasterTableRenderer(QuestionRepository questionRepository,
-                                   DocumentMetadataService documentMetadataService) {
+            DocumentMetadataService documentMetadataService) {
         this.questionRepository = questionRepository;
         this.documentMetadataService = documentMetadataService;
         this.partARenderer = new PartARenderer(questionRepository);

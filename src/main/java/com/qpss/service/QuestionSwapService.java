@@ -29,10 +29,6 @@ public class QuestionSwapService {
         GeneratedPaper paper = paperRepo.findById(paperId)
                 .orElseThrow(() -> new IllegalArgumentException("Paper not found"));
 
-        if (Boolean.TRUE.equals(paper.getIsFinal())) {
-            throw new IllegalStateException("Cannot edit finalized paper");
-        }
-
         PaperQuestion oldPq = paperQuestionRepo.findByPaperIdOrderByQuestionNumberAscChoiceLabelAsc(paperId).stream()
                 .filter(pq -> pq.getQuestionId().equals(oldQuestionId))
                 .findFirst()
