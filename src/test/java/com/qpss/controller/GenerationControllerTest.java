@@ -151,4 +151,50 @@ class GenerationControllerTest {
         assertEquals("success", response.getBody().get("status"));
         assertEquals(20L, response.getBody().get("newId"));
     }
+
+    @Test
+    void testGenerate_Format2Dynamic_InvokesGenerateDynamic20M() {
+        Long subjectId = 1L;
+        com.qpss.entity.Subject subject = com.qpss.entity.Subject.builder().id(subjectId).name("Math").build();
+        when(subjectService.findById(subjectId)).thenReturn(subject);
+
+        com.qpss.service.PaperGenerationService.GenerationResult result =
+                new com.qpss.service.PaperGenerationService.GenerationResult("batch-xyz", java.util.Collections.emptyList(), java.util.Collections.emptyList(), null, true);
+
+        when(generationService.generateDynamic20M(eq("SEMESTER"), eq(subjectId), eq(1), eq("Two Hours"), anyMap(), any()))
+                .thenReturn(result);
+
+        org.springframework.ui.ExtendedModelMap model = new org.springframework.ui.ExtendedModelMap();
+        org.springframework.web.servlet.mvc.support.RedirectAttributesModelMap redirect = new org.springframework.web.servlet.mvc.support.RedirectAttributesModelMap();
+
+        String view = generationController.generate(
+                subjectId, "SEMESTER", 1, "FORMAT_2", "Two Hours", java.util.Map.of("count_20_1_1", "1", "count_20_1_2", "1"), model, redirect
+        );
+
+        assertEquals("generation/review", view);
+        verify(generationService).generateDynamic20M(eq("SEMESTER"), eq(subjectId), eq(1), eq("Two Hours"), eq(java.util.Map.of("1_1", 1, "1_2", 1)), any());
+    }
+
+    @Test
+    void testGenerate_Format3Dynamic_InvokesGeneratePartAOnly() {
+        Long subjectId = 1L;
+        com.qpss.entity.Subject subject = com.qpss.entity.Subject.builder().id(subjectId).name("Math").build();
+        when(subjectService.findById(subjectId)).thenReturn(subject);
+
+        com.qpss.service.PaperGenerationService.GenerationResult result =
+                new com.qpss.service.PaperGenerationService.GenerationResult("batch-xyz", java.util.Collections.emptyList(), java.util.Collections.emptyList(), null, true);
+
+        when(generationService.generatePartAOnly(eq("SEMESTER"), eq(subjectId), eq(1), eq("Two Hours"), anyMap(), any()))
+                .thenReturn(result);
+
+        org.springframework.ui.ExtendedModelMap model = new org.springframework.ui.ExtendedModelMap();
+        org.springframework.web.servlet.mvc.support.RedirectAttributesModelMap redirect = new org.springframework.web.servlet.mvc.support.RedirectAttributesModelMap();
+
+        String view = generationController.generate(
+                subjectId, "SEMESTER", 1, "FORMAT_3", "Two Hours", java.util.Map.of("count_2_1_1", "5"), model, redirect
+        );
+
+        assertEquals("generation/review", view);
+        verify(generationService).generatePartAOnly(eq("SEMESTER"), eq(subjectId), eq(1), eq("Two Hours"), eq(java.util.Map.of("1_1", 5)), any());
+    }
 }

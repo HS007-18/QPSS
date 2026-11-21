@@ -72,38 +72,43 @@
                 </div>
             </div>
 
-            <div class="section-title">Part A — 2 Marks (${set.sectionA.size()} × 2 = ${set.sectionA.size() * 2} Marks)</div>
-            <div style="background: var(--color-bg-elevated); border: 1px solid var(--color-border); border-radius: var(--radius-md); overflow: hidden;">
-                <c:forEach var="q" items="${set.sectionA}" varStatus="i">
-                    <div class="question" id="q-${q.id}" ${i.last ? 'style="border-bottom:none;"' : ''}>
-                        <div class="num">${i.count}.</div>
-                        <div class="question-main" style="flex: 1; min-width: 0; display: flex; flex-direction: column;">
-                            <div class="content">${q.questionContent}</div>
-                            <div class="meta" style="margin-top: var(--space-3); flex-wrap: wrap;">
-                                <span class="tag tag-marks"><c:out value="${q.marksSplit != null ? q.marksSplit : q.marks}" />M</span>
-                                <span class="tag tag-unit">U${q.unit}</span>
-                                <span class="tag tag-rbt"><c:out value="${set.sectionARbt[q.id]}" /></span>
-                                <c:if test="${not empty q.questionType}">
-                                    <span class="tag tag-type"><c:out value="${q.questionType}" /></span>
-                                </c:if>
-                                <button class="btn btn-secondary btn-sm swap-btn" data-paper="${set.paper.id}" data-id="${q.id}" style="padding: var(--space-1) var(--space-2); font-size: 0.75rem;">
-                                    <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
-                                    Swap
-                                </button>
+            <c:if test="${not empty set.sectionA}">
+                <div class="section-title">Part A — 2 Marks (${set.sectionA.size()} × 2 = ${set.sectionA.size() * 2} Marks)</div>
+                <div style="background: var(--color-bg-elevated); border: 1px solid var(--color-border); border-radius: var(--radius-md); overflow: hidden;">
+                    <c:forEach var="q" items="${set.sectionA}" varStatus="i">
+                        <div class="question" id="q-${q.id}" ${i.last ? 'style="border-bottom:none;"' : ''}>
+                            <div class="num">${i.count}.</div>
+                            <div class="question-main" style="flex: 1; min-width: 0; display: flex; flex-direction: column;">
+                                <div class="content">${q.questionContent}</div>
+                                <div class="meta" style="margin-top: var(--space-3); flex-wrap: wrap;">
+                                    <span class="tag tag-marks"><c:out value="${q.marksSplit != null ? q.marksSplit : q.marks}" />M</span>
+                                    <span class="tag tag-unit">U${q.unit}</span>
+                                    <span class="tag tag-rbt"><c:out value="${set.sectionARbt[q.id]}" /></span>
+                                    <c:if test="${not empty q.questionType}">
+                                        <span class="tag tag-type"><c:out value="${q.questionType}" /></span>
+                                    </c:if>
+                                    <button class="btn btn-secondary btn-sm swap-btn" data-paper="${set.paper.id}" data-id="${q.id}" style="padding: var(--space-1) var(--space-2); font-size: 0.75rem;">
+                                        <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                                        Swap
+                                    </button>
+                                </div>
                             </div>
                         </div>
-                    </div>
-                </c:forEach>
-            </div>
+                    </c:forEach>
+                </div>
+            </c:if>
 
             <c:if test="${not empty set.sectionB}">
                 <c:set var="partBQuestion" value="${set.sectionB[0].choiceA}" />
                 <c:set var="partBMarks" value="${partBQuestion != null ? partBQuestion.marks : 16}" />
-                <div class="section-title">Part B — ${partBMarks} Marks (${set.sectionB.size()} × ${partBMarks} = ${set.sectionB.size() * partBMarks} Marks)</div>
+                <c:set var="isSingleSection" value="${empty set.sectionA}" />
+                <c:set var="sectionTitleLabel" value="${isSingleSection ? 'Part A' : 'Part B'}" />
+                <c:set var="qNumPrefix" value="${isSingleSection ? 0 : set.sectionA.size()}" />
+                <div class="section-title">${sectionTitleLabel} — ${partBMarks} Marks (${set.sectionB.size()} × ${partBMarks} = ${set.sectionB.size() * partBMarks} Marks)</div>
                 <c:forEach var="pair" items="${set.sectionB}">
                     <div class="pair-block">
                         <div class="question" id="q-${pair.choiceA.id}">
-                            <div class="num">${10 + pair.pairIndex}.(a)</div>
+                            <div class="num">${qNumPrefix + pair.pairIndex}.(a)</div>
                             <div class="question-main" style="flex: 1; min-width: 0; display: flex; flex-direction: column;">
                                 <div class="content">${pair.choiceA.questionContent}</div>
                                 <div class="meta" style="margin-top: var(--space-3); flex-wrap: wrap;">
@@ -122,7 +127,7 @@
                         </div>
                         <div class="or-divider">OR</div>
                         <div class="question" id="q-${pair.choiceB.id}">
-                            <div class="num">${10 + pair.pairIndex}.(b)</div>
+                            <div class="num">${qNumPrefix + pair.pairIndex}.(b)</div>
                             <div class="question-main" style="flex: 1; min-width: 0; display: flex; flex-direction: column;">
                                 <div class="content">${pair.choiceB.questionContent}</div>
                                 <div class="meta" style="margin-top: var(--space-3); flex-wrap: wrap;">

@@ -187,6 +187,148 @@ public class PaperGenerationService {
         return new GenerationResult(batchId, sets, Collections.emptyList(), null, true);
     }
 
+    @Transactional
+    public GenerationResult generateDynamic20M(String examTypeStr, Long subjectId, 
+                                               int numSets, String duration, Map<String, Integer> counts20M,
+                                               PartAOnlyGenerationService partAOnlyGenService) {
+        String batchId = java.util.UUID.randomUUID().toString();
+        ExamType examType = ExamType.from(examTypeStr);
+        PairingEngine.PairingMode pairingMode = examType.isCrossHalf()
+                ? PairingEngine.PairingMode.CROSS_HALF : PairingEngine.PairingMode.SAME_HALF;
+        List<GeneratedSet> sets = new ArrayList<>();
+        List<SelectionEngine.SelectionShortage> allShortages = new ArrayList<>();
+
+        for (int i = 0; i < numSets; i++) {
+            List<Question> selected20M;
+            try {
+                selected20M = partAOnlyGenService.generateQuestionsByCounts(subjectId, 20, counts20M);
+            } catch (Exception e) {
+                log.error("Failed to select 20M questions", e);
+                allShortages.add(new SelectionEngine.SelectionShortage(0, 20, 0, 1, 0, 1));
+                return new GenerationResult(batchId, Collections.emptyList(), allShortages, null, false);
+            }
+
+            List<PairingEngine.QuestionPair> pairs;
+            try {
+                pairs = pairingEngine.createPairs(selected20M, pairingMode);
+            } catch (Exception e) {
+                log.warn("Standard pairing failed, falling back to sequential pairing: {}", e.getMessage());
+                pairs = createSequentialPairs(selected20M);
+            }
+
+            String label = String.valueOf((char) ('A' + i));
+            GeneratedPaper paper = draftService.savePaper(batchId, subjectId, examType.name(), label);
+            paper.setDuration(duration);
+            draftService.savePaperQuestions(paper.getId(), Collections.emptyList(), pairs, Collections.emptyMap());
+
+            if (i == 0 && !selected20M.isEmpty()) {
+                Question firstQ = selected20M.get(0);
+                if (firstQ.getSourceDocumentId() != null) {
+                    HeaderMetadata metadata = documentMetadataService.extractMetadata(firstQ.getSourceDocumentId());
+                    paper.setExamSession(metadata.getExamSession());
+                    paper.setExamTitle(metadata.getExamTitle());
+                }
+            }
+
+            sets.add(new GeneratedSet(paper, Collections.emptyList(), pairs, Collections.emptyMap()));
+        }
+
+        draftService.deleteDraftsExcluding(batchId, sets.stream().map(s -> s.getPaper().getId()).collect(Collectors.toSet()));
+
+        return new GenerationResult(batchId, sets, Collections.emptyList(), null, true);
+    }
+
+    @Transactional
+    public GenerationResult generateDynamicFormat1(String examTypeStr, Long subjectId, 
+                                                   int numSets, String duration, 
+                                                   Map<String, Integer> counts2M, 
+                                                   Map<String, Integer> counts16M,
+                                                   PartAOnlyGenerationService partAOnlyGenService) {
+        String batchId = java.util.UUID.randomUUID().toString();
+        ExamType examType = ExamType.from(examTypeStr);
+        PairingEngine.PairingMode pairingMode = examType.isCrossHalf()
+                ? PairingEngine.PairingMode.CROSS_HALF : PairingEngine.PairingMode.SAME_HALF;
+        List<GeneratedSet> sets = new ArrayList<>();
+        List<SelectionEngine.SelectionShortage> allShortages = new ArrayList<>();
+
+        for (int i = 0; i < numSets; i++) {
+            List<Question> selected2M = Collections.emptyList();
+            if (!counts2M.isEmpty()) {
+                try {
+                    selected2M = partAOnlyGenService.generateQuestionsByCounts(subjectId, 2, counts2M);
+                } catch (Exception e) {
+                    log.error("Failed to select 2M questions for Format 1", e);
+                    allShortages.add(new SelectionEngine.SelectionShortage(0, 2, 0, 1, 0, 1));
+                    return new GenerationResult(batchId, Collections.emptyList(), allShortages, null, false);
+                }
+            }
+
+            List<Question> selected16M = Collections.emptyList();
+            if (!counts16M.isEmpty()) {
+                try {
+                    selected16M = partAOnlyGenService.generateQuestionsByCounts(subjectId, 16, counts16M);
+                } catch (Exception e) {
+                    log.error("Failed to select 16M questions for Format 1", e);
+                    allShortages.add(new SelectionEngine.SelectionShortage(0, 16, 0, 1, 0, 1));
+                    return new GenerationResult(batchId, Collections.emptyList(), allShortages, null, false);
+                }
+            }
+
+            List<PairingEngine.QuestionPair> pairs = Collections.emptyList();
+            if (!selected16M.isEmpty()) {
+                try {
+                    pairs = pairingEngine.createPairs(selected16M, pairingMode);
+                } catch (Exception e) {
+                    log.warn("Standard pairing failed for 16M, falling back to sequential pairing: {}", e.getMessage());
+                    pairs = createSequentialPairs(selected16M);
+                }
+            }
+
+            Map<Long, String> sectionARbt = selected2M.stream()
+                    .collect(Collectors.toMap(Question::getId, Question::getRbt, (a, b) -> a));
+
+            String label = String.valueOf((char) ('A' + i));
+            GeneratedPaper paper = draftService.savePaper(batchId, subjectId, examType.name(), label);
+            paper.setDuration(duration);
+            draftService.savePaperQuestions(paper.getId(), selected2M, pairs, sectionARbt);
+
+            if (i == 0) {
+                Question firstQ = !selected2M.isEmpty() ? selected2M.get(0) : (!selected16M.isEmpty() ? selected16M.get(0) : null);
+                if (firstQ != null && firstQ.getSourceDocumentId() != null) {
+                    HeaderMetadata metadata = documentMetadataService.extractMetadata(firstQ.getSourceDocumentId());
+                    paper.setExamSession(metadata.getExamSession());
+                    paper.setExamTitle(metadata.getExamTitle());
+                }
+            }
+
+            sets.add(new GeneratedSet(paper, selected2M, pairs, sectionARbt));
+        }
+
+        draftService.deleteDraftsExcluding(batchId, sets.stream().map(s -> s.getPaper().getId()).collect(Collectors.toSet()));
+
+        return new GenerationResult(batchId, sets, Collections.emptyList(), null, true);
+    }
+
+    private List<PairingEngine.QuestionPair> createSequentialPairs(List<Question> questions) {
+        List<PairingEngine.QuestionPair> pairs = new ArrayList<>();
+        Map<Integer, List<Question>> byUnit = questions.stream()
+                .collect(Collectors.groupingBy(Question::getUnit, java.util.TreeMap::new, Collectors.toList()));
+
+        int pairIndex = 1;
+        for (Map.Entry<Integer, List<Question>> entry : byUnit.entrySet()) {
+            List<Question> uQuestions = entry.getValue();
+            for (int j = 0; j + 1 < uQuestions.size(); j += 2) {
+                pairs.add(new PairingEngine.QuestionPair(
+                        uQuestions.get(j),
+                        uQuestions.get(j + 1),
+                        entry.getKey(),
+                        pairIndex++
+                ));
+            }
+        }
+        return pairs;
+    }
+
 
     public java.util.Optional<GeneratedPaper> getPaperById(Long paperId) {
         return draftService.findById(paperId);

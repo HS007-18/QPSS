@@ -65,34 +65,43 @@ public class PaperDraftPersistenceService {
     @Transactional
     public void savePaperQuestions(Long paperId, List<Question> twoMark,
                                    List<PairingEngine.QuestionPair> pairs, Map<Long, String> sectionARbt) {
-        for (int i = 0; i < twoMark.size(); i++) {
-            paperQuestionRepo.save(PaperQuestion.builder()
-                    .paperId(paperId)
-                    .questionId(twoMark.get(i).getId())
-                    .section("SECTION_A")
-                    .questionNumber(i + 1)
-                    .displayRbt(sectionARbt.get(twoMark.get(i).getId()))
-                    .build());
+        int qNum = 1;
+        if (twoMark != null && !twoMark.isEmpty()) {
+            for (Question q : twoMark) {
+                paperQuestionRepo.save(PaperQuestion.builder()
+                        .paperId(paperId)
+                        .questionId(q.getId())
+                        .section("SECTION_A")
+                        .questionNumber(qNum++)
+                        .displayRbt(sectionARbt != null ? sectionARbt.get(q.getId()) : q.getRbt())
+                        .build());
+            }
         }
 
-        for (PairingEngine.QuestionPair pair : pairs) {
-            int qNum = 10 + pair.getPairIndex();
-            paperQuestionRepo.save(PaperQuestion.builder()
-                    .paperId(paperId)
-                    .questionId(pair.getChoiceA().getId())
-                    .section("SECTION_B")
-                    .questionNumber(qNum)
-                    .choiceLabel("a")
-                    .pairIndex(pair.getPairIndex())
-                    .build());
-            paperQuestionRepo.save(PaperQuestion.builder()
-                    .paperId(paperId)
-                    .questionId(pair.getChoiceB().getId())
-                    .section("SECTION_B")
-                    .questionNumber(qNum)
-                    .choiceLabel("b")
-                    .pairIndex(pair.getPairIndex())
-                    .build());
+        boolean hasPartA = (twoMark != null && !twoMark.isEmpty());
+        String sectionName = hasPartA ? "SECTION_B" : "SECTION_A";
+        int pairStartNum = hasPartA ? (twoMark.size() + 1) : 1;
+
+        if (pairs != null) {
+            for (PairingEngine.QuestionPair pair : pairs) {
+                int currentQNum = pairStartNum + pair.getPairIndex() - 1;
+                paperQuestionRepo.save(PaperQuestion.builder()
+                        .paperId(paperId)
+                        .questionId(pair.getChoiceA().getId())
+                        .section(sectionName)
+                        .questionNumber(currentQNum)
+                        .choiceLabel("a")
+                        .pairIndex(pair.getPairIndex())
+                        .build());
+                paperQuestionRepo.save(PaperQuestion.builder()
+                        .paperId(paperId)
+                        .questionId(pair.getChoiceB().getId())
+                        .section(sectionName)
+                        .questionNumber(currentQNum)
+                        .choiceLabel("b")
+                        .pairIndex(pair.getPairIndex())
+                        .build());
+            }
         }
     }
 

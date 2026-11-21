@@ -15,4 +15,12 @@ public enum ExamFormat {
             throw new IllegalArgumentException("Unsupported format: " + value);
         }
     }
+
+    public String getDisplayName() {
+        return switch (this) {
+            case FORMAT_1 -> "2 Marks and 16 Marks";
+            case FORMAT_2 -> "20 Marks";
+            case FORMAT_3 -> "2 Marks Only";
+        };
+    }
 }

@@ -21,12 +21,16 @@ public class PartARenderer {
             return rIdx;
 
         // Dynamically determine Part A marks from actual questions
-        int qCount = sectionA.size();
         int perQuestionMarks = 2; // default
         Question firstA = questionRepository.findById(sectionA.get(0).getQuestionId()).orElse(null);
         if (firstA != null && firstA.getMarks() != null) {
             perQuestionMarks = firstA.getMarks();
         }
+
+        boolean hasPairs = sectionA.stream().anyMatch(pq -> pq.getChoiceLabel() != null && !pq.getChoiceLabel().isBlank());
+        int qCount = hasPairs
+                ? (int) sectionA.stream().map(PaperQuestion::getQuestionNumber).distinct().count()
+                : sectionA.size();
 
         XWPFTableRow rPartA = getOrCreateRow(table, rIdx++);
         mergeCells(rPartA, 0, 4);
@@ -44,13 +48,27 @@ public class PartARenderer {
         setCellText(rHeader.getCell(3), "RBT", ParagraphAlignment.CENTER, true, 10);
         setCellText(rHeader.getCell(4), "CO", ParagraphAlignment.CENTER, true, 10);
 
+        Integer currentQNum = null;
         for (PaperQuestion pq : sectionA) {
             Question q = questionRepository.findById(pq.getQuestionId()).orElse(null);
             if (q == null)
                 continue;
 
+            if (hasPairs) {
+                if (currentQNum != null && currentQNum.equals(pq.getQuestionNumber())) {
+                    XWPFTableRow orRow = getOrCreateRow(table, rIdx++);
+                    mergeCells(orRow, 0, 4);
+                    setCellText(orRow.getCell(0), "OR", ParagraphAlignment.CENTER, true, 10);
+                } else {
+                    currentQNum = pq.getQuestionNumber();
+                }
+            }
+
             XWPFTableRow r = getOrCreateRow(table, rIdx++);
-            setCellText(r.getCell(0), pq.getQuestionNumber() + ".", ParagraphAlignment.LEFT, false, 10);
+            String label = (pq.getChoiceLabel() != null && !pq.getChoiceLabel().isBlank())
+                    ? pq.getQuestionNumber() + ".\u00A0(" + pq.getChoiceLabel() + ")"
+                    : pq.getQuestionNumber() + ".";
+            setCellText(r.getCell(0), label, ParagraphAlignment.LEFT, false, 10);
             // Left alignment for questions
             renderQuestionCell(r.getCell(1), q, ParagraphAlignment.LEFT);
             setCellText(r.getCell(2), marksLabel(q), ParagraphAlignment.CENTER, false, 10);

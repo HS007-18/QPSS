@@ -59,20 +59,42 @@ public class GenerationController {
         var subject = subjectService.findById(subjectId);
         PaperGenerationService.GenerationResult result;
         
-        if ("FORMAT_3".equals(format)) {
-            Map<String, Integer> topicCounts = new HashMap<>();
-            allParams.forEach((k, v) -> {
-                if (k.startsWith("topic_")) {
-                    String key = k.substring("topic_".length());
-                    try {
-                        int count = Integer.parseInt(v);
-                        if (count > 0) topicCounts.put(key, count);
-                    } catch (NumberFormatException ignored) {}
+        Map<String, Integer> counts2M = new HashMap<>();
+        Map<String, Integer> counts16M = new HashMap<>();
+        Map<String, Integer> counts20M = new HashMap<>();
+
+        allParams.forEach((k, v) -> {
+            try {
+                int count = Integer.parseInt(v);
+                if (count > 0) {
+                    if (k.startsWith("count_2_")) {
+                        counts2M.put(k.substring("count_2_".length()), count);
+                    } else if (k.startsWith("topic_")) {
+                        counts2M.put(k.substring("topic_".length()), count);
+                    } else if (k.startsWith("count_16_")) {
+                        counts16M.put(k.substring("count_16_".length()), count);
+                    } else if (k.startsWith("count_20_")) {
+                        counts20M.put(k.substring("count_20_".length()), count);
+                    }
                 }
-            });
-            result = generationService.generatePartAOnly(examType, subjectId, numSets, duration, topicCounts, partAOnlyGenService);
+            } catch (NumberFormatException ignored) {}
+        });
+
+        if ("FORMAT_3".equals(format)) {
+            result = generationService.generatePartAOnly(examType, subjectId, numSets, duration, counts2M, partAOnlyGenService);
+        } else if ("FORMAT_2".equals(format)) {
+            if (!counts20M.isEmpty()) {
+                result = generationService.generateDynamic20M(examType, subjectId, numSets, duration, counts20M, partAOnlyGenService);
+            } else {
+                result = generationService.generate(examType, subjectId, numSets, format, duration);
+            }
         } else {
-            result = generationService.generate(examType, subjectId, numSets, format, duration);
+            // FORMAT_1
+            if (!counts2M.isEmpty() || !counts16M.isEmpty()) {
+                result = generationService.generateDynamicFormat1(examType, subjectId, numSets, duration, counts2M, counts16M, partAOnlyGenService);
+            } else {
+                result = generationService.generate(examType, subjectId, numSets, format, duration);
+            }
         }
 
         if (!result.isSuccessful()) {

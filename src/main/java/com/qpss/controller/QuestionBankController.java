@@ -32,10 +32,23 @@ public class QuestionBankController {
         var questions = bankService.getQuestionsBySubjectId(subjectId);
         questions.forEach(q -> q.setQuestionContent(contentSanitizer.sanitize(q.getQuestionContent())));
         
-        // Fetch dynamic unit/topic stats for FORMAT_3 UI
+        var stats2M = computeStatsForMarks(questions, 2);
+        var stats16M = computeStatsForMarks(questions, 16);
+        var stats20M = computeStatsForMarks(questions, 20);
+        
+        model.addAttribute("subject", subject);
+        model.addAttribute("questions", questions);
+        model.addAttribute("topicStats", stats2M);
+        model.addAttribute("stats2M", stats2M);
+        model.addAttribute("stats16M", stats16M);
+        model.addAttribute("stats20M", stats20M);
+        return "subject/detail";
+    }
+
+    private java.util.List<java.util.Map<String, Object>> computeStatsForMarks(java.util.List<com.qpss.entity.Question> questions, int marks) {
         java.util.Map<String, Integer> statsMap = new java.util.HashMap<>();
         for (com.qpss.entity.Question q : questions) {
-            if (q.getMarks() != null && q.getMarks() == 2) {
+            if (q.getMarks() != null && q.getMarks() == marks) {
                 Integer identifier = q.getTopic() != null ? q.getTopic() : q.getT();
                 if (identifier != null) {
                     String key = q.getUnit() + "_" + identifier;
@@ -43,25 +56,21 @@ public class QuestionBankController {
                 }
             }
         }
-        java.util.List<java.util.Map<String, Object>> topicStats = new java.util.ArrayList<>();
+        java.util.List<java.util.Map<String, Object>> statsList = new java.util.ArrayList<>();
         for (java.util.Map.Entry<String, Integer> entry : statsMap.entrySet()) {
             String[] parts = entry.getKey().split("_");
             java.util.Map<String, Object> stat = new java.util.HashMap<>();
             stat.put("unit", Integer.parseInt(parts[0]));
             stat.put("topic", Integer.parseInt(parts[1]));
             stat.put("count", entry.getValue());
-            topicStats.add(stat);
+            statsList.add(stat);
         }
-        topicStats.sort((a, b) -> {
+        statsList.sort((a, b) -> {
             int unitCmp = Integer.compare((Integer) a.get("unit"), (Integer) b.get("unit"));
             if (unitCmp != 0) return unitCmp;
             return Integer.compare((Integer) a.get("topic"), (Integer) b.get("topic"));
         });
-        
-        model.addAttribute("subject", subject);
-        model.addAttribute("questions", questions);
-        model.addAttribute("topicStats", topicStats);
-        return "subject/detail";
+        return statsList;
     }
 
     @PostMapping("/questions")

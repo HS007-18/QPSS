@@ -22,7 +22,7 @@ public class DurationInstructionsRenderer {
         XWPFTableRow nr = nested.getRow(0);
 
         setCellText(nr.getCell(0), "Duration: " + durationStr, ParagraphAlignment.LEFT, true, 10);
-        setCellText(nr.getCell(1), "Maximum Marks:\u00A0" + MAXIMUM_MARKS, ParagraphAlignment.RIGHT, true, 10);
+        setCellText(nr.getCell(1), "Maximum Marks:\u00A0", ParagraphAlignment.RIGHT, true, 10);
 
         return rIdx;
     }

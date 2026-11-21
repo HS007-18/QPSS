@@ -74,6 +74,7 @@
                         <label class="form-label" for="examDuration">Exam Duration</label>
                         <select name="duration" id="examDuration" class="form-select">
                             <option value="Three Hours" selected>Three Hours</option>
+                            <option value="Two Hours">Two Hours</option>
                             <option value="One and a Half Hours">One and a Half Hours</option>
                         </select>
                     </div>
@@ -82,43 +83,118 @@
                         <div class="form-group" style="flex:1; margin-bottom:0;">
                             <label class="form-label" for="paperFormat">Paper Format</label>
                             <select name="format" id="paperFormat" class="form-select">
-                                <option value="FORMAT_1">Format 1 (10×2M, 5×16M)</option>
-                                <option value="FORMAT_2">Format 2 (5×20M)</option>
-                                <option value="FORMAT_3">Format 3 (50×2M - Part A Only)</option>
+                                <option value="FORMAT_1" selected>2 Marks and 16 Marks</option>
+                                <option value="FORMAT_2">20 Marks</option>
+                                <option value="FORMAT_3">2 Marks Only</option>
                             </select>
                         </div>
                     </div>
 
-                    <div id="topic-picker" class="card" style="display:none; background: var(--color-bg); border-color: var(--color-border);">
+                    <div id="topic-picker" class="card" style="display:block; background: var(--color-bg); border-color: var(--color-border); margin-bottom: var(--space-5);">
                         <div class="card-body">
-                            <h4 style="margin-top:0; margin-bottom: var(--space-4);">Select Topic Distribution</h4>
-                            <div class="table-responsive">
-                                <table class="table" style="background: var(--color-bg-elevated);">
-                                    <thead>
-                                        <tr>
-                                            <th>Unit</th>
-                                            <th>Topic / Half</th>
-                                            <th>Available</th>
-                                            <th>Required Count</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <c:forEach var="stat" items="${topicStats}">
+                            <h4 style="margin-top:0; margin-bottom: var(--space-4);">Select Question Distribution</h4>
+                            
+                            <!-- 2 Marks Section (used in FORMAT_1 and FORMAT_3) -->
+                            <div id="section-2m">
+                                <h5 style="margin: var(--space-3) 0 var(--space-2); color: var(--color-text-secondary); font-size: 0.875rem; font-weight: 600;">Part A — 2 Marks Questions</h5>
+                                <div class="table-responsive">
+                                    <table class="table" style="background: var(--color-bg-elevated); margin-bottom: var(--space-3);">
+                                        <thead>
                                             <tr>
-                                                <td><span class="tag tag-unit">U${stat.unit}</span></td>
-                                                <td>${stat.topic}</td>
-                                                <td>${stat.count}</td>
-                                                <td>
-                                                    <input type="number" name="topic_${stat.unit}_${stat.topic}" class="topic-input form-input" value="0" min="0" max="${stat.count}" style="width: 80px;">
-                                                </td>
+                                                <th>Unit</th>
+                                                <th>Half</th>
+                                                <th>Available</th>
+                                                <th>Required Count</th>
                                             </tr>
-                                        </c:forEach>
-                                    </tbody>
-                                </table>
+                                        </thead>
+                                        <tbody>
+                                            <c:forEach var="stat" items="${stats2M}">
+                                                <tr>
+                                                    <td><span class="tag tag-unit">U${stat.unit}</span></td>
+                                                    <td>${stat.topic == 1 ? 'I (First Half)' : 'II (Second Half)'}</td>
+                                                    <td>${stat.count}</td>
+                                                    <td>
+                                                        <input type="number" name="count_2_${stat.unit}_${stat.topic}" class="topic-input form-input" value="0" min="0" max="${stat.count}" style="width: 80px;" data-marks="2">
+                                                    </td>
+                                                </tr>
+                                            </c:forEach>
+                                            <c:if test="${empty stats2M}">
+                                                <tr><td colspan="4" style="text-align:center; color:var(--color-text-muted); font-size: 0.8125rem;">No 2-mark questions in bank.</td></tr>
+                                            </c:if>
+                                        </tbody>
+                                    </table>
+                                </div>
                             </div>
-                            <div style="display: flex; justify-content: space-between; align-items: center;">
-                                <strong>Total Selected: <span id="topic-total">0</span> / 50</strong>
-                                <span id="topic-error" class="text-danger" style="display: none; font-size: 0.8125rem;">Total must be exactly 50</span>
+
+                            <!-- 16 Marks Section (used in FORMAT_1) -->
+                            <div id="section-16m">
+                                <h5 style="margin: var(--space-4) 0 var(--space-2); color: var(--color-text-secondary); font-size: 0.875rem; font-weight: 600;">Part B — 16 Marks Questions (Pairs)</h5>
+                                <p style="font-size: 0.75rem; color: var(--color-text-muted); margin-bottom: var(--space-2);">Note: Every 2 questions in a unit form an (a) OR (b) pair.</p>
+                                <div class="table-responsive">
+                                    <table class="table" style="background: var(--color-bg-elevated); margin-bottom: var(--space-3);">
+                                        <thead>
+                                            <tr>
+                                                <th>Unit</th>
+                                                <th>Half</th>
+                                                <th>Available</th>
+                                                <th>Required Count</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <c:forEach var="stat" items="${stats16M}">
+                                                <tr>
+                                                    <td><span class="tag tag-unit">U${stat.unit}</span></td>
+                                                    <td>${stat.topic == 1 ? 'I (First Half)' : 'II (Second Half)'}</td>
+                                                    <td>${stat.count}</td>
+                                                    <td>
+                                                        <input type="number" name="count_16_${stat.unit}_${stat.topic}" class="topic-input form-input" value="0" min="0" max="${stat.count}" style="width: 80px;" data-marks="16">
+                                                    </td>
+                                                </tr>
+                                            </c:forEach>
+                                            <c:if test="${empty stats16M}">
+                                                <tr><td colspan="4" style="text-align:center; color:var(--color-text-muted); font-size: 0.8125rem;">No 16-mark questions in bank.</td></tr>
+                                            </c:if>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+
+                            <!-- 20 Marks Section (used in FORMAT_2) -->
+                            <div id="section-20m" style="display:none;">
+                                <h5 style="margin: var(--space-3) 0 var(--space-2); color: var(--color-text-secondary); font-size: 0.875rem; font-weight: 600;">Part A — 20 Marks Questions (Pairs)</h5>
+                                <p style="font-size: 0.75rem; color: var(--color-text-muted); margin-bottom: var(--space-2);">Note: Every 2 questions in a unit form an (a) OR (b) pair.</p>
+                                <div class="table-responsive">
+                                    <table class="table" style="background: var(--color-bg-elevated); margin-bottom: var(--space-3);">
+                                        <thead>
+                                            <tr>
+                                                <th>Unit</th>
+                                                <th>Half</th>
+                                                <th>Available</th>
+                                                <th>Required Count</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <c:forEach var="stat" items="${stats20M}">
+                                                <tr>
+                                                    <td><span class="tag tag-unit">U${stat.unit}</span></td>
+                                                    <td>${stat.topic == 1 ? 'I (First Half)' : 'II (Second Half)'}</td>
+                                                    <td>${stat.count}</td>
+                                                    <td>
+                                                        <input type="number" name="count_20_${stat.unit}_${stat.topic}" class="topic-input form-input" value="0" min="0" max="${stat.count}" style="width: 80px;" data-marks="20">
+                                                    </td>
+                                                </tr>
+                                            </c:forEach>
+                                            <c:if test="${empty stats20M}">
+                                                <tr><td colspan="4" style="text-align:center; color:var(--color-text-muted); font-size: 0.8125rem;">No 20-mark questions in bank.</td></tr>
+                                            </c:if>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-top: var(--space-4); flex-wrap: wrap; gap: var(--space-2); border-top: 1px solid var(--color-border); padding-top: var(--space-3);">
+                                <strong>Total Selected Questions: <span id="topic-total">0</span></strong>
+                                <span id="topic-error" class="text-danger" style="display: none; font-size: 0.8125rem;">Please select at least 1 question</span>
                             </div>
                         </div>
                     </div>
@@ -290,36 +366,50 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    let isFetchingDefaults = false;
-    const previewBox = document.getElementById('preview-box');
-    const topicPicker = document.getElementById('topic-picker');
-    const dynamicCounts = document.getElementById('dynamic-counts');
+    const sec2m = document.getElementById('section-2m');
+    const sec16m = document.getElementById('section-16m');
+    const sec20m = document.getElementById('section-20m');
     const submitBtn = document.querySelector('#generateForm button[type="submit"]');
+    const errorSpan = document.getElementById('topic-error');
+    const totalSpan = document.getElementById('topic-total');
+    const formatSelect = document.getElementById('paperFormat');
+
+    function updateFormatView() {
+        const format = formatSelect ? formatSelect.value : 'FORMAT_1';
+        if (format === 'FORMAT_1') {
+            if (sec2m) sec2m.style.display = 'block';
+            if (sec16m) sec16m.style.display = 'block';
+            if (sec20m) sec20m.style.display = 'none';
+        } else if (format === 'FORMAT_2') {
+            if (sec2m) sec2m.style.display = 'none';
+            if (sec16m) sec16m.style.display = 'none';
+            if (sec20m) sec20m.style.display = 'block';
+        } else if (format === 'FORMAT_3') {
+            if (sec2m) sec2m.style.display = 'block';
+            if (sec16m) sec16m.style.display = 'none';
+            if (sec20m) sec20m.style.display = 'none';
+        }
+        validateTopicTotal();
+    }
 
     function validateTopicTotal() {
         let total = 0;
         document.querySelectorAll('.topic-input').forEach(input => {
-            total += parseInt(input.value) || 0;
-        });
-        document.getElementById('topic-total').textContent = total;
-
-        const format = document.getElementById('paperFormat')?.value;
-        const errorSpan = document.getElementById('topic-error');
-
-        if (format === 'FORMAT_3') {
-            if (total !== 50) {
-                submitBtn.disabled = true;
-                errorSpan.style.display = 'inline';
-                document.getElementById('topic-total').style.color = 'var(--color-danger)';
-            } else {
-                submitBtn.disabled = false;
-                errorSpan.style.display = 'none';
-                document.getElementById('topic-total').style.color = 'var(--color-success)';
+            const parentSec = input.closest('#section-2m, #section-16m, #section-20m');
+            if (parentSec && parentSec.style.display !== 'none') {
+                total += parseInt(input.value) || 0;
             }
+        });
+        if (totalSpan) totalSpan.textContent = total;
+
+        if (total === 0) {
+            if (submitBtn) submitBtn.disabled = true;
+            if (errorSpan) errorSpan.style.display = 'inline';
+            if (totalSpan) totalSpan.style.color = 'var(--color-danger)';
         } else {
             if (submitBtn) submitBtn.disabled = false;
             if (errorSpan) errorSpan.style.display = 'none';
-            document.getElementById('topic-total').style.color = '';
+            if (totalSpan) totalSpan.style.color = 'var(--color-success)';
         }
     }
 
@@ -327,57 +417,11 @@ document.addEventListener('DOMContentLoaded', function() {
         input.addEventListener('input', validateTopicTotal);
     });
 
-    function fetchPreview() {
-        const type = document.getElementById('examType').value;
-        const format = document.getElementById('paperFormat').value;
-
-        if (!type) return;
-
-        if (format === 'FORMAT_3') {
-            topicPicker.style.display = 'block';
-            previewBox.style.display = 'none';
-            dynamicCounts.style.display = 'flex';
-            validateTopicTotal();
-            return;
-        } else {
-            topicPicker.style.display = 'none';
-            validateTopicTotal();
-        }
-
-        let url = '/subjects/${subject.id}/generate/preview?examType=' + encodeURIComponent(type) + '&format=' + encodeURIComponent(format);
-
-        fetch(url)
-            .then(res => res.json())
-            .then(data => {
-                let html = '<span class="preview-title">Distribution Plan Preview:</span>';
-                data.sections.forEach(sec => {
-                    html += '<div class="preview-section"><div class="preview-section-title">' + sec.marks + ' Marks Section (Need ' + sec.totalRequired + ')</div>';
-                    sec.units.forEach(u => {
-                        html += '<div class="preview-unit">Unit ' + u.unit + ': ' + u.requiredCount + ' Qs (T1: ' + u.t1Required + ', T2: ' + u.t2Required + ')</div>';
-                    });
-                    html += '</div>';
-                });
-                html += '<div class="preview-total">Total Questions: ' + data.totalQuestions + ' | Total Marks: ' + data.totalMarks + '</div>';
-                previewBox.innerHTML = html;
-                previewBox.style.display = 'block';
-                dynamicCounts.style.display = 'flex';
-                isFetchingDefaults = false;
-            })
-            .catch(err => {
-                console.error(err);
-                previewBox.innerHTML = '<span class="preview-title" style="color:var(--color-danger);">Error loading preview.</span>';
-                previewBox.style.display = 'block';
-            });
+    if (formatSelect) {
+        formatSelect.addEventListener('change', updateFormatView);
     }
 
-    document.getElementById('examType').addEventListener('change', function(e) {
-        isFetchingDefaults = true;
-        fetchPreview();
-    });
-
-    document.getElementById('paperFormat').addEventListener('change', function(e) {
-        fetchPreview();
-    });
+    updateFormatView();
 });
 </script>
 </body>

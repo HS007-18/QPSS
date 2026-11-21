@@ -30,11 +30,15 @@ public class PartAOnlyGenerationService {
      * @return A list of selected Question entities
      */
     public List<Question> generatePartASet(Long subjectId, Map<String, Integer> topicCounts) {
+        return generateQuestionsByCounts(subjectId, 2, topicCounts);
+    }
+
+    public List<Question> generateQuestionsByCounts(Long subjectId, int marks, Map<String, Integer> topicCounts) {
         List<Question> selectedQuestions = new ArrayList<>();
         
         int totalRequested = topicCounts.values().stream().mapToInt(Integer::intValue).sum();
-        if (totalRequested != 50) {
-            throw new QuestionSelectionException("Total questions requested must be exactly 50, but was: " + totalRequested);
+        if (totalRequested <= 0) {
+            throw new QuestionSelectionException("At least one question must be requested, but total was: " + totalRequested);
         }
 
         for (Map.Entry<String, Integer> entry : topicCounts.entrySet()) {
@@ -50,7 +54,7 @@ public class PartAOnlyGenerationService {
             
             if (requiredCount <= 0) continue;
 
-            List<Question> allInUnit = questionRepository.findBySubjectIdAndUnitAndMarks(subjectId, unit, 2);
+            List<Question> allInUnit = questionRepository.findBySubjectIdAndUnitAndMarks(subjectId, unit, marks);
             List<Question> available = new ArrayList<>();
             for (Question q : allInUnit) {
                 Integer identifier = q.getTopic() != null ? q.getTopic() : q.getT();
@@ -61,7 +65,7 @@ public class PartAOnlyGenerationService {
 
             if (available.size() < requiredCount) {
                 throw new QuestionSelectionException(
-                        "Not enough 2-mark questions available for Unit " + unit + ", Topic " + topic + 
+                        "Not enough " + marks + "-mark questions available for Unit " + unit + ", Half " + topic + 
                         ". Required: " + requiredCount + ", Available: " + available.size());
             }
 
