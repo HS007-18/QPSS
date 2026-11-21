@@ -2,12 +2,7 @@
 <header class="header" role="banner">
   <div class="header-inner container">
     <a href="/" class="brand" aria-label="KIT QGen Home">
-      <span class="brand-icon" aria-hidden="true">
-        <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9.5a2.5 2.5 0 00-2.5-2.5H15"/>
-        </svg>
-      </span>
+      <img src="/images/kit-logo.jpg" alt="KIT Logo" class="brand-logo" />
       <span class="brand-text">KIT QGen</span>
       <c:if test="${not empty pageTitle}">
         <span class="brand-accent"><c:out value="${pageTitle}" /></span>

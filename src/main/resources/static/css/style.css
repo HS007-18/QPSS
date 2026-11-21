@@ -165,7 +165,16 @@ a:hover { color: var(--color-primary-hover); text-decoration: underline; }
   text-decoration: none;
   -webkit-app-region: no-drag;
 }
-.brand:hover { text-decoration: none; color: var(--color-primary); }
+.brand-logo {
+  width: 36px;
+  height: 36px;
+  object-fit: contain;
+  border-radius: 8px;
+  flex-shrink: 0;
+  background: #ffffff;
+  padding: 1px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
 .brand-icon {
   width: 36px;
   height: 36px;

@@ -28,17 +28,19 @@
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      width: 64px;
-      height: 64px;
-      background: linear-gradient(135deg, #4f46e5, #7c3aed);
+      width: 72px;
+      height: 72px;
       border-radius: 16px;
       margin-bottom: 20px;
-      box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
+      overflow: hidden;
+      background: #ffffff;
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
+      border: 1px solid rgba(0, 0, 0, 0.06);
     }
-    .logo svg {
-      width: 32px;
-      height: 32px;
-      color: white;
+    .logo img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
     }
     h1 {
       font-size: 22px;
@@ -88,10 +90,7 @@
 <body>
   <div class="splash">
     <div class="logo">
-      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"
-              d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9.5a2.5 2.5 0 00-2.5-2.5H15"/>
-      </svg>
+      <img src="kit-logo.jpg" alt="KIT Logo">
     </div>
     <h1>KIT QGen</h1>
     <div class="subtitle">Question Paper Generator</div>
