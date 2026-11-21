@@ -9,6 +9,7 @@ import com.qpss.service.PaperGenerationService;
 import com.qpss.service.SessionService;
 import com.qpss.service.SubjectService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ContentDisposition;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -97,13 +98,6 @@ public class GenerationController {
         return "generation/review";
     }
 
-    @PostMapping("/{paperId}/finalize")
-    public String finalize(@PathVariable Long sessionId, @PathVariable Long paperId, Model model) {
-        generationService.finalizePaper(paperId, sessionId);
-        model.addAttribute("session", sessionService.findById(sessionId));
-        model.addAttribute("paperId", paperId);
-        return "generation/finalized";
-    }
 
     @PostMapping("/{paperId}/swap")
     @ResponseBody
@@ -134,8 +128,6 @@ public class GenerationController {
         var paper = generationService.getPaperByIdAndSessionId(paperId, sessionId)
                 .orElseThrow(() -> new IllegalArgumentException("Invalid paper id or session mismatch"));
 
-        generationService.finalizePaper(paperId, sessionId);
-
         byte[] docxBytes = docxRendererService.exportPaperToDocx(paper);
 
         String setLabel = (paper.getSetLabel() != null && !paper.getSetLabel().isBlank())
@@ -145,7 +137,7 @@ public class GenerationController {
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.valueOf("application/vnd.openxmlformats-officedocument.wordprocessingml.document"));
-        headers.setContentDispositionFormData("attachment", filename);
+        headers.setContentDisposition(ContentDisposition.attachment().filename(filename).build());
 
         return new ResponseEntity<>(docxBytes, headers, HttpStatus.OK);
     }

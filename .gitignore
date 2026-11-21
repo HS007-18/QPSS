@@ -1,49 +1,38 @@
+# Maven
 target/
 !.mvn/wrapper/maven-wrapper.jar
-!**/src/main/**/target/
-!**/src/test/**/target/
 
-### STS ###
-.apt_generated
-.classpath
-.factorypath
-.project
-.settings
-.springBeans
-.sts4-cache
-
-### IntelliJ IDEA ###
-.idea
+# IDE
+.idea/
 *.iws
 *.iml
 *.ipr
-
-### NetBeans ###
-/nbproject/private/
-/nbbuild/
-/dist/
-/nbdist/
-/.nb-gradle/
-build/
-!**/src/main/**/build/
-!**/src/test/**/build/
-
-### VS Code ###
 .vscode/
-apache-maven-3.9.6*
+*.swp
+*.swo
 
-/data/
-jdk-17/
-maven.zip
+# OS
+.DS_Store
+Thumbs.db
+
+# Build outputs
+*.war
+*.jar
+*.zip
+
+# Electron
+electron/node_modules/
+electron/dist/
+electron/resources/jre/
+
+# jpackage
+KIT_QGen_DesktopApp/
+jpackage_input/
+
+# Runtime data
+data/
 storage/
 
-### Runtime ###
+# Logs
 *.log
 *.err
-.env
-
-### Custom Build Outputs ###
-target2/
-KIT_QGen_DesktopApp/
-electron-app/
-jpackage_input/

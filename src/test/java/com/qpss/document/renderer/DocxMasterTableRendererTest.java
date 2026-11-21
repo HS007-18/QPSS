@@ -48,16 +48,16 @@ class DocxMasterTableRendererTest {
         assertTrue(xml0.contains("QUESTION PAPER CODE:"), "Row 0 must contain QUESTION PAPER CODE:");
         assertTrue(xml0.contains("REG.") && xml0.contains("NO.:"), "Row 0 must contain REG. NO.:");
 
-        // Row 3: Academic Year
-        XWPFTableRow r3 = table.getRow(3);
-        String xml3 = r3.getCell(0).getCTTc().toString();
-
-        assertTrue(xml3.contains("Academic Year:"), "Row 3 must contain Academic Year:");
-
-        // Row 4: Date / Session
+        // Row 4: Academic Year
         XWPFTableRow r4 = table.getRow(4);
         String xml4 = r4.getCell(0).getCTTc().toString();
 
-        assertTrue(xml4.contains("Date / Session:"), "Row 4 must contain Date / Session:");
+        assertTrue(xml4.contains("Academic Year:"), "Row 4 must contain Academic Year:");
+
+        // Row 5: Date / Session
+        XWPFTableRow r5 = table.getRow(5);
+        String xml5 = r5.getCell(0).getCTTc().toString();
+
+        assertTrue(xml5.contains("Date / Session:"), "Row 5 must contain Date / Session:");
     }
 }

@@ -1,6 +1,6 @@
-# KIT QGen (formerly QPSS)
+# KIT QGen
 
-KIT QGen generates formatted question papers (.docx) from uploaded question-bank documents. It extracts questions and header metadata from Word files, stores them in a searchable question bank, and builds exam papers following configurable rules (marks, sections, CO units) with content-duplicate-free selection.
+A desktop application that generates formatted question papers (.docx) from uploaded question-bank documents. It extracts questions and header metadata from Word files, stores them in a searchable question bank, and builds exam papers following configurable rules (marks, sections, CO units) with content-duplicate-free selection.
 
 ## Features
 
@@ -15,30 +15,46 @@ KIT QGen generates formatted question papers (.docx) from uploaded question-bank
 
 ## Tech Stack
 
-| Layer      | Technology                                |
-|------------|-------------------------------------------|
+| Layer      | Technology                                  |
+|------------|---------------------------------------------|
 | Backend    | Java 17, Spring Boot 3.2.5, Spring Data JPA |
-| Frontend   | JSP (Jakarta), JSTL, HTML/CSS             |
-| Documents  | Apache POI 5.2.5, jsoup 1.17.2             |
-| Database   | MariaDB 10.11                             |
-| Build      | Maven (wrapper included), packaged as WAR |
-| Deploy     | Docker, Docker Compose                    |
+| Frontend   | JSP (Jakarta), JSTL, HTML/CSS               |
+| Desktop    | Electron 30, electron-builder                |
+| Documents  | Apache POI 5.2.5, jsoup 1.17.2              |
+| Database   | H2 (embedded, file-based)                    |
+| Build      | Maven (wrapper included), packaged as WAR    |
 
 ## Project Structure
 
 ```text
-src/main/java/com/qpss/
-├── controller/          web layer endpoints
-├── document/            DOCX extraction and rendering (Apache POI)
-├── domain/              enums and core business types
-├── dto/                 data transfer objects
-├── entity/              JPA entities
-├── exception/           custom domain exceptions
-├── repository/          Spring Data JPA interfaces
-├── service/             business logic, selection engine, imports
-└── util/                constants and shared helpers
-src/main/webapp/WEB-INF/views/   JSP pages
-src/main/resources/              config, DB schema and seed data
+.
+├── src/                          # Application source code
+│   ├── main/
+│   │   ├── java/com/qpss/       # Spring Boot backend
+│   │   │   ├── controller/      # Web layer endpoints
+│   │   │   ├── document/        # DOCX extraction & rendering
+│   │   │   │   ├── model/       # AST, parsed question models
+│   │   │   │   ├── parser/      # Document parsing logic
+│   │   │   │   └── renderer/    # Word document rendering
+│   │   │   ├── domain/          # Enums, distribution, selection, validation
+│   │   │   ├── dto/             # Data transfer objects
+│   │   │   ├── entity/          # JPA entities
+│   │   │   ├── exception/       # Custom domain exceptions
+│   │   │   ├── repository/      # Spring Data JPA interfaces
+│   │   │   ├── service/         # Business logic, selection engine, imports
+│   │   │   └── util/            # Constants and shared helpers
+│   │   ├── resources/           # Config, DB schema, static assets
+│   │   └── webapp/              # JSP views
+│   └── test/                    # Unit & integration tests
+├── electron/                    # Electron desktop wrapper
+│   ├── main.js                  # Electron entry point
+│   ├── package.json             # Electron configuration
+│   └── resources/               # Icons, splash screen
+├── scripts/
+│   └── build.ps1                # Build & package script
+├── pom.xml                      # Maven configuration
+├── mvnw, mvnw.cmd               # Maven wrapper
+└── README.md
 ```
 
 ## Getting Started
@@ -46,73 +62,27 @@ src/main/resources/              config, DB schema and seed data
 ### Prerequisites
 
 - Java 17
-- MariaDB 10.11 running on localhost:3306 (or set `DB_HOST` / `DB_PORT`)
+- Node.js (for Electron packaging)
 
 ### Run locally
 
 ```bash
-mvnw clean package
-java -jar target/qpss-1.0.0.war
+./mvnw clean package
+java -jar target/qpss-1.0.1.war
 ```
 
-Open http://localhost:8080. The database schema and seed rules are applied automatically on first start. You must provide `DB_USERNAME` and `DB_PASSWORD` environment variables (e.g. via a `.env` file) for the application to connect to MariaDB.
+Open http://localhost:8080. The H2 database and seed data are created automatically on first start — no external database required.
 
 ### Run tests
 
 ```bash
-mvnw clean test
+./mvnw clean test
 ```
 
-## Deploy with Docker
+### Build Desktop Installer (Windows)
 
-The repository ships a `docker-compose.yml` with two services: `db` (MariaDB) and `app` (the application). Uploaded files are persisted in `./storage`, and database data in the `db_data` volume.
-
-```bash
-cp .env.example .env   # set a strong DB_PASSWORD
-docker compose up -d --build
+```powershell
+.\scripts\build.ps1
 ```
 
-The app is then available at http://localhost:8080.
-
-### Deployment to a VPS (Ubuntu)
-
-1. Install Docker and the compose plugin:
-   ```bash
-   curl -fsSL https://get.docker.com | sh
-   ```
-2. Clone the repository:
-   ```bash
-   git clone https://github.com/HS007-18/QPSS.git
-   cd QPSS
-   ```
-3. Configure the database password and start:
-   ```bash
-   cp .env.example .env
-   nano .env            # set DB_PASSWORD to a strong value
-   docker compose up -d --build
-   ```
-4. Open the firewall:
-   ```bash
-   sudo ufw allow 8080
-   ```
-5. (Optional) Reverse proxy with Caddy for HTTPS:
-   ```bash
-   docker run -d --name caddy -p 80:80 -p 443:443 \
-     -v $PWD/Caddyfile:/etc/caddy/Caddyfile \
-     caddy:2
-   ```
-   Caddyfile: `your-domain.com { reverse_proxy qpss_app:8080 }` (connect Caddy to the same Docker network first).
-
-### Backup and restore
-
-```bash
-docker compose exec db sh -c 'exec mariadb-dump -uroot -p"$MYSQL_ROOT_PASSWORD" qpss' > qpss_backup.sql
-docker compose cp qpss_app:/app/storage ./storage-backup
-```
-
-Restore:
-
-```bash
-docker compose exec -T db sh -c 'exec mariadb -uroot -p"$MYSQL_ROOT_PASSWORD" qpss' < qpss_backup.sql
-```
-
+This builds the Spring Boot WAR, then packages it with Electron into a Windows installer at `electron/dist/KIT QGen Setup 1.0.1.exe`.

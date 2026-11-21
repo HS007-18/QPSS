@@ -11,7 +11,13 @@ public interface SourceDocumentRepository extends JpaRepository<SourceDocument, 
 
     List<SourceDocument> findByImportBatch_SessionIdIn(List<Long> sessionIds);
 
+    List<SourceDocument> findByImportBatch_SubjectId(Long subjectId);
+
     @Modifying
     @Transactional
     void deleteByImportBatch_SessionIdIn(List<Long> sessionIds);
+
+    @Modifying
+    @Transactional
+    void deleteByImportBatch_SubjectId(Long subjectId);
 }

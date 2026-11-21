@@ -59,6 +59,14 @@ public class HeaderMetadataExtractor {
                     metadata.setCommonTo(rowText);
                 } else if (lowerRow.contains("note:") || lowerRow.contains("note :")) {
                     metadata.setNotes(rowText);
+                } else if (lowerRow.contains("academic year")) {
+                    int colonIdx = rowText.indexOf(":");
+                    if (colonIdx > 0) {
+                        metadata.setAcademicYear(rowText.substring(colonIdx + 1).trim());
+                    } else {
+                        String val = rowText.replaceFirst("(?i)academic\\s*year\\s*", "").trim();
+                        metadata.setAcademicYear(val.isEmpty() ? null : val);
+                    }
                 } else if (lowerRow.contains("regulation")) {
                     metadata.setRegulation(rowText);
                 } else if (lowerRow.contains("duration")) {

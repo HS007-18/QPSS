@@ -29,7 +29,6 @@ public class PaperDraftPersistenceService {
     @Transactional
     public void deleteDraftsExcluding(Long sessionId, Set<Long> excludePaperIds) {
         List<GeneratedPaper> drafts = paperRepo.findBySessionId(sessionId).stream()
-                .filter(p -> !Boolean.TRUE.equals(p.getIsFinal()))
                 .filter(p -> !excludePaperIds.contains(p.getId()))
                 .collect(Collectors.toList());
         if (drafts.isEmpty()) {

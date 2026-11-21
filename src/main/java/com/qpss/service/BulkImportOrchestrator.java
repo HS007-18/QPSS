@@ -71,10 +71,9 @@ public class BulkImportOrchestrator {
                 String subjectCode = null;
                 String subjectName = null;
 
-                try (InputStream is = file.getInputStream()) {
-                    XWPFDocument doc = new XWPFDocument(is);
+                try (InputStream is = file.getInputStream();
+                     XWPFDocument doc = new XWPFDocument(is)) {
                     HeaderMetadata metadata = metadataExtractor.extract(doc);
-                    doc.close();
 
                     if (metadata.getSubjectCodeTitle() != null) {
                         String codeTitle = metadata.getSubjectCodeTitle();

@@ -180,16 +180,6 @@ public class PaperGenerationService {
         return new GenerationResult(sets, Collections.emptyList(), null, true);
     }
 
-    @Transactional
-    public void finalizePaper(Long paperId, Long sessionId) {
-        GeneratedPaper paper = getPaperById(paperId)
-                .orElseThrow(() -> new IllegalArgumentException("Paper not found"));
-        if (!paper.getSessionId().equals(sessionId)) {
-            throw new IllegalArgumentException("Paper does not belong to session");
-        }
-        paper.setIsFinal(true);
-        draftService.save(paper);
-    }
 
     public java.util.Optional<GeneratedPaper> getPaperById(Long paperId) {
         return draftService.findById(paperId);

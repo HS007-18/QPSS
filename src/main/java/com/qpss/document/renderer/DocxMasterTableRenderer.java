@@ -9,6 +9,7 @@ import com.qpss.util.LayoutConstants;
 import com.qpss.service.DocumentMetadataService;
 import org.apache.poi.xwpf.usermodel.XWPFDocument;
 import org.apache.poi.xwpf.usermodel.XWPFTable;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -20,7 +21,7 @@ public class DocxMasterTableRenderer {
     private final DocumentMetadataService documentMetadataService;
 
     // Delegate renderers
-    private final HeaderRenderer headerRenderer = new HeaderRenderer();
+    private final HeaderRenderer headerRenderer;
     private final CourseOutcomesRenderer courseOutcomesRenderer = new CourseOutcomesRenderer();
     private final DurationInstructionsRenderer durationInstructionsRenderer = new DurationInstructionsRenderer();
     private final PartARenderer partARenderer;
@@ -28,13 +29,21 @@ public class DocxMasterTableRenderer {
     private final TableOfSpecificationRenderer tableOfSpecificationRenderer;
     private final SignaturesRenderer signaturesRenderer = new SignaturesRenderer();
 
+    @Autowired
     public DocxMasterTableRenderer(QuestionRepository questionRepository,
-            DocumentMetadataService documentMetadataService) {
+            DocumentMetadataService documentMetadataService,
+            HeaderRenderer headerRenderer) {
         this.questionRepository = questionRepository;
         this.documentMetadataService = documentMetadataService;
+        this.headerRenderer = headerRenderer != null ? headerRenderer : new HeaderRenderer();
         this.partARenderer = new PartARenderer(questionRepository);
         this.partBRenderer = new PartBRenderer(questionRepository);
         this.tableOfSpecificationRenderer = new TableOfSpecificationRenderer(questionRepository);
+    }
+
+    public DocxMasterTableRenderer(QuestionRepository questionRepository,
+            DocumentMetadataService documentMetadataService) {
+        this(questionRepository, documentMetadataService, new HeaderRenderer());
     }
 
     public void renderMasterTable(XWPFDocument document, GeneratedPaper paper, Subject subject,

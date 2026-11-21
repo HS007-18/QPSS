@@ -1,0 +1,42 @@
+{
+  "name": "kit-qgen",
+  "version": "1.0.1",
+  "description": "KIT QGen Desktop Application",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "build": "electron-builder --win --x64"
+  },
+  "build": {
+    "appId": "com.kit.qgen",
+    "productName": "KIT QGen",
+    "directories": {
+      "output": "dist"
+    },
+    "win": {
+      "target": "nsis",
+      "icon": "resources/icon.ico"
+    },
+    "nsis": {
+      "oneClick": true,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": false,
+      "installerIcon": "resources/icon.ico",
+      "uninstallerIcon": "resources/icon.ico",
+      "uninstallDisplayName": "KIT QGen"
+    },
+    "extraResources": [
+      {
+        "from": "../target/qpss-1.0.1.war",
+        "to": "qpss.war"
+      }
+    ]
+  },
+  "dependencies": {
+    "wait-on": "^7.2.0"
+  },
+  "devDependencies": {
+    "electron": "^30.0.0",
+    "electron-builder": "^24.13.3"
+  }
+}

@@ -7,13 +7,17 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 public interface GeneratedPaperRepository extends JpaRepository<GeneratedPaper, Long> {
 
-    List<GeneratedPaper> findByIsFinalTrue();
-
     List<GeneratedPaper> findBySessionIdIn(List<Long> sessionIds);
 
     List<GeneratedPaper> findBySessionId(Long sessionId);
 
+    List<GeneratedPaper> findBySubjectId(Long subjectId);
+
     @Modifying
     @Transactional
     void deleteBySessionIdIn(List<Long> sessionIds);
+
+    @Modifying
+    @Transactional
+    void deleteBySubjectId(Long subjectId);
 }

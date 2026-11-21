@@ -9,10 +9,24 @@ import org.openxmlformats.schemas.wordprocessingml.x2006.main.CTTblGrid;
 import org.openxmlformats.schemas.wordprocessingml.x2006.main.CTTblGridCol;
 import org.openxmlformats.schemas.wordprocessingml.x2006.main.STMerge;
 
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
+
+@Component
 public class HeaderRenderer {
 
     private static final String INSTITUTION_NAME = "KANGEYAM INSTITUTE OF TECHNOLOGY";
     private static final String INSTITUTION_TAGLINE = "(Autonomous Institution)";
+    private static final String DEFAULT_ACADEMIC_YEAR = "2025-26";
+
+    @Value("${qpss.institution.academic-year:2025-26}")
+    private String configuredAcademicYear = DEFAULT_ACADEMIC_YEAR;
+
+    public HeaderRenderer() {}
+
+    public HeaderRenderer(String configuredAcademicYear) {
+        this.configuredAcademicYear = configuredAcademicYear;
+    }
 
     public int renderHeaderBlock(XWPFTable table, int rIdx, GeneratedPaper paper, Subject subject,
             HeaderMetadata metadata) {
@@ -47,7 +61,8 @@ public class HeaderRenderer {
         // Row 1a: tagline (constant)
         XWPFTableRow r1a = getOrCreateRow(table, rIdx++);
         mergeCells(r1a, 0, 4);
-        String tagline = INSTITUTION_TAGLINE;
+        String tagline = (metadata.getTagline() != null && !metadata.getTagline().isBlank())
+                ? metadata.getTagline() : INSTITUTION_TAGLINE;
         setCellText(r1a.getCell(0), tagline, ParagraphAlignment.CENTER, true, 11);
 
         // Row 2: Exam title (from metadata or mapped from ExamType)
@@ -60,7 +75,10 @@ public class HeaderRenderer {
         // Row 3: Academic Year
         XWPFTableRow r3 = getOrCreateRow(table, rIdx++);
         mergeCells(r3, 0, 4);
-        setCellText(r3.getCell(0), "Academic Year: 2025-26", ParagraphAlignment.CENTER, false, 11);
+        String year = (metadata.getAcademicYear() != null && !metadata.getAcademicYear().isBlank())
+                ? metadata.getAcademicYear()
+                : (configuredAcademicYear != null && !configuredAcademicYear.isBlank() ? configuredAcademicYear : DEFAULT_ACADEMIC_YEAR);
+        setCellText(r3.getCell(0), "Academic Year: " + year, ParagraphAlignment.CENTER, false, 11);
 
         // Row 4: Date / Session
         XWPFTableRow r4 = getOrCreateRow(table, rIdx++);

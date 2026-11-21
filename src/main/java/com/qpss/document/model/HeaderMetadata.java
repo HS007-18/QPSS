@@ -22,6 +22,7 @@ public class HeaderMetadata {
     private String examSession;
     private String examTitle;
     private String duration;
+    private String academicYear;
 
     @Builder.Default
     private List<CourseOutcome> courseOutcomes = new ArrayList<>();

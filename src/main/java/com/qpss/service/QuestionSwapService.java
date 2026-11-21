@@ -54,7 +54,6 @@ public class QuestionSwapService {
             usedQuestionIds.addAll(otherPaperQuestionIds);
         }
         Set<Long> excludedIds = new HashSet<>(usedQuestionIds);
-        excludedIds.remove(oldQuestionId);
 
         List<Question> alternatives = questionRepo.findBySubjectIdOrderByUnitAscSerialNoAsc(paper.getSubjectId())
                 .stream()

@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      background: transparent;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
+      -webkit-app-region: drag;
+      user-select: none;
+    }
+    .splash {
+      background: #ffffff;
+      border-radius: 20px;
+      padding: 48px 40px 36px;
+      width: 380px;
+      text-align: center;
+      box-shadow:
+        0 4px 6px -1px rgba(0,0,0,0.07),
+        0 20px 40px -4px rgba(0,0,0,0.12),
+        0 0 0 1px rgba(0,0,0,0.04);
+    }
+    .logo {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 64px;
+      height: 64px;
+      background: linear-gradient(135deg, #4f46e5, #7c3aed);
+      border-radius: 16px;
+      margin-bottom: 20px;
+      box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
+    }
+    .logo svg {
+      width: 32px;
+      height: 32px;
+      color: white;
+    }
+    h1 {
+      font-size: 22px;
+      font-weight: 700;
+      color: #111827;
+      letter-spacing: -0.3px;
+      margin-bottom: 6px;
+    }
+    .subtitle {
+      font-size: 13px;
+      color: #9ca3af;
+      margin-bottom: 32px;
+    }
+    .loader {
+      position: relative;
+      width: 200px;
+      height: 3px;
+      background: #f3f4f6;
+      border-radius: 3px;
+      margin: 0 auto 16px;
+      overflow: hidden;
+    }
+    .loader::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -40%;
+      width: 40%;
+      height: 100%;
+      background: linear-gradient(90deg, #4f46e5, #7c3aed);
+      border-radius: 3px;
+      animation: slide 1.4s ease-in-out infinite;
+    }
+    @keyframes slide {
+      0%   { left: -40%; }
+      100% { left: 100%; }
+    }
+    #status {
+      font-size: 12px;
+      color: #6b7280;
+      font-weight: 500;
+      letter-spacing: 0.2px;
+      min-height: 18px;
+    }
+  </style>
+</head>
+<body>
+  <div class="splash">
+    <div class="logo">
+      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"
+              d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9.5a2.5 2.5 0 00-2.5-2.5H15"/>
+      </svg>
+    </div>
+    <h1>KIT QGen</h1>
+    <div class="subtitle">Question Paper Generator</div>
+    <div class="loader"></div>
+    <div id="status">Starting server...</div>
+  </div>
+</body>
+</html>

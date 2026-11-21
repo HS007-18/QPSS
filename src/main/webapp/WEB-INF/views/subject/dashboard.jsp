@@ -3,317 +3,69 @@
 <!DOCTYPE html>
 <html>
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>KIT QGen - Dashboard</title>
     <link rel="stylesheet" href="/css/style.css">
-    <style>
-        .dashboard-hero {
-            background: linear-gradient(135deg, var(--primary) 0%, #7c3aed 100%);
-            border-radius: 16px;
-            padding: 40px 36px;
-            margin-bottom: 32px;
-            color: #fff;
-            position: relative;
-            overflow: hidden;
-        }
-        .dashboard-hero::after {
-            content: '';
-            position: absolute;
-            top: -60%;
-            right: -15%;
-            width: 400px;
-            height: 400px;
-            background: rgba(255,255,255,0.05);
-            border-radius: 50%;
-            pointer-events: none;
-        }
-        .dashboard-hero h1 {
-            font-size: 28px;
-            font-weight: 700;
-            margin-bottom: 8px;
-            color: #fff;
-        }
-        .dashboard-hero p {
-            font-size: 15px;
-            opacity: 0.85;
-            margin-bottom: 24px;
-        }
-        .bulk-upload-zone {
-            border: 2px dashed rgba(255,255,255,0.35);
-            border-radius: 12px;
-            padding: 28px 24px;
-            text-align: center;
-            cursor: pointer;
-            transition: all 0.25s;
-            background: rgba(255,255,255,0.06);
-        }
-        .bulk-upload-zone:hover {
-            border-color: rgba(255,255,255,0.7);
-            background: rgba(255,255,255,0.12);
-        }
-        .bulk-upload-zone .upload-label {
-            font-weight: 600;
-            font-size: 15px;
-            margin-bottom: 4px;
-        }
-        .bulk-upload-zone .upload-hint {
-            font-size: 13px;
-            opacity: 0.7;
-        }
-        .bulk-upload-zone .file-count {
-            margin-top: 8px;
-            font-size: 13px;
-            font-weight: 600;
-            color: #fbbf24;
-            display: none;
-        }
-
-        .search-bar {
-            position: relative;
-            margin-bottom: 24px;
-        }
-        .search-bar input {
-            width: 100%;
-            padding: 14px 20px 14px 48px;
-            border-radius: 12px;
-            border: 1px solid var(--border);
-            font-size: 15px;
-            background: var(--bg-card);
-            box-shadow: var(--shadow-sm);
-            transition: all 0.2s;
-        }
-        .search-bar input:focus {
-            border-color: var(--primary);
-            box-shadow: 0 0 0 3px var(--primary-light);
-        }
-        .search-bar .search-icon {
-            position: absolute;
-            left: 16px;
-            top: 50%;
-            transform: translateY(-50%);
-            color: var(--text-muted);
-        }
-
-        .subject-card {
-            background: var(--bg-card);
-            border-radius: 14px;
-            border: 1px solid var(--border);
-            padding: 24px;
-            box-shadow: var(--shadow-sm);
-            display: flex;
-            flex-direction: column;
-            transition: all 0.2s;
-            position: relative;
-        }
-        .subject-card:hover {
-            box-shadow: var(--shadow-md);
-            transform: translateY(-2px);
-            border-color: var(--primary);
-        }
-        .subject-code {
-            display: inline-block;
-            background: var(--primary-light);
-            color: var(--primary);
-            font-size: 12px;
-            font-weight: 700;
-            padding: 4px 10px;
-            border-radius: 6px;
-            margin-bottom: 10px;
-            letter-spacing: 0.5px;
-        }
-        .subject-name {
-            font-size: 17px;
-            font-weight: 600;
-            color: var(--text-main);
-            margin-bottom: 12px;
-            line-height: 1.3;
-        }
-        .subject-stats {
-            display: flex;
-            gap: 16px;
-            margin-bottom: 16px;
-            padding-bottom: 16px;
-            border-bottom: 1px solid var(--bg-hover);
-        }
-        .stat-item {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-        .stat-value {
-            font-size: 20px;
-            font-weight: 700;
-            color: var(--text-main);
-            line-height: 1;
-        }
-        .stat-label {
-            font-size: 11px;
-            color: var(--text-muted);
-            margin-top: 4px;
-            text-transform: uppercase;
-            letter-spacing: 0.3px;
-        }
-        .subject-actions {
-            margin-top: auto;
-            display: flex;
-            gap: 8px;
-        }
-        .subject-actions .btn { flex: 1; }
-
-        .no-results {
-            text-align: center;
-            padding: 60px 24px;
-            color: var(--text-muted);
-            display: none;
-        }
-        .no-results.visible { display: block; }
-        .no-results .icon { font-size: 48px; margin-bottom: 16px; opacity: 0.4; }
-
-        .alert-banner {
-            padding: 16px 20px;
-            border-radius: 12px;
-            margin-bottom: 20px;
-            font-size: 14px;
-            line-height: 1.5;
-        }
-        .alert-success {
-            background: var(--success-light);
-            border: 1px solid var(--success);
-            color: #065f46;
-        }
-        .alert-error {
-            background: var(--danger-light);
-            border: 1px solid var(--danger);
-            color: #991b1b;
-        }
-
-        .section-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 16px;
-        }
-        .section-title {
-            font-size: 18px;
-            font-weight: 600;
-            color: var(--text-main);
-        }
-        .subject-count-badge {
-            background: var(--bg-hover);
-            color: var(--text-muted);
-            font-size: 13px;
-            font-weight: 600;
-            padding: 4px 12px;
-            border-radius: 20px;
-            border: 1px solid var(--border);
-        }
-
-        .progress-overlay {
-            display: none;
-            position: fixed;
-            inset: 0;
-            background: rgba(0,0,0,0.5);
-            z-index: 200;
-            align-items: center;
-            justify-content: center;
-        }
-        .progress-overlay.active { display: flex; }
-        .progress-card {
-            background: var(--bg-card);
-            border-radius: 16px;
-            padding: 48px 40px;
-            text-align: center;
-            box-shadow: var(--shadow-lg);
-            max-width: 400px;
-            width: 90%;
-        }
-        .progress-card h3 {
-            font-size: 20px;
-            font-weight: 700;
-            margin-bottom: 8px;
-        }
-        .progress-card p {
-            font-size: 14px;
-            color: var(--text-muted);
-            margin-bottom: 24px;
-        }
-        .spinner {
-            width: 48px;
-            height: 48px;
-            border: 4px solid var(--bg-hover);
-            border-top-color: var(--primary);
-            border-radius: 50%;
-            animation: spin 0.8s linear infinite;
-            margin: 0 auto 24px;
-        }
-        @keyframes spin { to { transform: rotate(360deg); } }
-    </style>
 </head>
 <body>
 <c:set var="pageTitle" value="Dashboard" />
-<c:set var="navRight"><a href="/history" class="btn btn-outline btn-sm">View History</a></c:set>
+<c:set var="navRight">
+    <button class="btn btn-primary" onclick="document.getElementById('uploadModal').classList.add('active')">
+        <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
+        Upload Question Banks
+    </button>
+</c:set>
 <%@ include file="../fragments/navbar.jspf" %>
 
-<div class="container">
+<div class="container" style="padding-top: var(--space-6); padding-bottom: var(--space-10);">
 
-    <%-- Flash messages --%>
+    <!-- Flash messages -->
     <c:if test="${not empty message}">
-        <div class="alert-banner alert-success">
-            <strong>✓</strong> <c:out value="${message}" />
+        <div class="alert alert-success" role="alert" aria-live="polite">
+            <svg class="alert-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+            <div class="alert-content"><c:out value="${message}" /></div>
         </div>
     </c:if>
     <c:if test="${not empty error}">
-        <div class="alert-banner alert-error">
-            <strong>✗</strong> <c:out value="${error}" />
+        <div class="alert alert-error" role="alert" aria-live="assertive">
+            <svg class="alert-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+            <div class="alert-content"><c:out value="${error}" /></div>
         </div>
     </c:if>
     <c:if test="${not empty uploadErrors}">
-        <div class="alert-banner alert-error" style="max-height:200px; overflow-y:auto;">
-            <strong>Upload Warnings:</strong>
-            <ul style="margin: 8px 0 0 20px; font-size:13px;">
-                <c:forEach var="err" items="${uploadErrors}">
-                    <li><c:out value="${err}" /></li>
-                </c:forEach>
-            </ul>
+        <div class="alert alert-warning" role="alert" aria-live="polite" style="max-height:200px; overflow-y:auto;">
+            <svg class="alert-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/></svg>
+            <div class="alert-content">
+                <div class="alert-title">Upload Warnings:</div>
+                <ul class="alert-list">
+                    <c:forEach var="err" items="${uploadErrors}"><li><c:out value="${err}" /></li></c:forEach>
+                </ul>
+            </div>
         </div>
     </c:if>
 
-    <%-- Hero: Bulk Upload Zone --%>
-    <div class="dashboard-hero">
-        <h1>Question Paper Support System</h1>
-        <p>Upload question banks in bulk — files are automatically grouped by subject code and name.</p>
+    <!-- Page Header -->
+    <header class="page-header" style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: var(--space-4); margin-bottom: var(--space-8);">
+        <div>
+            <h1 class="page-title" style="font-size: 1.75rem; font-weight: 700; letter-spacing: -0.02em;">Subjects</h1>
+            <p class="page-subtitle" style="margin-top: var(--space-1); font-size: 1rem; color: var(--color-text-secondary);">Manage your question banks and generate papers</p>
+        </div>
+        <div style="display: flex; gap: var(--space-3); align-items: center;">
+            <span class="count-badge">${subjects.size()} subject(s)</span>
+        </div>
+    </header>
 
-        <form action="/upload-bulk" method="post" enctype="multipart/form-data" id="bulkUploadForm">
-            <div class="bulk-upload-zone" id="bulkDropZone" onclick="document.getElementById('bulkFiles').click()">
-                <svg style="width:36px;height:36px;margin-bottom:8px;opacity:0.8;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path></svg>
-                <div class="upload-label">Drag & drop DOCX files here or click to browse</div>
-                <div class="upload-hint">Supports 500+ files at once — automatically grouped by subject</div>
-                <div class="file-count" id="fileCount"></div>
-                <input type="file" name="files" id="bulkFiles" accept=".docx" multiple required style="display:none">
-            </div>
-            <div style="margin-top:16px; display:flex; gap:12px; justify-content:flex-end;">
-                <button type="submit" id="uploadBtn" class="btn" style="background:rgba(255,255,255,0.2); color:#fff; border:1px solid rgba(255,255,255,0.3); padding:10px 28px;" disabled>
-                    Upload & Process
-                </button>
-            </div>
-        </form>
+    <!-- Search Bar -->
+    <div class="search-box" role="search" aria-label="Search subjects" style="max-width: 480px; margin-bottom: var(--space-6);">
+        <svg class="search-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+        <input type="text" class="search-input" id="searchInput" placeholder="Search by subject code or name..." aria-label="Search subjects">
     </div>
 
-    <%-- Search Bar --%>
-    <div class="search-bar">
-        <svg class="search-icon" style="width:20px;height:20px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
-        <input type="text" id="searchInput" placeholder="Search by subject code or name... (e.g. ME3491, Theory of Machines)">
-    </div>
-
-    <%-- Section Header --%>
-    <div class="section-header">
-        <div class="section-title">Subjects</div>
-        <span class="subject-count-badge" id="subjectCountBadge">${subjects.size()} subject(s)</span>
-    </div>
-
-    <%-- Subject Cards Grid --%>
-    <div class="grid-3" id="subjectGrid">
+    <!-- Subject Cards Grid -->
+    <div class="grid grid-3" id="subjectGrid" role="list">
         <c:forEach var="s" items="${subjects}">
-            <div class="subject-card" data-code="${s.code}" data-name="${s.name}">
+            <div class="subject-card" data-code="${s.code}" data-name="${s.name}" role="listitem">
                 <c:if test="${not empty s.code}">
                     <span class="subject-code"><c:out value="${s.code}" /></span>
                 </c:if>
@@ -333,86 +85,123 @@
                         <button type="submit" class="btn btn-primary btn-sm" style="width:100%;">Open</button>
                     </form>
                     <form action="/subjects/${s.id}/delete" method="post" style="margin:0;">
-                        <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Delete this subject and all its data?')">Delete</button>
+                        <button type="submit" class="btn btn-secondary btn-sm" onclick="return confirm('Delete this subject and all its data?')">Delete</button>
                     </form>
                 </div>
             </div>
         </c:forEach>
     </div>
 
-    <%-- Empty State --%>
+    <!-- Empty State -->
     <c:if test="${empty subjects}">
-        <div class="no-results visible" id="emptyState">
-            <div class="icon">📚</div>
-            <div style="font-size:16px; font-weight:500; color:var(--text-main);">No subjects yet</div>
-            <div style="color:var(--text-muted); font-size:14px; margin-top:4px;">Upload DOCX question bank files to get started. Subjects will be created automatically.</div>
+        <div class="empty-state visible" id="emptyState" style="grid-column: 1 / -1;">
+            <div class="empty-icon" aria-hidden="true">
+                <svg width="64" height="64" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="opacity:0.3;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9.5a2.5 2.5 0 00-2.5-2.5H15"/></svg>
+            </div>
+            <div class="empty-title">No subjects yet</div>
+            <div class="empty-desc">Click "Upload Question Banks" to add your first DOCX files. Subjects will be created automatically.</div>
+            <button class="btn btn-primary" style="margin-top: var(--space-6);" onclick="document.getElementById('uploadModal').classList.add('active')">
+                <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
+                Upload Question Banks
+            </button>
         </div>
     </c:if>
 
-    <%-- Search no-results --%>
-    <div class="no-results" id="noResults">
-        <div class="icon">🔍</div>
-        <div style="font-size:16px; font-weight:500; color:var(--text-main);">No matching subjects</div>
-        <div style="color:var(--text-muted); font-size:14px; margin-top:4px;">Try a different search term.</div>
+    <!-- Search no-results -->
+    <div class="empty-state" id="noResults" style="display:none; grid-column: 1 / -1;">
+        <div class="empty-icon" aria-hidden="true">
+            <svg width="64" height="64" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="opacity:0.3;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+        </div>
+        <div class="empty-title">No matching subjects</div>
+        <div class="empty-desc">Try a different search term.</div>
     </div>
-
 
 </div>
 
-<%-- Upload Progress Overlay --%>
-<div class="progress-overlay" id="progressOverlay">
-    <div class="progress-card">
-        <div class="spinner"></div>
-        <h3>Processing Files...</h3>
-        <p id="progressText">Uploading and parsing question banks. This may take a moment for large batches.</p>
+<!-- Upload Modal -->
+<div class="modal-overlay" id="uploadModal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+    <div class="modal">
+        <div class="modal-header">
+            <h2 class="modal-title" id="modalTitle">Upload Question Banks</h2>
+            <button class="modal-close" onclick="document.getElementById('uploadModal').classList.remove('active')" aria-label="Close">
+                <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+            </button>
+        </div>
+        <form action="/upload-bulk" method="post" enctype="multipart/form-data" id="bulkUploadForm" class="modal-body">
+            <div class="upload-zone" id="bulkDropZone" onclick="document.getElementById('bulkFiles').click()" role="button" tabindex="0" aria-label="Upload question bank files">
+                <svg class="upload-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/></svg>
+                <div class="upload-title">Drag & drop DOCX files here or click to browse</div>
+                <div class="upload-hint">Supports 500+ files at once — automatically grouped by subject code and name</div>
+                <div class="upload-file-count" id="fileCount"></div>
+                <input type="file" name="files" id="bulkFiles" accept=".docx" multiple required style="display:none" aria-label="Select DOCX files">
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="document.getElementById('uploadModal').classList.remove('active')">Cancel</button>
+                <button type="submit" id="uploadBtn" class="btn btn-primary" disabled>
+                    <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
+                    Upload & Process
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Upload Progress Overlay -->
+<div class="loading-overlay" id="progressOverlay" role="dialog" aria-modal="true" aria-label="Upload progress">
+    <div class="loading-card">
+        <div class="loading-spinner" aria-hidden="true"></div>
+        <div class="loading-title">Processing Files</div>
+        <div class="loading-text" id="progressText">Uploading and parsing question banks. This may take a moment for large batches.</div>
     </div>
 </div>
 
 <script>
+document.addEventListener('DOMContentLoaded', function() {
     // Bulk upload file selection
     const bulkFiles = document.getElementById('bulkFiles');
     const fileCount = document.getElementById('fileCount');
     const uploadBtn = document.getElementById('uploadBtn');
     const bulkDropZone = document.getElementById('bulkDropZone');
+    const progressOverlay = document.getElementById('progressOverlay');
+    const uploadModal = document.getElementById('uploadModal');
 
     bulkFiles.addEventListener('change', function() {
         if (this.files.length > 0) {
             fileCount.textContent = this.files.length + ' file(s) selected';
             fileCount.style.display = 'block';
             uploadBtn.disabled = false;
-            uploadBtn.style.background = '#fff';
-            uploadBtn.style.color = 'var(--primary)';
-            uploadBtn.style.fontWeight = '600';
         } else {
             fileCount.style.display = 'none';
             uploadBtn.disabled = true;
-            uploadBtn.style.background = 'rgba(255,255,255,0.2)';
-            uploadBtn.style.color = '#fff';
         }
     });
 
     // Drag & drop support
     bulkDropZone.addEventListener('dragover', function(e) {
         e.preventDefault();
-        this.style.borderColor = 'rgba(255,255,255,0.8)';
-        this.style.background = 'rgba(255,255,255,0.15)';
+        this.classList.add('dragover');
     });
     bulkDropZone.addEventListener('dragleave', function(e) {
         e.preventDefault();
-        this.style.borderColor = 'rgba(255,255,255,0.35)';
-        this.style.background = 'rgba(255,255,255,0.06)';
+        this.classList.remove('dragover');
     });
     bulkDropZone.addEventListener('drop', function(e) {
         e.preventDefault();
-        this.style.borderColor = 'rgba(255,255,255,0.35)';
-        this.style.background = 'rgba(255,255,255,0.06)';
+        this.classList.remove('dragover');
         bulkFiles.files = e.dataTransfer.files;
         bulkFiles.dispatchEvent(new Event('change'));
+    });
+    bulkDropZone.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            bulkFiles.click();
+        }
     });
 
     // Show progress overlay on form submit
     document.getElementById('bulkUploadForm').addEventListener('submit', function() {
-        document.getElementById('progressOverlay').classList.add('active');
+        progressOverlay.classList.add('active');
+        uploadModal.classList.remove('active');
     });
 
     // Real-time search filter
@@ -420,6 +209,7 @@
     const subjectGrid = document.getElementById('subjectGrid');
     const noResults = document.getElementById('noResults');
     const countBadge = document.getElementById('subjectCountBadge');
+    const emptyState = document.getElementById('emptyState');
 
     searchInput.addEventListener('input', function() {
         const query = this.value.toLowerCase().trim();
@@ -435,8 +225,20 @@
         });
 
         countBadge.textContent = visibleCount + ' subject(s)';
-        noResults.classList.toggle('visible', visibleCount === 0 && query.length > 0);
+        noResults.style.display = (visibleCount === 0 && query.length > 0) ? 'block' : 'none';
+        if (emptyState) emptyState.style.display = (query.length > 0) ? 'none' : (visibleCount === 0 ? 'block' : 'none');
     });
+
+    // Close modal on overlay click
+    uploadModal.addEventListener('click', function(e) {
+        if (e.target === this) this.classList.remove('active');
+    });
+
+    // ESC to close modal
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') uploadModal.classList.remove('active');
+    });
+});
 </script>
 </body>
 </html>

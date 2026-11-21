@@ -12,4 +12,8 @@ public interface QuestionBankImportRepository extends JpaRepository<QuestionBank
     @Modifying
     @Transactional
     void deleteBySessionIdIn(List<Long> sessionIds);
+
+    @Modifying
+    @Transactional
+    void deleteBySubjectId(Long subjectId);
 }
