@@ -6,7 +6,6 @@ import com.qpss.entity.Question;
 import com.qpss.entity.SourceDocument;
 import com.qpss.repository.SourceDocumentRepository;
 import com.qpss.repository.QuestionRepository;
-import com.qpss.entity.Session;
 import com.qpss.entity.Subject;
 import com.qpss.document.parser.HeaderMetadataExtractor;
 import com.qpss.document.model.HeaderMetadata;
@@ -40,7 +39,6 @@ public class BulkImportOrchestrator {
     private final HeaderMetadataExtractor metadataExtractor;
     private final QuestionParserService parserService;
     private final SubjectService subjectService;
-    private final SessionService sessionService;
     private final QuestionBankImportRepository importRepo;
     private final SourceDocumentRepository sourceDocumentRepo;
     private final SourceDocumentStorageService storageService;
@@ -156,13 +154,9 @@ public class BulkImportOrchestrator {
                 // Find or create the subject
                 Subject subject = subjectService.findOrCreate(code, name);
 
-                // Create a new session for this bulk import
-                Session session = sessionService.create(subject.getId());
-
                 // Create import batch
                 QuestionBankImport importBatch = QuestionBankImport.builder()
                         .subjectId(subject.getId())
-                        .sessionId(session.getId())
                         .build();
                 importBatch = importRepo.save(importBatch);
 
@@ -178,8 +172,8 @@ public class BulkImportOrchestrator {
                 for (FileParseHolder holder : holders) {
                     try {
                         // Check for duplicates
-                        if (sourceDocumentRepo.existsByChecksumAndImportBatch_SessionId(
-                                holder.checksum, session.getId())) {
+                        if (sourceDocumentRepo.existsByChecksumAndImportBatch_SubjectId(
+                                holder.checksum, subject.getId())) {
                             continue;
                         }
 
@@ -201,7 +195,6 @@ public class BulkImportOrchestrator {
                         List<Question> questions = parserService.toQuestions(
                                 holder.parseResult.getValidQuestions(),
                                 subject.getId(),
-                                session.getId(),
                                 doc.getId(),
                                 holder.originalName
                         );

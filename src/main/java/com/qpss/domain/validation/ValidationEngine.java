@@ -42,7 +42,6 @@ public class ValidationEngine {
     public ValidationResult validate(
             String examType,
             Long subjectId,
-            Long sessionId,
             String format,
             List<Question> sectionA,
             List<PairingEngine.QuestionPair> sectionBPairs) {

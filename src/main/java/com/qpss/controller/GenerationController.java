@@ -6,7 +6,6 @@ import com.qpss.domain.distribution.DistributionPlan;
 import com.qpss.service.DocxRendererService;
 import com.qpss.service.ExamConfigService;
 import com.qpss.service.PaperGenerationService;
-import com.qpss.service.SessionService;
 import com.qpss.service.SubjectService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ContentDisposition;
@@ -27,11 +26,10 @@ import java.util.HashMap;
 import java.util.Map;
 @Controller
 @RequiredArgsConstructor
-@RequestMapping("/sessions/{sessionId}/generate")
+@RequestMapping("/subjects/{subjectId}/generate")
 public class GenerationController {
 
     private final PaperGenerationService generationService;
-    private final SessionService sessionService;
     private final SubjectService subjectService;
     private final DocxRendererService docxRendererService;
     private final ExamConfigService examConfigService;
@@ -41,12 +39,12 @@ public class GenerationController {
     @GetMapping("/preview")
     @ResponseBody
     public DistributionPlan preview(@RequestParam String examType,
-                                                                   @RequestParam(defaultValue = "FORMAT_1") String format) {
+                                    @RequestParam(defaultValue = "FORMAT_1") String format) {
         return examConfigService.getDistributionPlan(ExamType.from(examType), com.qpss.domain.ExamFormat.from(format));
     }
 
     @PostMapping
-    public String generate(@PathVariable Long sessionId,
+    public String generate(@PathVariable Long subjectId,
                             @RequestParam String examType,
                             @RequestParam(defaultValue = "1") int numSets,
                             @RequestParam(defaultValue = "FORMAT_1") String format,
@@ -58,7 +56,7 @@ public class GenerationController {
             throw new IllegalArgumentException("Number of sets must be between 1 and 10.");
         }
         ExamType.from(examType);
-        var session = sessionService.findById(sessionId);
+        var subject = subjectService.findById(subjectId);
         PaperGenerationService.GenerationResult result;
         
         if ("FORMAT_3".equals(format)) {
@@ -72,14 +70,14 @@ public class GenerationController {
                     } catch (NumberFormatException ignored) {}
                 }
             });
-            result = generationService.generatePartAOnly(examType, session.getSubjectId(), sessionId, numSets, duration, topicCounts, partAOnlyGenService);
+            result = generationService.generatePartAOnly(examType, subjectId, numSets, duration, topicCounts, partAOnlyGenService);
         } else {
-            result = generationService.generate(examType, session.getSubjectId(), sessionId, numSets, format, duration);
+            result = generationService.generate(examType, subjectId, numSets, format, duration);
         }
 
         if (!result.isSuccessful()) {
             redirect.addFlashAttribute("shortages", result.getShortages());
-            return "redirect:/sessions/" + sessionId;
+            return "redirect:/subjects/" + subjectId;
         }
 
         result.getSets().forEach(set -> {
@@ -90,8 +88,7 @@ public class GenerationController {
             });
         });
 
-        model.addAttribute("session", session);
-        model.addAttribute("subject", subjectService.findById(session.getSubjectId()));
+        model.addAttribute("subject", subject);
         model.addAttribute("result", result);
         model.addAttribute("examType", examType);
         model.addAttribute("format", format);
@@ -101,11 +98,11 @@ public class GenerationController {
 
     @PostMapping("/{paperId}/swap")
     @ResponseBody
-    public ResponseEntity<Map<String, Object>> swapQuestion(@PathVariable Long sessionId,
+    public ResponseEntity<Map<String, Object>> swapQuestion(@PathVariable Long subjectId,
                                                             @PathVariable Long paperId,
                                                             @RequestParam Long oldQuestionId) {
         try {
-            Question newQuestion = generationService.swapQuestion(paperId, oldQuestionId, sessionId);
+            Question newQuestion = generationService.swapQuestion(paperId, oldQuestionId, subjectId);
             Map<String, Object> body = new HashMap<>();
             body.put("status", "success");
             body.put("newId", newQuestion.getId());
@@ -124,9 +121,9 @@ public class GenerationController {
     }
 
     @GetMapping("/export/{paperId}")
-    public ResponseEntity<byte[]> exportDocx(@PathVariable Long sessionId, @PathVariable Long paperId) {
-        var paper = generationService.getPaperByIdAndSessionId(paperId, sessionId)
-                .orElseThrow(() -> new IllegalArgumentException("Invalid paper id or session mismatch"));
+    public ResponseEntity<byte[]> exportDocx(@PathVariable Long subjectId, @PathVariable Long paperId) {
+        var paper = generationService.getPaperByIdAndSubjectId(paperId, subjectId)
+                .orElseThrow(() -> new IllegalArgumentException("Invalid paper id or subject mismatch"));
 
         byte[] docxBytes = docxRendererService.exportPaperToDocx(paper);
 

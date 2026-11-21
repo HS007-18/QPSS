@@ -9,8 +9,6 @@ import com.qpss.entity.SourceDocument;
 import com.qpss.repository.QuestionBankImportRepository;
 import com.qpss.repository.QuestionRepository;
 import com.qpss.repository.SourceDocumentRepository;
-import com.qpss.entity.Session;
-import com.qpss.repository.SessionRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -23,7 +21,6 @@ import java.util.stream.Collectors;
 public class SubjectService {
 
     private final SubjectRepository repo;
-    private final SessionRepository sessionRepo;
     private final QuestionRepository questionRepo;
     private final GeneratedPaperRepository paperRepo;
     private final PaperQuestionRepository paperQuestionRepo;
@@ -79,63 +76,30 @@ public class SubjectService {
 
     @Transactional
     public void delete(Long id) {
-        List<Session> sessions = sessionRepo.findBySubjectId(id);
-        List<Long> sessionIds = sessions.stream().map(Session::getId).collect(Collectors.toList());
-
         // 1. Delete generated papers and paper questions
-        java.util.Set<Long> paperIds = new java.util.HashSet<>();
-        paperRepo.findBySubjectId(id).forEach(p -> paperIds.add(p.getId()));
-        if (!sessionIds.isEmpty()) {
-            paperRepo.findBySessionIdIn(sessionIds).forEach(p -> paperIds.add(p.getId()));
-        }
-
-        if (!paperIds.isEmpty()) {
-            List<Long> paperIdList = new java.util.ArrayList<>(paperIds);
-            paperQuestionRepo.deleteByPaperIdIn(paperIdList);
+        List<GeneratedPaper> papers = paperRepo.findBySubjectId(id);
+        if (!papers.isEmpty()) {
+            List<Long> paperIds = papers.stream().map(GeneratedPaper::getId).collect(Collectors.toList());
+            paperQuestionRepo.deleteByPaperIdIn(paperIds);
             paperRepo.deleteBySubjectId(id);
-            if (!sessionIds.isEmpty()) {
-                paperRepo.deleteBySessionIdIn(sessionIds);
-            }
         }
 
         // 2. Delete questions (must precede source documents to release foreign keys)
         questionRepo.deleteBySubjectId(id);
 
         // 3. Delete physical source document files from disk and records from DB
-        java.util.Set<String> fileNamesToDelete = new java.util.HashSet<>();
         List<SourceDocument> docs = sourceDocumentRepo.findByImportBatch_SubjectId(id);
         for (SourceDocument doc : docs) {
             if (doc.getStoredFileName() != null && !doc.getStoredFileName().isBlank()) {
-                fileNamesToDelete.add(doc.getStoredFileName());
+                storageService.deleteDocument(doc.getStoredFileName());
             }
         }
-
-        if (!sessionIds.isEmpty()) {
-            List<SourceDocument> sessionDocs = sourceDocumentRepo.findByImportBatch_SessionIdIn(sessionIds);
-            for (SourceDocument doc : sessionDocs) {
-                if (doc.getStoredFileName() != null && !doc.getStoredFileName().isBlank()) {
-                    fileNamesToDelete.add(doc.getStoredFileName());
-                }
-            }
-        }
-
-        for (String fileName : fileNamesToDelete) {
-            storageService.deleteDocument(fileName);
-        }
-
         sourceDocumentRepo.deleteByImportBatch_SubjectId(id);
-        if (!sessionIds.isEmpty()) {
-            sourceDocumentRepo.deleteByImportBatch_SessionIdIn(sessionIds);
-            importRepo.deleteBySessionIdIn(sessionIds);
-        }
 
         // 4. Delete import batches
         importRepo.deleteBySubjectId(id);
 
-        // 5. Delete sessions
-        sessionRepo.deleteBySubjectId(id);
-
-        // 6. Delete subject
+        // 5. Delete subject
         repo.deleteById(id);
     }
 }

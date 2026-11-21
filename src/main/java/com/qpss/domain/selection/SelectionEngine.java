@@ -83,28 +83,28 @@ public class SelectionEngine {
         }
     }
 
-    public SelectionResult select(DistributionPlan plan, Long subjectId, Long sessionId) {
-        return select(plan, subjectId, sessionId, Collections.emptySet(), null);
+    public SelectionResult select(DistributionPlan plan, Long subjectId) {
+        return select(plan, subjectId, Collections.emptySet(), null);
     }
 
-    public SelectionResult select(DistributionPlan plan, Long subjectId, Long sessionId, Set<Long> excludeIds) {
-        return select(plan, subjectId, sessionId, excludeIds, null);
+    public SelectionResult select(DistributionPlan plan, Long subjectId, Set<Long> excludeIds) {
+        return select(plan, subjectId, excludeIds, null);
     }
 
-    public SelectionResult select(DistributionPlan plan, Long subjectId, Long sessionId, Set<Long> excludeIds,
+    public SelectionResult select(DistributionPlan plan, Long subjectId, Set<Long> excludeIds,
                                   PairingEngine.PairingMode pairingMode) {
-        validateInput(plan, subjectId, sessionId);
+        validateInput(plan, subjectId);
 
         List<SelectionBucket> buckets = flattenPlan(plan);
 
-        List<SelectionShortage> shortages = checkAvailability(buckets, subjectId, sessionId, excludeIds);
+        List<SelectionShortage> shortages = checkAvailability(buckets, subjectId, excludeIds);
         if (!shortages.isEmpty()) {
             return SelectionResult.failure(shortages);
         }
 
-        List<SelectedBucket> selectedBuckets = performSelection(buckets, subjectId, sessionId, excludeIds, pairingMode);
+        List<SelectedBucket> selectedBuckets = performSelection(buckets, subjectId, excludeIds, pairingMode);
         if (selectedBuckets == null) {
-            shortages = checkDistinctContentAvailability(buckets, subjectId, sessionId, excludeIds);
+            shortages = checkDistinctContentAvailability(buckets, subjectId, excludeIds);
             return SelectionResult.failure(shortages);
         }
 
@@ -113,15 +113,12 @@ public class SelectionEngine {
         return SelectionResult.success(selectedBuckets);
     }
 
-    private void validateInput(DistributionPlan plan, Long subjectId, Long sessionId) {
+    private void validateInput(DistributionPlan plan, Long subjectId) {
         if (plan == null || plan.getSections() == null || plan.getSections().isEmpty()) {
             throw new IllegalArgumentException("Invalid or empty distribution plan");
         }
         if (subjectId == null) {
             throw new IllegalArgumentException("Subject ID is required");
-        }
-        if (sessionId == null) {
-            throw new IllegalArgumentException("Session ID is required");
         }
     }
 
@@ -140,7 +137,7 @@ public class SelectionEngine {
         return buckets;
     }
 
-    private List<SelectionShortage> checkAvailability(List<SelectionBucket> buckets, Long subjectId, Long sessionId,
+    private List<SelectionShortage> checkAvailability(List<SelectionBucket> buckets, Long subjectId,
                                                       Set<Long> excludeIds) {
         List<SelectionShortage> shortages = new ArrayList<>();
 
@@ -181,7 +178,7 @@ public class SelectionEngine {
     }
 
     private List<SelectionShortage> checkDistinctContentAvailability(List<SelectionBucket> buckets, Long subjectId,
-                                                                     Long sessionId, Set<Long> excludeIds) {
+                                                                     Set<Long> excludeIds) {
         List<SelectionShortage> shortages = new ArrayList<>();
         for (SelectionBucket bucket : buckets) {
             List<Question> candidates = questionRepo.findBySubjectIdAndUnitAndMarksAndT(
@@ -207,7 +204,7 @@ public class SelectionEngine {
         return shortages;
     }
 
-    private List<SelectedBucket> performSelection(List<SelectionBucket> buckets, Long subjectId, Long sessionId,
+    private List<SelectedBucket> performSelection(List<SelectionBucket> buckets, Long subjectId,
                                                   Set<Long> excludeIds, PairingEngine.PairingMode pairingMode) {
         List<SelectedBucket> selectedBuckets = new ArrayList<>();
         Set<Long> selectedQuestionIds = new HashSet<>(excludeIds);

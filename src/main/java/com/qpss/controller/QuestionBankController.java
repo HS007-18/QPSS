@@ -11,27 +11,25 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.qpss.document.model.QuestionConstants;
 import com.qpss.service.QuestionBankService;
-import com.qpss.service.SessionService;
 import com.qpss.service.SubjectService;
 import com.qpss.util.QuestionContentSanitizer;
 
 import lombok.RequiredArgsConstructor;
 @Controller
 @RequiredArgsConstructor
-@RequestMapping("/sessions/{sessionId}")
+@RequestMapping("/subjects/{subjectId}")
 public class QuestionBankController {
 
     private final QuestionBankService bankService;
-    private final SessionService sessionService;
     private final SubjectService subjectService;
     private final QuestionContentSanitizer contentSanitizer;
 
     private final com.qpss.repository.QuestionRepository questionRepository;
 
     @GetMapping
-    public String session(@PathVariable Long sessionId, Model model) {
-        var session = sessionService.findById(sessionId);
-        var questions = bankService.getQuestionsBySubjectId(session.getSubjectId());
+    public String viewSubject(@PathVariable Long subjectId, Model model) {
+        var subject = subjectService.findById(subjectId);
+        var questions = bankService.getQuestionsBySubjectId(subjectId);
         questions.forEach(q -> q.setQuestionContent(contentSanitizer.sanitize(q.getQuestionContent())));
         
         // Fetch dynamic unit/topic stats for FORMAT_3 UI
@@ -60,15 +58,14 @@ public class QuestionBankController {
             return Integer.compare((Integer) a.get("topic"), (Integer) b.get("topic"));
         });
         
-        model.addAttribute("session", session);
-        model.addAttribute("subject", subjectService.findById(session.getSubjectId()));
+        model.addAttribute("subject", subject);
         model.addAttribute("questions", questions);
         model.addAttribute("topicStats", topicStats);
-        return "session/session";
+        return "subject/detail";
     }
 
     @PostMapping("/questions")
-    public String addQuestion(@PathVariable Long sessionId,
+    public String addQuestion(@PathVariable Long subjectId,
                                @RequestParam int unit,
                                @RequestParam String rbt,
                                @RequestParam String co,
@@ -93,10 +90,9 @@ public class QuestionBankController {
             throw new IllegalArgumentException("CO must be in the form CO1, CO2, ...");
         }
 
-        var session = sessionService.findById(sessionId);
-        bankService.addQuestion(session.getSubjectId(), sessionId, unit, normalizedRbt, co.toUpperCase(), marks, t,
+        bankService.addQuestion(subjectId, unit, normalizedRbt, co.toUpperCase(), marks, t,
                 null, contentSanitizer.sanitize(content));
         redirect.addFlashAttribute("message", "Question added");
-        return "redirect:/sessions/" + sessionId;
+        return "redirect:/subjects/" + subjectId;
     }
 }

@@ -19,11 +19,11 @@ public class GeneratedPaper {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "session_id", nullable = false)
-    private Long sessionId;
-
     @Column(name = "subject_id", nullable = false)
     private Long subjectId;
+
+    @Column(name = "batch_id", length = 64)
+    private String batchId;
 
     @Column(name = "exam_type", nullable = false)
     private String examType;

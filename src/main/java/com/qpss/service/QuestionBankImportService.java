@@ -17,8 +17,8 @@ public class QuestionBankImportService {
         this.batchCommitter = batchCommitter;
     }
 
-    public PendingUploadSession prepareImportBatch(Long subjectId, Long sessionId, List<MultipartFile> files) {
-        return batchPreparer.prepareImportBatch(subjectId, sessionId, files);
+    public PendingUploadSession prepareImportBatch(Long subjectId, List<MultipartFile> files) {
+        return batchPreparer.prepareImportBatch(subjectId, files);
     }
 
     public QuestionBankImportResult commitImportBatch(PendingUploadSession pendingSession) {

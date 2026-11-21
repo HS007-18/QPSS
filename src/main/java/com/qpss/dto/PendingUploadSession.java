@@ -6,7 +6,6 @@ import java.util.List;
 @Data
 public class PendingUploadSession {
     private Long subjectId;
-    private Long sessionId;
     private List<FileImportHolder> files;
 
     @Data

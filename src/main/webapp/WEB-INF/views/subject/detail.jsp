@@ -6,13 +6,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>KIT QGen - Session #${session.id}</title>
+    <title>KIT QGen - <c:out value="${subject.code != null ? subject.code : subject.name}" /></title>
     <link rel="stylesheet" href="/css/style.css?v=1.0.2">
 </head>
 <body>
-<c:set var="pageTitle" value="Session #${session.id}" />
+<c:set var="pageTitle" value="${subject.code != null ? subject.code : subject.name}" />
 <c:set var="navRight">
-    <span class="tag tag-status ${session.status == 'ACTIVE' ? 'tag-success' : 'tag-warning'}">${session.status}</span>
+    <div style="display:flex; gap: var(--space-3); align-items: center;">
+        <button class="btn btn-secondary btn-sm" onclick="document.getElementById('uploadModal').classList.add('active')">
+            <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
+            Upload DOCX
+        </button>
+    </div>
 </c:set>
 <%@ include file="../fragments/navbar.jspf" %>
 
@@ -21,13 +26,11 @@
     <nav class="breadcrumb" aria-label="Breadcrumb">
         <a href="/">Dashboard</a>
         <svg class="breadcrumb-separator" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
-        <a href="/subjects/${subject.id}"><c:out value="${subject.name}" /></a>
-        <svg class="breadcrumb-separator" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
-        <span aria-current="page">Session #${session.id}</span>
+        <span aria-current="page"><c:out value="${subject.code != null ? subject.code : subject.name}" /></span>
     </nav>
 
     <header class="page-header">
-        <h1 class="page-title"><c:out value="${subject.name}" /></h1>
+        <h1 class="page-title"><c:out value="${subject.name}" /><c:if test="${not empty subject.code}"> <span style="font-size: 1.25rem; color: var(--color-text-secondary); font-weight: normal;">(<c:out value="${subject.code}" />)</span></c:if></h1>
         <p class="page-subtitle">Build your question bank and generate question papers</p>
     </header>
 
@@ -57,7 +60,7 @@
         <div>
             <h2 class="card-title">Generate Question Paper</h2>
             <div class="card">
-                <form action="/sessions/${session.id}/generate" method="post" id="generateForm">
+                <form action="/subjects/${subject.id}/generate" method="post" id="generateForm">
                     <div class="form-group">
                         <label class="form-label" for="examType">Exam Type</label>
                         <select name="examType" id="examType" class="form-select" required>
@@ -149,7 +152,7 @@
                         <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
                         Add Question Manually
                     </summary>
-                    <form action="/sessions/${session.id}/questions" method="post" style="margin-top: var(--space-5);">
+                    <form action="/subjects/${subject.id}/questions" method="post" style="margin-top: var(--space-5);">
                         <div class="form-row">
                             <div class="form-group">
                                 <label class="form-label" for="unit">Unit</label>
@@ -259,6 +262,32 @@
 
 </div>
 
+<!-- Upload Question Bank Modal for this Subject -->
+<div class="modal" id="uploadModal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+    <div class="modal-backdrop" onclick="document.getElementById('uploadModal').classList.remove('active')"></div>
+    <div class="modal-content" style="max-width: 500px;">
+        <div class="modal-header">
+            <h3 class="modal-title" id="modalTitle">Upload Question Banks</h3>
+            <button type="button" class="modal-close" onclick="document.getElementById('uploadModal').classList.remove('active')" aria-label="Close modal">&times;</button>
+        </div>
+        <form action="/subjects/${subject.id}/upload" method="post" enctype="multipart/form-data">
+            <div class="modal-body">
+                <div class="form-group">
+                    <label class="form-label" for="subjectFiles">Select DOCX Files</label>
+                    <input type="file" name="files" id="subjectFiles" class="form-input" accept=".docx" multiple required>
+                    <p style="font-size: 0.8125rem; color: var(--color-text-secondary); margin-top: var(--space-2);">
+                        Select one or more question bank DOCX files to import into <c:out value="${subject.name}" />.
+                    </p>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="document.getElementById('uploadModal').classList.remove('active')">Cancel</button>
+                <button type="submit" class="btn btn-primary">Upload & Import</button>
+            </div>
+        </form>
+    </div>
+</div>
+
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     let isFetchingDefaults = false;
@@ -315,7 +344,7 @@ document.addEventListener('DOMContentLoaded', function() {
             validateTopicTotal();
         }
 
-        let url = '/sessions/${session.id}/generate/preview?examType=' + encodeURIComponent(type) + '&format=' + encodeURIComponent(format);
+        let url = '/subjects/${subject.id}/generate/preview?examType=' + encodeURIComponent(type) + '&format=' + encodeURIComponent(format);
 
         fetch(url)
             .then(res => res.json())

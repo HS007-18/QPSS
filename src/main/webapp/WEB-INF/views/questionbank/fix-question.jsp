@@ -24,7 +24,7 @@
     </header>
 
     <div class="card">
-        <form action="/sessions/${session.id}/upload/fix" method="post" id="fixForm">
+        <form action="/subjects/${subject.id}/upload/fix" method="post" id="fixForm">
             <input type="hidden" name="file" value="<c:out value='${file}' />" />
             <input type="hidden" name="fileIndex" value="${fileIndex}" />
             <input type="hidden" name="serialNo" value="${question.serialNo}" />

@@ -22,9 +22,6 @@ public class Question {
     @Column(name = "subject_id", nullable = false)
     private Long subjectId;
 
-    @Column(name = "session_id", nullable = false)
-    private Long sessionId;
-
     @Column(name = "source_document_id")
     private Long sourceDocumentId;
 

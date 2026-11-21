@@ -49,8 +49,8 @@ public class ImportBatchCommitter {
                 for (String error : holder.getParseResult().getErrors()) {
                     allErrors.add(holder.getOriginalName() + ": " + error);
                 }
-            } else if (sourceDocumentRepository.existsByChecksumAndImportBatch_SessionId(
-                    holder.getChecksum(), pendingSession.getSessionId())) {
+            } else if (sourceDocumentRepository.existsByChecksumAndImportBatch_SubjectId(
+                    holder.getChecksum(), pendingSession.getSubjectId())) {
                 skippedDuplicates++;
             } else {
                 anyImportable = true;
@@ -70,13 +70,12 @@ public class ImportBatchCommitter {
             }
             return QuestionBankImportResult.builder()
                     .successful(false)
-                    .parsingErrors(List.of("All uploaded file(s) are duplicates of questions already imported in this session."))
+                    .parsingErrors(List.of("All uploaded file(s) are duplicates of questions already imported for this subject."))
                     .build();
         }
 
         QuestionBankImport importBatch = QuestionBankImport.builder()
                 .subjectId(pendingSession.getSubjectId())
-                .sessionId(pendingSession.getSessionId())
                 .build();
 
         importBatch = importRepository.save(importBatch);
@@ -96,8 +95,8 @@ public class ImportBatchCommitter {
                 if (holder.getParseResult().getValidQuestions().isEmpty()) {
                     continue;
                 }
-                if (sourceDocumentRepository.existsByChecksumAndImportBatch_SessionId(
-                        holder.getChecksum(), pendingSession.getSessionId())) {
+                if (sourceDocumentRepository.existsByChecksumAndImportBatch_SubjectId(
+                        holder.getChecksum(), pendingSession.getSubjectId())) {
                     continue;
                 }
 
@@ -121,7 +120,6 @@ public class ImportBatchCommitter {
                 List<Question> questions = parserService.toQuestions(
                         holder.getParseResult().getValidQuestions(),
                         pendingSession.getSubjectId(),
-                        pendingSession.getSessionId(),
                         doc.getId(),
                         holder.getOriginalName()
                 );

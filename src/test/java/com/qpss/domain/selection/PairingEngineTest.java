@@ -16,7 +16,6 @@ class PairingEngineTest {
         return Question.builder()
                 .id(idCounter++)
                 .subjectId(1L)
-                .sessionId(1L)
                 .unit(unit)
                 .marks(16)
                 .co("CO1")

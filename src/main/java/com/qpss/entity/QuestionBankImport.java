@@ -24,9 +24,6 @@ public class QuestionBankImport {
     @Column(name = "subject_id", nullable = false)
     private Long subjectId;
 
-    @Column(name = "session_id", nullable = false)
-    private Long sessionId;
-
     @Column(name = "imported_at", insertable = false, updatable = false)
     private LocalDateTime importedAt;
 

@@ -4,8 +4,8 @@ import com.qpss.dto.PendingUploadSession;
 import com.qpss.document.model.ParsedQuestion;
 import com.qpss.document.model.QuestionConstants;
 import com.qpss.service.QuestionBankImportService;
+import com.qpss.service.SubjectService;
 import com.qpss.util.QuestionContentSanitizer;
-import com.qpss.service.SessionService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -20,21 +20,20 @@ import jakarta.servlet.http.HttpSession;
 import java.util.Arrays;
 @Controller
 @RequiredArgsConstructor
-@RequestMapping("/sessions/{sessionId}/upload")
+@RequestMapping("/subjects/{subjectId}/upload")
 public class QuestionBankUploadController {
 
     private final QuestionBankImportService importService;
-    private final SessionService sessionService;
+    private final SubjectService subjectService;
     private final QuestionContentSanitizer contentSanitizer;
 
     @PostMapping
-    public String upload(@PathVariable Long sessionId,
+    public String upload(@PathVariable Long subjectId,
                           @RequestParam("files") MultipartFile[] files,
                           HttpSession httpSession,
                           RedirectAttributes redirect) {
         try {
-            var session = sessionService.findById(sessionId);
-            PendingUploadSession pendingSession = importService.prepareImportBatch(session.getSubjectId(), sessionId, Arrays.asList(files));
+            PendingUploadSession pendingSession = importService.prepareImportBatch(subjectId, Arrays.asList(files));
 
             boolean needsFix = pendingSession.getFiles().stream()
                     .flatMap(f -> f.getParseResult().getValidQuestions().stream())
@@ -42,14 +41,14 @@ public class QuestionBankUploadController {
 
             if (needsFix) {
                 httpSession.setAttribute("pendingUpload", pendingSession);
-                return "redirect:/sessions/" + sessionId + "/upload/fix";
+                return "redirect:/subjects/" + subjectId + "/upload/fix";
             }
 
             var result = importService.commitImportBatch(pendingSession);
             if (result.isSuccessful()) {
                 String message = "Uploaded " + result.getQuestionsParsed() + " questions from " + pendingSession.getFiles().size() + " file(s)";
                 if (result.getSkippedDuplicates() > 0) {
-                    message += " (" + result.getSkippedDuplicates() + " already in this session)";
+                    message += " (" + result.getSkippedDuplicates() + " already in this subject)";
                 }
                 if (!result.getParsingErrors().isEmpty()) {
                     message += " (" + result.getParsingErrors().size() + " file(s) had unreadable rows)";
@@ -61,14 +60,14 @@ public class QuestionBankUploadController {
         } catch (Exception e) {
             redirect.addFlashAttribute("error", "Upload failed: " + e.getMessage());
         }
-        return "redirect:/sessions/" + sessionId;
+        return "redirect:/subjects/" + subjectId;
     }
 
     @GetMapping("/fix")
-    public String showFixForm(@PathVariable Long sessionId, HttpSession httpSession, Model model) {
+    public String showFixForm(@PathVariable Long subjectId, HttpSession httpSession, Model model) {
         PendingUploadSession pendingSession = (PendingUploadSession) httpSession.getAttribute("pendingUpload");
-        if (pendingSession == null || !sessionId.equals(pendingSession.getSessionId())) {
-            return "redirect:/sessions/" + sessionId;
+        if (pendingSession == null || !subjectId.equals(pendingSession.getSubjectId())) {
+            return "redirect:/subjects/" + subjectId;
         }
 
         for (PendingUploadSession.FileImportHolder fileHolder : pendingSession.getFiles()) {
@@ -77,21 +76,21 @@ public class QuestionBankUploadController {
                     model.addAttribute("file", fileHolder.getOriginalName());
                     model.addAttribute("fileIndex", fileHolder.getIndex());
                     model.addAttribute("question", q);
-                    model.addAttribute("session", sessionService.findById(sessionId));
+                    model.addAttribute("subject", subjectService.findById(subjectId));
                     return "questionbank/fix-question";
                 }
             }
         }
 
-        return "redirect:/sessions/" + sessionId;
+        return "redirect:/subjects/" + subjectId;
     }
 
     @PostMapping("/fix")
-    public String submitFix(@PathVariable Long sessionId, FixQuestionCommand command,
+    public String submitFix(@PathVariable Long subjectId, FixQuestionCommand command,
                             HttpSession httpSession, RedirectAttributes redirect) {
         PendingUploadSession pendingSession = (PendingUploadSession) httpSession.getAttribute("pendingUpload");
-        if (pendingSession == null || !sessionId.equals(pendingSession.getSessionId())) {
-            return "redirect:/sessions/" + sessionId;
+        if (pendingSession == null || !subjectId.equals(pendingSession.getSubjectId())) {
+            return "redirect:/subjects/" + subjectId;
         }
 
         boolean fixed = false;
@@ -126,14 +125,14 @@ public class QuestionBankUploadController {
         if (!fixed) {
             redirect.addFlashAttribute("error", "Uploaded question not found. Please re-upload the file.");
             httpSession.removeAttribute("pendingUpload");
-            return "redirect:/sessions/" + sessionId;
+            return "redirect:/subjects/" + subjectId;
         }
 
         boolean allComplete = pendingSession.getFiles().stream()
                 .flatMap(f -> f.getParseResult().getValidQuestions().stream())
                 .allMatch(ParsedQuestion::isComplete);
         if (!allComplete) {
-            return "redirect:/sessions/" + sessionId + "/upload/fix";
+            return "redirect:/subjects/" + subjectId + "/upload/fix";
         }
 
         try {
@@ -142,7 +141,7 @@ public class QuestionBankUploadController {
             if (result.isSuccessful()) {
                 String message = "Uploaded " + result.getQuestionsParsed() + " questions successfully.";
                 if (result.getSkippedDuplicates() > 0) {
-                    message += " (" + result.getSkippedDuplicates() + " already in this session)";
+                    message += " (" + result.getSkippedDuplicates() + " already in this subject)";
                 }
                 if (!result.getParsingErrors().isEmpty()) {
                     message += " (" + result.getParsingErrors().size() + " file(s) had unreadable rows)";
@@ -155,7 +154,7 @@ public class QuestionBankUploadController {
         } catch (Exception e) {
             redirect.addFlashAttribute("error", "Upload failed: " + e.getMessage());
         }
-        return "redirect:/sessions/" + sessionId;
+        return "redirect:/subjects/" + subjectId;
     }
 
     private void applyFix(ParsedQuestion q, FixQuestionCommand command) {

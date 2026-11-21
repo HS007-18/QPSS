@@ -83,9 +83,7 @@
                     </div>
                 </div>
                 <div class="subject-actions">
-                    <form action="/subjects/${s.id}/open" method="post" style="margin:0; flex:1;">
-                        <button type="submit" class="btn btn-primary btn-sm" style="width:100%;">Open</button>
-                    </form>
+                    <a href="/subjects/${s.id}" class="btn btn-primary btn-sm" style="flex:1; text-align:center; text-decoration:none;">Open</a>
                     <form action="/subjects/${s.id}/delete" method="post" style="margin:0;">
                         <button type="submit" class="btn btn-secondary btn-sm" onclick="return confirm('Delete this subject and all its data?')">Delete</button>
                     </form>

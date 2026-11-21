@@ -1,14 +1,12 @@
 package com.qpss.service;
 
 import com.qpss.entity.GeneratedPaper;
-import com.qpss.entity.Session;
 import com.qpss.entity.SourceDocument;
 import com.qpss.entity.Subject;
 import com.qpss.repository.GeneratedPaperRepository;
 import com.qpss.repository.PaperQuestionRepository;
 import com.qpss.repository.QuestionBankImportRepository;
 import com.qpss.repository.QuestionRepository;
-import com.qpss.repository.SessionRepository;
 import com.qpss.repository.SourceDocumentRepository;
 import com.qpss.repository.SubjectRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -29,9 +27,6 @@ class SubjectServiceTest {
 
     @Mock
     private SubjectRepository repo;
-
-    @Mock
-    private SessionRepository sessionRepo;
 
     @Mock
     private QuestionRepository questionRepo;
@@ -62,15 +57,10 @@ class SubjectServiceTest {
     @Test
     void testDelete_RemovesPhysicalFilesAndAllAssociatedEntities() {
         Long subjectId = 10L;
-        Long sessionId = 100L;
         Long paperId = 50L;
 
-        Session session = Session.builder().id(sessionId).subjectId(subjectId).build();
-        when(sessionRepo.findBySubjectId(subjectId)).thenReturn(List.of(session));
-
-        GeneratedPaper paper = GeneratedPaper.builder().id(paperId).subjectId(subjectId).sessionId(sessionId).build();
+        GeneratedPaper paper = GeneratedPaper.builder().id(paperId).subjectId(subjectId).batchId("batch-123").build();
         when(paperRepo.findBySubjectId(subjectId)).thenReturn(List.of(paper));
-        when(paperRepo.findBySessionIdIn(List.of(sessionId))).thenReturn(List.of(paper));
 
         SourceDocument doc1 = SourceDocument.builder()
                 .id(1L)
@@ -82,7 +72,6 @@ class SubjectServiceTest {
                 .build();
 
         when(sourceDocumentRepo.findByImportBatch_SubjectId(subjectId)).thenReturn(List.of(doc1, doc2));
-        when(sourceDocumentRepo.findByImportBatch_SessionIdIn(List.of(sessionId))).thenReturn(Collections.emptyList());
 
         subjectService.delete(subjectId);
 
@@ -96,15 +85,13 @@ class SubjectServiceTest {
         verify(questionRepo).deleteBySubjectId(subjectId);
         verify(sourceDocumentRepo).deleteByImportBatch_SubjectId(subjectId);
         verify(importRepo).deleteBySubjectId(subjectId);
-        verify(sessionRepo).deleteBySubjectId(subjectId);
         verify(repo).deleteById(subjectId);
     }
 
     @Test
-    void testDelete_WhenNoSessions_StillDeletesQuestionsAndPhysicalFilesAndSubject() {
+    void testDelete_WhenNoPapers_StillDeletesQuestionsAndPhysicalFilesAndSubject() {
         Long subjectId = 20L;
 
-        when(sessionRepo.findBySubjectId(subjectId)).thenReturn(Collections.emptyList());
         when(paperRepo.findBySubjectId(subjectId)).thenReturn(Collections.emptyList());
 
         SourceDocument doc = SourceDocument.builder()
@@ -123,7 +110,6 @@ class SubjectServiceTest {
         verify(questionRepo).deleteBySubjectId(subjectId);
         verify(sourceDocumentRepo).deleteByImportBatch_SubjectId(subjectId);
         verify(importRepo).deleteBySubjectId(subjectId);
-        verify(sessionRepo).deleteBySubjectId(subjectId);
         verify(repo).deleteById(subjectId);
     }
 

@@ -51,14 +51,20 @@ public class PaperGenerationService {
     @Data
     @AllArgsConstructor
     public static class GenerationResult {
+        private String batchId;
         private List<GeneratedSet> sets;
         private List<SelectionEngine.SelectionShortage> shortages;
         private String diversityWarning;
         private boolean successful;
+
+        public GenerationResult(List<GeneratedSet> sets, List<SelectionEngine.SelectionShortage> shortages, String diversityWarning, boolean successful) {
+            this(null, sets, shortages, diversityWarning, successful);
+        }
     }
 
     @Transactional
-    public GenerationResult generate(String examTypeStr, Long subjectId, Long sessionId, int numSets, String formatStr, String duration) {
+    public GenerationResult generate(String examTypeStr, Long subjectId, int numSets, String formatStr, String duration) {
+        String batchId = java.util.UUID.randomUUID().toString();
         ExamType examType = ExamType.from(examTypeStr);
         com.qpss.domain.ExamFormat format = com.qpss.domain.ExamFormat.from(formatStr);
         DistributionPlan plan = examConfigService.getDistributionPlan(examType, format);
@@ -72,18 +78,18 @@ public class PaperGenerationService {
 
         for (int i = 0; i < numSets; i++) {
             SelectionEngine.SelectionResult selection = selectionEngine.select(
-                    plan, subjectId, sessionId, usedIds, pairingMode);
+                    plan, subjectId, usedIds, pairingMode);
 
             if (!selection.isSuccessful()) {
                 allShortages.addAll(selection.getShortages());
                 if (i == 0) {
-                    return new GenerationResult(Collections.emptyList(), allShortages, null, false);
+                    return new GenerationResult(batchId, Collections.emptyList(), allShortages, null, false);
                 }
                 SelectionEngine.SelectionResult fallback = selectionEngine.select(
-                        plan, subjectId, sessionId, Collections.emptySet(), pairingMode);
+                        plan, subjectId, Collections.emptySet(), pairingMode);
                 if (!fallback.isSuccessful()) {
                     allShortages.addAll(fallback.getShortages());
-                    return new GenerationResult(Collections.emptyList(), allShortages, null, false);
+                    return new GenerationResult(batchId, Collections.emptyList(), allShortages, null, false);
                 }
                 selection = fallback;
             }
@@ -97,7 +103,7 @@ public class PaperGenerationService {
                     selection.getPartBQuestions(partBMarks), pairingMode);
 
             ValidationEngine.ValidationResult validation = validationEngine.validate(
-                    examType.name(), subjectId, sessionId, format.name(),
+                    examType.name(), subjectId, format.name(),
                     selection.getTwoMarkQuestions(), pairs);
 
             if (!validation.isValid()) {
@@ -110,7 +116,7 @@ public class PaperGenerationService {
                     .collect(Collectors.toMap(Question::getId, Question::getRbt, (a, b) -> a));
 
             String label = String.valueOf((char) ('A' + i));
-            GeneratedPaper paper = draftService.savePaper(sessionId, subjectId, examType.name(), label);
+            GeneratedPaper paper = draftService.savePaper(batchId, subjectId, examType.name(), label);
             paper.setDuration(duration);
             draftService.savePaperQuestions(paper.getId(), selection.getTwoMarkQuestions(), pairs, sectionARbt);
 
@@ -131,15 +137,16 @@ public class PaperGenerationService {
             sets.add(new GeneratedSet(paper, selection.getTwoMarkQuestions(), pairs, sectionARbt));
         }
 
-        draftService.deleteDraftsExcluding(sessionId, sets.stream().map(s -> s.getPaper().getId()).collect(Collectors.toSet()));
+        draftService.deleteDraftsExcluding(batchId, sets.stream().map(s -> s.getPaper().getId()).collect(Collectors.toSet()));
 
-        return new GenerationResult(sets, Collections.emptyList(), diversityWarning, true);
+        return new GenerationResult(batchId, sets, Collections.emptyList(), diversityWarning, true);
     }
 
     @Transactional
-    public GenerationResult generatePartAOnly(String examTypeStr, Long subjectId, Long sessionId, 
+    public GenerationResult generatePartAOnly(String examTypeStr, Long subjectId, 
                                               int numSets, String duration, Map<String, Integer> topicCounts,
                                               PartAOnlyGenerationService partAOnlyGenService) {
+        String batchId = java.util.UUID.randomUUID().toString();
         ExamType examType = ExamType.from(examTypeStr);
         List<GeneratedSet> sets = new ArrayList<>();
         List<SelectionEngine.SelectionShortage> allShortages = new ArrayList<>();
@@ -152,14 +159,14 @@ public class PaperGenerationService {
                 log.error("Failed to generate FORMAT_3 Part A set", e);
                 SelectionEngine.SelectionShortage shortage = new SelectionEngine.SelectionShortage(0, 2, 0, 50, 0, 50);
                 allShortages.add(shortage);
-                return new GenerationResult(Collections.emptyList(), allShortages, null, false);
+                return new GenerationResult(batchId, Collections.emptyList(), allShortages, null, false);
             }
 
             Map<Long, String> sectionARbt = selectedQuestions.stream()
                     .collect(Collectors.toMap(Question::getId, Question::getRbt, (a, b) -> a));
 
             String label = String.valueOf((char) ('A' + i));
-            GeneratedPaper paper = draftService.savePaper(sessionId, subjectId, examType.name(), label);
+            GeneratedPaper paper = draftService.savePaper(batchId, subjectId, examType.name(), label);
             paper.setDuration(duration);
             draftService.savePaperQuestionsPartAOnly(paper.getId(), selectedQuestions);
 
@@ -175,9 +182,9 @@ public class PaperGenerationService {
             sets.add(new GeneratedSet(paper, selectedQuestions, Collections.emptyList(), sectionARbt));
         }
 
-        draftService.deleteDraftsExcluding(sessionId, sets.stream().map(s -> s.getPaper().getId()).collect(Collectors.toSet()));
+        draftService.deleteDraftsExcluding(batchId, sets.stream().map(s -> s.getPaper().getId()).collect(Collectors.toSet()));
 
-        return new GenerationResult(sets, Collections.emptyList(), null, true);
+        return new GenerationResult(batchId, sets, Collections.emptyList(), null, true);
     }
 
 
@@ -185,16 +192,20 @@ public class PaperGenerationService {
         return draftService.findById(paperId);
     }
 
-    public java.util.Optional<GeneratedPaper> getPaperByIdAndSessionId(Long paperId, Long sessionId) {
+    public java.util.Optional<GeneratedPaper> getPaperByIdAndSubjectId(Long paperId, Long subjectId) {
         return draftService.findById(paperId)
-                .filter(p -> p.getSessionId().equals(sessionId));
+                .filter(p -> p.getSubjectId().equals(subjectId));
     }
 
-    public Question swapQuestion(Long paperId, Long oldQuestionId, Long sessionId) {
+    public List<GeneratedPaper> getPapersByBatchId(String batchId) {
+        return draftService.findByBatchId(batchId);
+    }
+
+    public Question swapQuestion(Long paperId, Long oldQuestionId, Long subjectId) {
         GeneratedPaper paper = getPaperById(paperId)
                 .orElseThrow(() -> new IllegalArgumentException("Paper not found"));
-        if (!paper.getSessionId().equals(sessionId)) {
-            throw new IllegalArgumentException("Paper does not belong to session");
+        if (!paper.getSubjectId().equals(subjectId)) {
+            throw new IllegalArgumentException("Paper does not belong to subject");
         }
         return swapService.swapQuestion(paperId, oldQuestionId);
     }

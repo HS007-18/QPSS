@@ -7,15 +7,9 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 public interface SourceDocumentRepository extends JpaRepository<SourceDocument, Long> {
 
-    boolean existsByChecksumAndImportBatch_SessionId(String checksum, Long sessionId);
-
-    List<SourceDocument> findByImportBatch_SessionIdIn(List<Long> sessionIds);
+    boolean existsByChecksumAndImportBatch_SubjectId(String checksum, Long subjectId);
 
     List<SourceDocument> findByImportBatch_SubjectId(Long subjectId);
-
-    @Modifying
-    @Transactional
-    void deleteByImportBatch_SessionIdIn(List<Long> sessionIds);
 
     @Modifying
     @Transactional

@@ -34,14 +34,14 @@
     <nav class="breadcrumb" aria-label="Breadcrumb">
         <a href="/">Dashboard</a>
         <svg class="breadcrumb-separator" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
-        <c:out value="${subject.name}" />
+        <a href="/subjects/${subject.id}"><c:out value="${subject.code != null ? subject.code : subject.name}" /></a>
         <svg class="breadcrumb-separator" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
-        <a href="/sessions/${session.id}">Session #${session.id}</a>
+        <span aria-current="page">Review Papers</span>
     </nav>
 
     <header class="page-header">
         <h1 class="page-title">Generated Papers — <c:out value="${examType.replace('_', ' ')}" /></h1>
-        <p class="page-subtitle"><c:out value="${subject.name}" /></p>
+        <p class="page-subtitle"><c:out value="${subject.name}" /><c:if test="${not empty subject.code}"> (<c:out value="${subject.code}" />)</c:if></p>
     </header>
 
     <c:if test="${not empty result.diversityWarning}">
@@ -59,13 +59,13 @@
             <div class="set-header">
                 <span class="set-label">Set ${set.paper.setLabel}</span>
                 <div style="display:flex; gap: var(--space-3); align-items: center; flex-wrap: wrap;">
-                    <form action="/sessions/${session.id}/generate" method="post" style="margin:0;">
+                    <form action="/subjects/${subject.id}/generate" method="post" style="margin:0;">
                         <input type="hidden" name="examType" value="${examType}">
                         <input type="hidden" name="format" value="${format}">
                         <input type="hidden" name="numSets" value="${result.sets.size()}">
                         <button type="submit" class="btn btn-secondary btn-sm">Regenerate</button>
                     </form>
-                    <a href="/sessions/${session.id}/generate/export/${set.paper.id}" class="btn btn-primary btn-sm download-set-btn" download data-set="${set.paper.setLabel}">
+                    <a href="/subjects/${subject.id}/generate/export/${set.paper.id}" class="btn btn-primary btn-sm download-set-btn" download data-set="${set.paper.setLabel}">
                         <svg style="width:14px;height:14px;vertical-align:-2px;margin-right:4px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
                         Download Set ${set.paper.setLabel}
                     </a>
@@ -150,8 +150,8 @@
             <svg style="width:18px;height:18px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg>
             Return to Home Page
         </a>
-        <a href="/sessions/${session.id}" class="btn btn-secondary" style="padding: var(--space-3) var(--space-5); font-size: 0.875rem;">
-            Back to Session #${session.id}
+        <a href="/subjects/${subject.id}" class="btn btn-secondary" style="padding: var(--space-3) var(--space-5); font-size: 0.875rem;">
+            Back to <c:out value="${subject.code != null ? subject.code : subject.name}" />
         </a>
     </div>
 </div>
@@ -178,13 +178,13 @@ document.addEventListener('DOMContentLoaded', function() {
         btn.addEventListener('click', function(e) {
             const paperId = this.getAttribute('data-paper');
             const oldId = this.getAttribute('data-id');
-            const sessionId = '${session.id}';
+            const subjectId = '${subject.id}';
 
             const originalHTML = this.innerHTML;
             this.innerHTML = '<svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="animation: spin 1s linear infinite;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>';
             this.disabled = true;
 
-            fetch('/sessions/' + sessionId + '/generate/' + paperId + '/swap?oldQuestionId=' + oldId, {
+            fetch('/subjects/' + subjectId + '/generate/' + paperId + '/swap?oldQuestionId=' + oldId, {
                 method: 'POST'
             })
             .then(r => r.json())

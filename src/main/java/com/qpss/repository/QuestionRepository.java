@@ -16,10 +16,9 @@ public interface QuestionRepository extends JpaRepository<Question, Long> {
     List<Question> findBySubjectIdAndUnitAndMarks(
             Long subjectId, Integer unit, Integer marks);
 
-    @org.springframework.data.jpa.repository.Query("SELECT q.unit, q.topic, COUNT(q) FROM Question q WHERE q.subjectId = :subjectId AND q.sessionId = :sessionId GROUP BY q.unit, q.topic ORDER BY q.unit, q.topic")
+    @org.springframework.data.jpa.repository.Query("SELECT q.unit, q.topic, COUNT(q) FROM Question q WHERE q.subjectId = :subjectId GROUP BY q.unit, q.topic ORDER BY q.unit, q.topic")
     List<Object[]> countQuestionsByUnitAndTopic(
-            @org.springframework.data.repository.query.Param("subjectId") Long subjectId,
-            @org.springframework.data.repository.query.Param("sessionId") Long sessionId);
+            @org.springframework.data.repository.query.Param("subjectId") Long subjectId);
 
     int countBySubjectIdAndUnitAndMarks(Long subjectId, Integer unit, Integer marks);
 

@@ -22,13 +22,13 @@ public class PaperDraftPersistenceService {
     private final PaperQuestionRepository paperQuestionRepo;
 
     @Transactional
-    public void deleteDrafts(Long sessionId) {
-        deleteDraftsExcluding(sessionId, Collections.emptySet());
+    public void deleteDrafts(String batchId) {
+        deleteDraftsExcluding(batchId, Collections.emptySet());
     }
 
     @Transactional
-    public void deleteDraftsExcluding(Long sessionId, Set<Long> excludePaperIds) {
-        List<GeneratedPaper> drafts = paperRepo.findBySessionId(sessionId).stream()
+    public void deleteDraftsExcluding(String batchId, Set<Long> excludePaperIds) {
+        List<GeneratedPaper> drafts = paperRepo.findByBatchId(batchId).stream()
                 .filter(p -> !excludePaperIds.contains(p.getId()))
                 .collect(Collectors.toList());
         if (drafts.isEmpty()) {
@@ -40,9 +40,9 @@ public class PaperDraftPersistenceService {
     }
 
     @Transactional
-    public GeneratedPaper savePaper(Long sessionId, Long subjectId, String examType, String label) {
+    public GeneratedPaper savePaper(String batchId, Long subjectId, String examType, String label) {
         return paperRepo.save(GeneratedPaper.builder()
-                .sessionId(sessionId)
+                .batchId(batchId)
                 .subjectId(subjectId)
                 .examType(examType)
                 .setLabel(label)
@@ -56,6 +56,10 @@ public class PaperDraftPersistenceService {
 
     public java.util.Optional<GeneratedPaper> findById(Long paperId) {
         return paperRepo.findById(paperId);
+    }
+
+    public List<GeneratedPaper> findByBatchId(String batchId) {
+        return paperRepo.findByBatchId(batchId);
     }
 
     @Transactional

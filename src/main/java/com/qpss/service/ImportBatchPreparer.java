@@ -20,9 +20,9 @@ public class ImportBatchPreparer {
         this.parserService = parserService;
     }
 
-    public PendingUploadSession prepareImportBatch(Long subjectId, Long sessionId, List<MultipartFile> files) {
-        if (subjectId == null || sessionId == null) {
-            throw new IllegalArgumentException("Subject ID and Session ID must be provided.");
+    public PendingUploadSession prepareImportBatch(Long subjectId, List<MultipartFile> files) {
+        if (subjectId == null) {
+            throw new IllegalArgumentException("Subject ID must be provided.");
         }
         if (files == null || files.isEmpty()) {
             throw new IllegalArgumentException("No files provided for import.");
@@ -37,7 +37,6 @@ public class ImportBatchPreparer {
 
         PendingUploadSession session = new PendingUploadSession();
         session.setSubjectId(subjectId);
-        session.setSessionId(sessionId);
         List<PendingUploadSession.FileImportHolder> holders = new ArrayList<>();
         List<String> processedChecksums = new ArrayList<>();
 

@@ -27,12 +27,11 @@ public class QuestionParserService {
 
 
     public List<Question> toQuestions(List<ParsedQuestion> parsed, Long subjectId,
-                                      Long sessionId, Long sourceDocumentId, String sourceFileName) {
+                                      Long sourceDocumentId, String sourceFileName) {
         List<Question> questions = new ArrayList<>();
         for (ParsedQuestion p : parsed) {
             questions.add(Question.builder()
                     .subjectId(subjectId)
-                    .sessionId(sessionId)
                     .sourceDocumentId(sourceDocumentId)
                     .unit(p.getUnit())
                     .rbt(p.getRbt())

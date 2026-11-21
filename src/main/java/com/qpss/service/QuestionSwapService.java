@@ -44,11 +44,14 @@ public class QuestionSwapService {
                         .map(PaperQuestion::getQuestionId)
                         .collect(Collectors.toList()));
 
-        List<Long> sessionPaperIds = paperRepo.findBySessionId(paper.getSessionId()).stream()
-                .map(GeneratedPaper::getId)
-                .collect(Collectors.toList());
-        if (!sessionPaperIds.isEmpty()) {
-            Set<Long> otherPaperQuestionIds = paperQuestionRepo.findByPaperIdIn(sessionPaperIds).stream()
+        List<Long> siblingPaperIds = Collections.emptyList();
+        if (paper.getBatchId() != null) {
+            siblingPaperIds = paperRepo.findByBatchId(paper.getBatchId()).stream()
+                    .map(GeneratedPaper::getId)
+                    .collect(Collectors.toList());
+        }
+        if (!siblingPaperIds.isEmpty()) {
+            Set<Long> otherPaperQuestionIds = paperQuestionRepo.findByPaperIdIn(siblingPaperIds).stream()
                     .map(PaperQuestion::getQuestionId)
                     .collect(Collectors.toSet());
             usedQuestionIds.addAll(otherPaperQuestionIds);

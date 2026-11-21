@@ -46,7 +46,7 @@ class QuestionSwapServiceTest {
 
         GeneratedPaper paper = GeneratedPaper.builder()
                 .id(paperId)
-                .sessionId(100L)
+                .batchId("batch-100")
                 .subjectId(5L)
                 .build();
 
@@ -78,7 +78,7 @@ class QuestionSwapServiceTest {
         when(paperRepo.findById(paperId)).thenReturn(Optional.of(paper));
         when(paperQuestionRepo.findByPaperIdOrderByQuestionNumberAscChoiceLabelAsc(paperId)).thenReturn(List.of(pq));
         when(questionRepo.findById(oldQId)).thenReturn(Optional.of(oldQuestion));
-        when(paperRepo.findBySessionId(100L)).thenReturn(List.of(paper));
+        when(paperRepo.findByBatchId("batch-100")).thenReturn(List.of(paper));
         when(paperQuestionRepo.findByPaperIdIn(anyList())).thenReturn(List.of(pq));
         when(questionRepo.findBySubjectIdOrderByUnitAscSerialNoAsc(5L)).thenReturn(List.of(oldQuestion, alternative));
 
@@ -97,7 +97,7 @@ class QuestionSwapServiceTest {
 
         GeneratedPaper paper = GeneratedPaper.builder()
                 .id(paperId)
-                .sessionId(100L)
+                .batchId("batch-100")
                 .subjectId(5L)
                 .build();
 
@@ -120,7 +120,7 @@ class QuestionSwapServiceTest {
         when(paperRepo.findById(paperId)).thenReturn(Optional.of(paper));
         when(paperQuestionRepo.findByPaperIdOrderByQuestionNumberAscChoiceLabelAsc(paperId)).thenReturn(List.of(pq));
         when(questionRepo.findById(oldQId)).thenReturn(Optional.of(oldQuestion));
-        when(paperRepo.findBySessionId(100L)).thenReturn(List.of(paper));
+        when(paperRepo.findByBatchId("batch-100")).thenReturn(List.of(paper));
         when(paperQuestionRepo.findByPaperIdIn(anyList())).thenReturn(List.of(pq));
         when(questionRepo.findBySubjectIdOrderByUnitAscSerialNoAsc(5L)).thenReturn(List.of(oldQuestion));
 

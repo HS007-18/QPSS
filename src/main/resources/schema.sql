@@ -4,22 +4,11 @@ CREATE TABLE IF NOT EXISTS subjects (
     created_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE TABLE IF NOT EXISTS sessions (
-    id          BIGINT AUTO_INCREMENT PRIMARY KEY,
-    subject_id  BIGINT NOT NULL,
-    status      VARCHAR(20) DEFAULT 'ACTIVE',
-    created_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    closed_at   TIMESTAMP,
-    FOREIGN KEY (subject_id) REFERENCES subjects(id)
-);
-
 CREATE TABLE IF NOT EXISTS question_bank_imports (
     id          BIGINT AUTO_INCREMENT PRIMARY KEY,
     subject_id  BIGINT NOT NULL,
-    session_id  BIGINT NOT NULL,
     imported_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (subject_id) REFERENCES subjects(id),
-    FOREIGN KEY (session_id) REFERENCES sessions(id)
+    FOREIGN KEY (subject_id) REFERENCES subjects(id)
 );
 
 CREATE TABLE IF NOT EXISTS source_documents (
@@ -40,7 +29,6 @@ CREATE INDEX IF NOT EXISTS idx_source_document_checksum ON source_documents(chec
 CREATE TABLE IF NOT EXISTS questions (
     id                  BIGINT AUTO_INCREMENT PRIMARY KEY,
     subject_id          BIGINT NOT NULL,
-    session_id          BIGINT NOT NULL,
     source_document_id  BIGINT,
     unit                INT NOT NULL,
     co                  VARCHAR(10) NOT NULL,
@@ -53,7 +41,6 @@ CREATE TABLE IF NOT EXISTS questions (
     rbt                 VARCHAR(10) NOT NULL DEFAULT 'R',
     marks_split         VARCHAR(20),
     FOREIGN KEY (subject_id) REFERENCES subjects(id),
-    FOREIGN KEY (session_id) REFERENCES sessions(id),
     FOREIGN KEY (source_document_id) REFERENCES source_documents(id)
 );
 
@@ -85,13 +72,12 @@ CREATE TABLE IF NOT EXISTS exam_co_rules (
 
 CREATE TABLE IF NOT EXISTS generated_papers (
     id              BIGINT AUTO_INCREMENT PRIMARY KEY,
-    session_id      BIGINT NOT NULL,
     subject_id      BIGINT NOT NULL,
+    batch_id        VARCHAR(64),
     exam_type       VARCHAR(20) NOT NULL,
     set_label       VARCHAR(10),
     generation_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     is_final        BOOLEAN DEFAULT FALSE,
-    FOREIGN KEY (session_id) REFERENCES sessions(id),
     FOREIGN KEY (subject_id) REFERENCES subjects(id)
 );
 
@@ -121,3 +107,10 @@ ALTER TABLE generated_papers ADD COLUMN IF NOT EXISTS exam_title VARCHAR(255);
 ALTER TABLE generated_papers ADD COLUMN IF NOT EXISTS duration VARCHAR(50);
 
 ALTER TABLE questions ADD COLUMN IF NOT EXISTS topic INTEGER;
+ALTER TABLE generated_papers ADD COLUMN IF NOT EXISTS batch_id VARCHAR(64);
+ALTER TABLE generated_papers ADD COLUMN IF NOT EXISTS session_id BIGINT;
+ALTER TABLE generated_papers ALTER COLUMN session_id DROP NOT NULL;
+ALTER TABLE questions ADD COLUMN IF NOT EXISTS session_id BIGINT;
+ALTER TABLE questions ALTER COLUMN session_id DROP NOT NULL;
+ALTER TABLE question_bank_imports ADD COLUMN IF NOT EXISTS session_id BIGINT;
+ALTER TABLE question_bank_imports ALTER COLUMN session_id DROP NOT NULL;
