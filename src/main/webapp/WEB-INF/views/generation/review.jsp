@@ -6,7 +6,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>KIT QGen - Review Generated Papers</title>
-    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="/css/style.css?v=1.0.2">
     <style>
         .warning { background: var(--color-danger-light); color: var(--color-danger); padding: var(--space-4) var(--space-5); border-radius: var(--radius-md); margin-bottom: var(--space-6); font-size: 0.875rem; border: 1px solid var(--color-danger); }
         .set-card { background: var(--color-bg-elevated); border-radius: var(--radius-lg); padding: var(--space-6); margin-bottom: var(--space-6); border: 1px solid var(--color-border); box-shadow: var(--shadow-sm); }

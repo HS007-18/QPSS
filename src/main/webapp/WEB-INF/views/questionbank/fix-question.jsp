@@ -6,7 +6,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>KIT QGen - Fix Upload Issue</title>
-    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="/css/style.css?v=1.0.2">
     <style>
         .original-text { background: var(--color-bg); padding: var(--space-4); border-radius: var(--radius-md); font-size: 0.9375rem; color: var(--color-text-secondary); margin-bottom: var(--space-5); word-break: break-word; border: 1px solid var(--color-border); }
         .fix-form { max-width: 640px; margin: 0 auto; }

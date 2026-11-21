@@ -2,7 +2,7 @@
 <header class="header" role="banner">
   <div class="header-inner container">
     <a href="/" class="brand" aria-label="KIT QGen Home">
-      <img src="/images/kit-logo.jpg" alt="KIT Logo" class="brand-logo" />
+      <img src="/images/kit-logo.jpg" alt="KIT Logo" class="brand-logo" width="36" height="36" style="width: 36px; height: 36px; min-width: 36px; max-width: 36px; object-fit: contain; border-radius: 8px; flex-shrink: 0; background: #ffffff; padding: 1px; display: block;" />
       <span class="brand-text">KIT QGen</span>
       <c:if test="${not empty pageTitle}">
         <span class="brand-accent"><c:out value="${pageTitle}" /></span>

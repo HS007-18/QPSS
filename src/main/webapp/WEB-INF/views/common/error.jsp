@@ -1,4 +1,4 @@
-﻿<%@ page contentType="text/html;charset=UTF-8" pageEncoding="UTF-8" %>
+<%@ page contentType="text/html;charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <!DOCTYPE html>
 <html>
@@ -6,7 +6,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>KIT QGen - Error</title>
-    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="/css/style.css?v=1.0.2">
     <style>
         body { display: flex; align-items: center; justify-content: center; min-height: 100vh; background: var(--color-bg); padding: var(--space-4); }
         .error-card { background: var(--color-bg-elevated); border-radius: var(--radius-xl); padding: var(--space-10) var(--space-8); border: 1px solid var(--color-border); box-shadow: var(--shadow-lg); text-align: center; max-width: 520px; width: 100%; }
