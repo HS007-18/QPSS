@@ -10,12 +10,14 @@
 </head>
 <body>
 <c:set var="pageTitle" value="Dashboard" />
-<c:set var="navRight">
-    <button class="btn btn-primary" onclick="document.getElementById('uploadModal').classList.add('active')">
-        <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
-        Upload Question Banks
-    </button>
-</c:set>
+<c:if test="${not empty subjects}">
+    <c:set var="navRight">
+        <button class="btn btn-primary" onclick="document.getElementById('uploadModal').classList.add('active')">
+            <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
+            Upload Question Banks
+        </button>
+    </c:set>
+</c:if>
 <%@ include file="../fragments/navbar.jspf" %>
 
 <div class="container" style="padding-top: var(--space-6); padding-bottom: var(--space-10);">
@@ -52,7 +54,7 @@
             <p class="page-subtitle" style="margin-top: var(--space-1); font-size: 1rem; color: var(--color-text-secondary);">Manage your question banks and generate papers</p>
         </div>
         <div style="display: flex; gap: var(--space-3); align-items: center;">
-            <span class="count-badge">${subjects.size()} subject(s)</span>
+            <span class="count-badge" id="subjectCountBadge">${subjects.size()} subject(s)</span>
         </div>
     </header>
 
@@ -211,23 +213,25 @@ document.addEventListener('DOMContentLoaded', function() {
     const countBadge = document.getElementById('subjectCountBadge');
     const emptyState = document.getElementById('emptyState');
 
-    searchInput.addEventListener('input', function() {
-        const query = this.value.toLowerCase().trim();
-        const cards = subjectGrid.querySelectorAll('.subject-card');
-        let visibleCount = 0;
+    if (searchInput) {
+        searchInput.addEventListener('input', function() {
+            const query = this.value.toLowerCase().trim();
+            const cards = subjectGrid ? subjectGrid.querySelectorAll('.subject-card') : [];
+            let visibleCount = 0;
 
-        cards.forEach(function(card) {
-            const code = (card.getAttribute('data-code') || '').toLowerCase();
-            const name = (card.getAttribute('data-name') || '').toLowerCase();
-            const matches = !query || code.includes(query) || name.includes(query);
-            card.style.display = matches ? '' : 'none';
-            if (matches) visibleCount++;
+            cards.forEach(function(card) {
+                const code = (card.getAttribute('data-code') || '').toLowerCase();
+                const name = (card.getAttribute('data-name') || '').toLowerCase();
+                const matches = !query || code.includes(query) || name.includes(query);
+                card.style.display = matches ? '' : 'none';
+                if (matches) visibleCount++;
+            });
+
+            if (countBadge) countBadge.textContent = visibleCount + ' subject(s)';
+            if (noResults) noResults.style.display = (visibleCount === 0 && query.length > 0) ? 'block' : 'none';
+            if (emptyState) emptyState.style.display = (query.length > 0) ? 'none' : (visibleCount === 0 ? 'block' : 'none');
         });
-
-        countBadge.textContent = visibleCount + ' subject(s)';
-        noResults.style.display = (visibleCount === 0 && query.length > 0) ? 'block' : 'none';
-        if (emptyState) emptyState.style.display = (query.length > 0) ? 'none' : (visibleCount === 0 ? 'block' : 'none');
-    });
+    }
 
     // Close modal on overlay click
     uploadModal.addEventListener('click', function(e) {
